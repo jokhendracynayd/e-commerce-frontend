@@ -148,10 +148,11 @@ export function Header() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-blue-600 flex items-center justify-center">
+              <Image src="/images/logo/logo.png" alt="Logo" width={100} height={100} />
+              {/* <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-blue-600 flex items-center justify-center">
                 <span className="text-xl font-bold text-white">M</span>
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white hidden sm:inline-block">MyStore</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white hidden sm:inline-block">MyStore</span> */}
             </Link>
           </div>
 
