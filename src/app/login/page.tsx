@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -97,7 +97,7 @@ export default function LoginPage() {
           <p className="mt-2 text-muted dark:text-dark-muted">Sign in to your account</p>
           {returnUrl && returnUrl !== '/' && (
             <p className="mt-2 text-sm text-green-600 dark:text-green-400">
-              You'll be redirected back after login
+              You&apos;ll be redirected back after login
             </p>
           )}
         </div>
@@ -175,7 +175,7 @@ export default function LoginPage() {
         
         <div className="text-center mt-4">
           <p className="text-sm text-muted dark:text-dark-muted">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/signup" className="font-medium text-primary hover:text-primary-dark">
               Sign up
             </Link>

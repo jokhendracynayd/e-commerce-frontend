@@ -62,7 +62,7 @@ export default function CheckoutPage() {
             </svg>
           </div>
           <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Your cart is empty</h2>
-          <p className="text-gray-600 dark:text-gray-300 mb-8">Looks like you haven't added anything to your cart yet.</p>
+          <p className="text-gray-600 dark:text-gray-300 mb-8">Looks like you haven&apos;t added anything to your cart yet.</p>
           <Link href="/" className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md font-medium transition-colors">
             Continue Shopping
           </Link>

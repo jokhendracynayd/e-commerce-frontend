@@ -14,7 +14,7 @@ export default function OrderSuccessPage() {
       clearCart();
       hasCleared.current = true;
     }
-  }, []); // Empty dependency array to run only once on mount
+  }, [clearCart]); // Added clearCart as dependency
   
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl">
@@ -30,7 +30,7 @@ export default function OrderSuccessPage() {
         </h1>
         
         <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-md mx-auto">
-          Thank you for your purchase. We've received your order and will begin processing it right away.
+          Thank you for your purchase. We&apos;ve received your order and will begin processing it right away.
         </p>
         
         <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-8 max-w-md mx-auto">

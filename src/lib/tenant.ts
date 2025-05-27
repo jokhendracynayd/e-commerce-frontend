@@ -50,7 +50,7 @@ const mockTenants: Record<string, Tenant> = {
  * Get the current tenant from the request headers
  * This is set by the middleware
  */
-export function getCurrentTenant(): Tenant | null {
+export async function getCurrentTenant(): Promise<Tenant | null> {
   if (typeof window !== 'undefined') {
     // Client-side: We can't use headers() as it's server-side only
     // In a real app, you might get this from a global state or context
@@ -59,7 +59,7 @@ export function getCurrentTenant(): Tenant | null {
   }
 
   // Server-side
-  const headersList = headers();
+  const headersList = await headers();
   const tenantId = headersList.get('x-tenant-id');
   
   if (!tenantId) {

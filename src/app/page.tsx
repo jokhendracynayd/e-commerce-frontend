@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from 'next/link';
 import { Showcase } from "@/components/Showcase";
 import { ProductCategorySection } from "@/components/product/ProductCategorySection";
 import { CategoryNavigation } from "@/components/CategoryNavigation";

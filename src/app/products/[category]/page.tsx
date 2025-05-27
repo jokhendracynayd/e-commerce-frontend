@@ -2,14 +2,11 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { ProductCard } from '@/components/product/ProductCard';
 import FilterSidebar, { FilterState } from '@/components/product/filters/FilterSidebar';
-import Image from 'next/image';
 
 // Import the new ProductListingCard component
 import { ProductListingCard } from '@/components/product/ProductListingCard';
-import { getListingProducts, productCategories } from '@/components/product/productlist-data';
+import { getListingProducts } from '@/components/product/productlist-data';
 
 type SortOption = {
   id: string;

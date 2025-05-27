@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/CartContext';
@@ -61,7 +61,7 @@ export default function CartPage() {
           </motion.div>
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Your cart is empty</h2>
           <p className="text-gray-600 dark:text-gray-300 mb-10 max-w-md mx-auto">
-            Looks like you haven't added anything to your cart yet. Explore our products and find something you'll love.
+            Looks like you haven&apos;t added anything to your cart yet. Explore our products and find something you&apos;ll love.
           </p>
           <Link href="/" className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white py-3 px-8 rounded-lg font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
