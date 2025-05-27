@@ -1,0 +1,228 @@
+'use client';
+
+import { useState } from 'react';
+import Image from 'next/image';
+import { ProductDetail } from '@/types/product';
+
+interface ProductDetailsProps {
+  product: ProductDetail;
+}
+
+export function ProductDetails({ product }: ProductDetailsProps) {
+  const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'reviews'>('description');
+  const [expandedSpecGroups, setExpandedSpecGroups] = useState<string[]>([]);
+  
+  const toggleSpecGroup = (title: string) => {
+    if (expandedSpecGroups.includes(title)) {
+      setExpandedSpecGroups(expandedSpecGroups.filter(group => group !== title));
+    } else {
+      setExpandedSpecGroups([...expandedSpecGroups, title]);
+    }
+  };
+  
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+      {/* Tabs */}
+      <div className="flex border-b border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => setActiveTab('description')}
+          className={`px-4 py-3 text-sm font-medium ${
+            activeTab === 'description'
+              ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+              : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
+          }`}
+        >
+          Description
+        </button>
+        <button
+          onClick={() => setActiveTab('specifications')}
+          className={`px-4 py-3 text-sm font-medium ${
+            activeTab === 'specifications'
+              ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+              : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
+          }`}
+        >
+          Specifications
+        </button>
+        <button
+          onClick={() => setActiveTab('reviews')}
+          className={`px-4 py-3 text-sm font-medium ${
+            activeTab === 'reviews'
+              ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+              : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
+          }`}
+        >
+          Reviews
+        </button>
+      </div>
+      
+      {/* Tab content */}
+      <div className="p-4">
+        {/* Description tab */}
+        {activeTab === 'description' && (
+          <div className="space-y-6">
+            {/* Highlights */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Highlights</h3>
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {product.highlights.map((highlight, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="text-green-600 dark:text-green-400 mt-0.5">•</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{highlight}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            
+            {/* Description */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Description</h3>
+              <div className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                <p>{product.description}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Specifications tab */}
+        {activeTab === 'specifications' && (
+          <div className="space-y-4">
+            {product.specificationGroups.map((group, index) => (
+              <div key={index} className="border-b border-gray-200 dark:border-gray-700 last:border-0 pb-3 last:pb-0">
+                <button
+                  onClick={() => toggleSpecGroup(group.title)}
+                  className="w-full flex items-center justify-between py-3 font-medium text-gray-800 dark:text-white"
+                >
+                  <span>{group.title}</span>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-5 w-5 text-gray-400 transition-transform ${
+                      expandedSpecGroups.includes(group.title) ? 'rotate-180' : ''
+                    }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {/* Specs list - either always visible or toggled */}
+                <div className={`space-y-2 mt-2 ${expandedSpecGroups.includes(group.title) ? 'block' : 'hidden'}`}>
+                  {group.specs.map((spec, specIndex) => (
+                    <div key={specIndex} className="flex py-1.5">
+                      <span className="w-1/3 text-sm text-gray-500 dark:text-gray-400">{spec.key}</span>
+                      <span className="w-2/3 text-sm text-gray-700 dark:text-gray-300">{spec.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Reviews tab */}
+        {activeTab === 'reviews' && (
+          <div className="space-y-6">
+            {/* Rating summary */}
+            <div className="flex flex-col md:flex-row gap-6 md:items-center pb-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="text-center md:border-r md:border-gray-200 md:dark:border-gray-700 md:pr-6">
+                <div className="text-4xl font-bold text-gray-900 dark:text-white">{product.rating.toFixed(1)}/5</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">Based on {product.reviewCount} ratings</div>
+              </div>
+              
+              <div className="flex-1">
+                <div className="space-y-2">
+                  {[5, 4, 3, 2, 1].map(star => {
+                    // Calculate percentage - this is just a simulation
+                    const percentage = star === 5 ? 60 : 
+                                      star === 4 ? 25 : 
+                                      star === 3 ? 10 : 
+                                      star === 2 ? 4 : 1;
+                    
+                    return (
+                      <div key={star} className="flex items-center gap-2">
+                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 w-8">
+                          {star} ★
+                        </div>
+                        <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-yellow-400 dark:bg-yellow-500 rounded-full" 
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400 w-12">
+                          {percentage}%
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            
+            {/* Review list */}
+            <div className="space-y-6">
+              {product.reviews.map(review => (
+                <div key={review.id} className="pb-6 border-b border-gray-200 dark:border-gray-700 last:border-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-green-600 text-white text-xs px-1.5 py-0.5 rounded">
+                        {review.rating} ★
+                      </span>
+                      <h4 className="font-medium text-gray-800 dark:text-white">{review.title}</h4>
+                    </div>
+                    {review.isVerifiedPurchase && (
+                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                        Verified Purchase
+                      </span>
+                    )}
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">{review.comment}</p>
+                  
+                  {/* Review images if any */}
+                  {review.images && review.images.length > 0 && (
+                    <div className="flex gap-2 my-3">
+                      {review.images.map((img, i) => (
+                        <div key={i} className="relative w-16 h-16 rounded overflow-hidden border border-gray-200 dark:border-gray-700">
+                          <Image 
+                            src={img} 
+                            alt={`Review image ${i+1}`} 
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center justify-between mt-3 text-xs">
+                    <div className="text-gray-500 dark:text-gray-400">
+                      {review.user} | {review.date}
+                    </div>
+                    <button className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                      </svg>
+                      Helpful ({review.helpfulCount})
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Show more reviews button */}
+            {product.reviewCount > product.reviews.length && (
+              <div className="text-center">
+                <button className="px-6 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                  Show more reviews
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+} 
