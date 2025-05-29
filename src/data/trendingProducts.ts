@@ -9,7 +9,7 @@ export const trendingProductsData: Product[] = [
     discountPrice: 199.99,
     rating: 4.8,
     reviewCount: 245,
-    imageSrc: "https://picsum.photos/id/367/300/300",
+    imageSrc: "https://i.pinimg.com/736x/43/15/ae/4315ae69df9daa2550203db798b0d77f.jpg",
     badge: "Trending",
     slug: "wireless-noise-cancelling-headphones"
   },
@@ -20,7 +20,7 @@ export const trendingProductsData: Product[] = [
     discountPrice: 149.99,
     rating: 4.6,
     reviewCount: 189,
-    imageSrc: "https://picsum.photos/id/175/300/300",
+    imageSrc: "https://i.pinimg.com/736x/37/a8/ae/37a8ae2095512429d5d0ffa5d8675378.jpg",
     badge: "20% Off",
     slug: "smart-fitness-watch"
   },
@@ -31,7 +31,7 @@ export const trendingProductsData: Product[] = [
     discountPrice: 799.99,
     rating: 4.7,
     reviewCount: 327,
-    imageSrc: "https://picsum.photos/id/401/300/300",
+    imageSrc: "https://i.pinimg.com/736x/3d/37/d7/3d37d7aa9787256dda0591dc2c121001.jpg",
     badge: "New",
     slug: "ultra-hd-smart-tv-55"
   },
@@ -42,7 +42,7 @@ export const trendingProductsData: Product[] = [
     discountPrice: 1099.99,
     rating: 4.9,
     reviewCount: 156,
-    imageSrc: "https://picsum.photos/id/250/300/300",
+    imageSrc: "https://i.pinimg.com/736x/c9/b3/f1/c9b3f1814dfbc03e9964b429a5e39966.jpg",
     badge: "Hot",
     slug: "professional-camera"
   },
@@ -53,7 +53,7 @@ export const trendingProductsData: Product[] = [
     discountPrice: 799.99,
     rating: 4.8,
     reviewCount: 214,
-    imageSrc: "https://picsum.photos/id/160/300/300",
+    imageSrc: "https://i.pinimg.com/736x/24/a5/c2/24a5c2fe42201494dfe5cf71280b7845.jpg",
     badge: "Popular",
     slug: "smartphone-triple-camera"
   },
@@ -64,7 +64,7 @@ export const trendingProductsData: Product[] = [
     discountPrice: 249.99,
     rating: 4.7,
     reviewCount: 178,
-    imageSrc: "https://picsum.photos/id/164/300/300",
+    imageSrc: "https://i.pinimg.com/736x/e0/bd/2f/e0bd2fb7e82af3a51ad06bc9831f925b.jpg",
     slug: "ergonomic-office-chair"
   },
   {
@@ -74,7 +74,7 @@ export const trendingProductsData: Product[] = [
     discountPrice: 1299.99,
     rating: 4.9,
     reviewCount: 132,
-    imageSrc: "https://picsum.photos/id/119/300/300",
+    imageSrc: "https://i.pinimg.com/736x/39/15/e4/3915e4b87e3ed23b1f8670609b99710a.jpg",
     badge: "Best Seller",
     slug: "gaming-laptop"
   },
@@ -85,7 +85,7 @@ export const trendingProductsData: Product[] = [
     discountPrice: 99.99,
     rating: 4.5,
     reviewCount: 265,
-    imageSrc: "https://picsum.photos/id/143/300/300",
+    imageSrc: "https://i.pinimg.com/736x/90/3f/66/903f66db561c426d8f8e9c551ece7cee.jpg",
     badge: "30% Off",
     slug: "bluetooth-portable-speaker"
   }

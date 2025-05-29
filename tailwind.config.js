@@ -6,7 +6,7 @@ module.exports = {
     extend: {
       colors: {
         // Brand Identity
-        primary: "#7F56D9",     // Royal Purple
+        primary: "#f7ac8b",     // Royal Purple
         secondary: "#F4A261",   // Soft Orange
         accent: "#2A9D8F",      // Deep Teal
         highlight: "#E9C46A",   // Warm Gold
@@ -24,8 +24,8 @@ module.exports = {
         "dark-muted": "#A1A1AA",        // Muted gray
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        heading: ["Poppins", "ui-sans-serif", "system-ui"],
+        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        heading: ["var(--font-poppins)", "ui-sans-serif", "system-ui"],
       },
       borderRadius: {
         xl: "1rem",

@@ -283,18 +283,18 @@ export default function CategoryPage() {
         {/* Filters sidebar - hidden on mobile unless toggled */}
         <div className={`${isMobileFilterOpen ? 'block' : 'hidden'} lg:block lg:w-1/5 max-w-[280px]`}>
         {/* Sort options and view toggle */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-5 mb-6">
+        <div className="bg-white dark:bg-gray-800 shadow-[0_4px_15px_rgba(237,135,90,0.1)] border border-[#f5f1ed] dark:border-[#d44506]/10 p-4 md:p-5 mb-6">
             <div className="flex flex-wrap items-center justify-between">
               <div className="flex items-center">
-                <h2 className="font-semibold dark:text-white italic flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                <h2 className="font-semibold dark:text-white flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-[#ed875a] dark:text-[#ed8c61]" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
                   </svg>
                   <span>{filteredProducts.length} FILTERS</span>
                 </h2>
                 {isLoading && (
-                  <div className="ml-3 flex items-center bg-blue-50 dark:bg-blue-900/20 py-1 px-2 rounded-full">
-                    <svg className="animate-spin h-4 w-4 text-blue-600 dark:text-blue-400 mr-1" viewBox="0 0 24 24">
+                  <div className="ml-3 flex items-center bg-[#f5f1ed] dark:bg-[#d44506]/10 py-1 px-2">
+                    <svg className="animate-spin h-4 w-4 text-[#ed875a] dark:text-[#ed8c61] mr-1" viewBox="0 0 24 24">
                       <circle 
                         className="opacity-25" 
                         cx="12" 
@@ -310,20 +310,20 @@ export default function CategoryPage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       />
                     </svg>
-                    <span className="text-sm font-medium text-blue-600 dark:text-blue-400">Updating...</span>
+                    <span className="text-sm font-medium text-[#ed875a] dark:text-[#ed8c61]">Updating...</span>
                   </div>
                 )}
               </div>
               
               <div className="flex items-center space-x-4 mt-2 sm:mt-0">
                 {/* View toggle */}
-                <div className="hidden sm:flex items-center bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm p-1">
+                <div className="hidden sm:flex items-center bg-[#f5f1ed] dark:bg-[#d44506]/10 border border-[#ed875a]/20 dark:border-[#ed8c61]/20 overflow-hidden shadow-sm p-1">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 ${
+                    className={`flex items-center justify-center w-8 h-8 transition-all duration-200 ${
                       viewMode === 'grid'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
+                        ? 'bg-[#ed875a] dark:bg-[#ed8c61] text-white shadow-sm'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20'
                     }`}
                     aria-label="Grid view"
                   >
@@ -336,10 +336,10 @@ export default function CategoryPage() {
                   </button>
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`flex items-center justify-center w-8 h-8 rounded-md transition-all duration-200 ${
+                    className={`flex items-center justify-center w-8 h-8 transition-all duration-200 ${
                       viewMode === 'list'
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'
+                        ? 'bg-[#ed875a] dark:bg-[#ed8c61] text-white shadow-sm'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20'
                     }`}
                     aria-label="List view"
                   >
@@ -356,13 +356,13 @@ export default function CategoryPage() {
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="appearance-none bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg py-2 pl-3 pr-10 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+                      className="appearance-none bg-[#f5f1ed] dark:bg-[#d44506]/10 border border-[#ed875a]/20 dark:border-[#ed8c61]/20 py-2 pl-3 pr-8 text-sm font-medium text-gray-700 dark:text-gray-200 focus:outline-none focus:border-[#ed875a] dark:focus:border-[#ed8c61] shadow-sm hover:border-[#ed875a] dark:hover:border-[#ed8c61] transition-colors w-40"
                     >
                       {sortOptions.map(option => (
                         <option key={option.id} value={option.id}>{option.name}</option>
                       ))}
                     </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-blue-600 dark:text-blue-400">
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[#ed875a] dark:text-[#ed8c61]">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
@@ -390,7 +390,7 @@ export default function CategoryPage() {
           ) : filteredProducts.length > 0 ? (
             <>
               <div className={viewMode === 'grid' 
-                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4'
+                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
                 : 'space-y-4'
               }>
                 {currentProducts.map((product) => (

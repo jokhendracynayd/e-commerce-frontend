@@ -9,12 +9,13 @@ import { Suspense } from 'react';
 
 const inter = Inter({
   subsets: ["latin"],
+  weight: ['400', '500', '600', '700'],
   display: "swap",
   variable: "--font-inter"
 });
 
 const poppins = Poppins({
-  weight: ["400", "500", "600", "700"],
+  weight: ["500", "600", "700"],
   subsets: ["latin"],
   display: "swap",
   variable: "--font-poppins"
@@ -32,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
-      <body className="min-h-screen bg-background dark:bg-dark-background text-foreground dark:text-dark-foreground flex flex-col">
+      <body className="min-h-screen bg-background dark:bg-dark-background text-foreground dark:text-dark-foreground flex flex-col font-sans">
         <AuthProvider>
           <CartProvider>
             <Header />

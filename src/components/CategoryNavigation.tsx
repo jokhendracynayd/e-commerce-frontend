@@ -19,7 +19,7 @@ export const categories: CategoryType[] = [
     id: 'kilos',
     name: 'Kilos', 
     href: '/products/kilos', 
-    icon: 'https://cdn-icons-png.flaticon.com/128/3082/3082011.png',
+    icon: 'https://i.pinimg.com/736x/c8/78/f3/c878f3cbb4a6cc56199b594f0e0d1871.jpg',
     featured: true,
     description: 'Premium groceries at wholesale prices'
   },
@@ -27,7 +27,7 @@ export const categories: CategoryType[] = [
     id: 'mobiles',
     name: 'Mobiles', 
     href: '/products/mobiles', 
-    icon: 'https://cdn-icons-png.flaticon.com/128/186/186239.png',
+    icon: 'https://i.pinimg.com/736x/1c/ce/99/1cce99de15bfea9028d23b1965a04f0f.jpg',
     featured: true,
     description: 'Latest smartphones and accessories'
   },
@@ -35,14 +35,14 @@ export const categories: CategoryType[] = [
     id: 'fashion',
     name: 'Fashion', 
     href: '/products/fashion', 
-    icon: 'https://cdn-icons-png.flaticon.com/128/2331/2331966.png',
+    icon: 'https://i.pinimg.com/736x/5c/6c/e6/5c6ce698df5d40ab8aa4f523da92cc38.jpg',
     description: 'Trendy clothing and apparel'
   },
   { 
     id: 'electronics',
     name: 'Electronics', 
     href: '/products/electronics', 
-    icon: 'https://cdn-icons-png.flaticon.com/128/3659/3659899.png',
+    icon: 'https://i.pinimg.com/736x/2b/18/d3/2b18d396018870983758de8d3f0db926.jpg',
     featured: true,
     description: 'Gadgets and tech essentials'
   },
@@ -50,41 +50,42 @@ export const categories: CategoryType[] = [
     id: 'home-furniture',
     name: 'Home & Furniture', 
     href: '/products/home-furniture', 
-    icon: 'https://cdn-icons-png.flaticon.com/128/1084/1084226.png',
+    icon: 'https://i.pinimg.com/736x/6b/81/3f/6b813ff256e49639e8e85f254d296807.jpg',
     description: 'Stylish decor for your space'
   },
   { 
     id: 'appliances',
     name: 'Appliances', 
     href: '/products/appliances', 
-    icon: 'https://cdn-icons-png.flaticon.com/128/2267/2267951.png',
+    icon: 'https://i.pinimg.com/736x/61/26/e8/6126e833678890f28cfc282e3f4e879e.jpg',
     description: 'Premium home appliances'
-  },
-  { 
-    id: 'flight-bookings',
-    name: 'Flight Bookings', 
-    href: '/products/flight-bookings', 
-    icon: 'https://cdn-icons-png.flaticon.com/128/723/723955.png',
-    description: 'Best deals on flight tickets'
   },
   { 
     id: 'beauty-toys',
     name: 'Beauty & Toys', 
     href: '/products/beauty-toys', 
-    icon: 'https://cdn-icons-png.flaticon.com/128/1906/1906968.png',
+    icon: 'https://i.pinimg.com/736x/bd/7e/a4/bd7ea444641930cbd78765067d3e0cf5.jpg',
     description: 'Self-care products and toys'
   },
   { 
     id: 'two-wheelers',
     name: 'Two Wheelers', 
     href: '/products/two-wheelers', 
-    icon: 'https://cdn-icons-png.flaticon.com/128/2972/2972185.png',
+    icon: 'https://i.pinimg.com/736x/fd/81/49/fd8149d6f5bee7d221bf25892d732e00.jpg',
     description: 'Bikes and two-wheeler accessories'
   },
 ];
 
 export function CategoryNavigation() {
-  const pathname = usePathname();
+  // Wrap the usePathname hook in a try-catch to prevent server rendering errors
+  let pathname = '/';
+  try {
+    pathname = usePathname() || '/';
+  } catch (error) {
+    console.error('Error using pathname:', error);
+    // Use default pathname if there's an error
+  }
+  
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(false);
   const [showTooltip, setShowTooltip] = useState<string | null>(null);

@@ -279,14 +279,14 @@ export default function FilterSidebar({
     sectionKey: keyof typeof expandedSections; 
     children: React.ReactNode 
   }) => (
-    <div className="border-b border-gray-100 dark:border-gray-750 py-3">
+    <div className="border-b border-[#f5f1ed] dark:border-[#d44506]/10 py-3">
       <div 
         className="flex items-center justify-between cursor-pointer" 
         onClick={() => toggleSection(sectionKey)}
       >
         <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">{title}</h3>
         <svg 
-          className={`w-4 h-4 text-gray-500 dark:text-gray-400 transition-transform ${expandedSections[sectionKey] ? 'transform rotate-180' : ''}`} 
+          className={`w-4 h-4 text-[#ed875a] dark:text-[#ed8c61] transition-transform ${expandedSections[sectionKey] ? 'transform rotate-180' : ''}`} 
           fill="none" 
           viewBox="0 0 24 24" 
           stroke="currentColor"
@@ -303,13 +303,13 @@ export default function FilterSidebar({
   );
 
   return (
-    <div className="bg-white dark:bg-gray-850 rounded-lg shadow-lg border border-gray-100 dark:border-gray-750">
+    <div className="bg-white dark:bg-gray-850 shadow-[0_4px_15px_rgba(237,135,90,0.1)] border border-[#f5f1ed] dark:border-[#d44506]/10">
       {/* Filter header with clear all button */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-750">
+      <div className="flex items-center justify-between p-4 border-b border-[#f5f1ed] dark:border-[#d44506]/10">
         <h2 className="text-base font-semibold text-gray-700 dark:text-gray-200">Filters</h2>
         <button 
           onClick={clearAllFilters}
-          className="text-xs text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 hover:underline uppercase tracking-wide font-medium"
+          className="text-xs text-[#ed875a] dark:text-[#ed8c61] hover:text-[#d44506] dark:hover:text-[#ed875a] hover:underline uppercase tracking-wide font-medium"
         >
           CLEAR ALL
         </button>
@@ -335,11 +335,11 @@ export default function FilterSidebar({
       </div>
 
       {/* Category navigation */}
-      <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-750">
+      <div className="px-3 py-2 border-b border-[#f5f1ed] dark:border-[#d44506]/10">
         <h3 className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide mb-2">CATEGORIES</h3>
         {parentCategory && (
           <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-            <Link href={parentCategoryUrl || '#'} className="hover:text-blue-500 flex items-center">
+            <Link href={parentCategoryUrl || '#'} className="hover:text-[#ed875a] dark:hover:text-[#ed8c61] flex items-center">
               <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
@@ -363,8 +363,8 @@ export default function FilterSidebar({
           />
         </FilterSection>
 
-        {/* F-Assured checkbox */}
-        <div className="py-3 border-b border-gray-100 dark:border-gray-750">
+        {/* Assured checkbox */}
+        <div className="py-3 border-b border-[#f5f1ed] dark:border-[#d44506]/10">
           <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
@@ -372,23 +372,15 @@ export default function FilterSidebar({
               checked={filters.fAssured === true}
               onChange={() => updateFilters('fAssured', !filters.fAssured)}
             />
-            <div className="w-5 h-5 border border-gray-300 dark:border-gray-600 rounded mr-3 flex items-center justify-center">
+            <div className="w-5 h-5 border border-[#ed875a]/40 dark:border-[#ed8c61]/40 flex items-center justify-center">
               {filters.fAssured && (
-                <svg className="w-3 h-3 text-blue-600 dark:text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="w-3 h-3 text-[#ed875a] dark:text-[#ed8c61]" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               )}
             </div>
-            <div className="flex items-center">
-              <div className="relative h-6 w-20">
-                <Image 
-                  src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/fa_62673a.png" 
-                  alt="Flipkart Assured" 
-                  width={80}
-                  height={24}
-                  className="object-contain"
-                />
-              </div>
+            <div className="flex items-center ml-3">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Premium Assured</span>
               <div className="ml-2 text-gray-500 cursor-pointer">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -523,14 +515,14 @@ export default function FilterSidebar({
               checked={filters.gstInvoice === true}
               onChange={() => updateFilters('gstInvoice', !filters.gstInvoice)}
             />
-            <div className="w-5 h-5 border border-gray-300 dark:border-gray-600 rounded mr-2 flex items-center justify-center">
+            <div className="w-5 h-5 border border-[#ed875a]/40 dark:border-[#ed8c61]/40 flex items-center justify-center">
               {filters.gstInvoice && (
-                <svg className="w-3 h-3 text-blue-600 dark:text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="w-3 h-3 text-[#ed875a] dark:text-[#ed8c61]" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
               )}
             </div>
-            <span className="text-sm text-gray-700 dark:text-gray-300">GST Invoice Available</span>
+            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">GST Invoice Available</span>
           </label>
         </FilterSection>
 

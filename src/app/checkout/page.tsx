@@ -12,6 +12,8 @@ export default function CheckoutPage() {
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [pincode, setPincode] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Redirect to home if no items in cart
@@ -55,15 +57,15 @@ export default function CheckoutPage() {
       <div className="container mx-auto px-4 py-12 max-w-5xl">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">Checkout</h1>
         
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
-          <div className="w-24 h-24 mx-auto mb-6 text-gray-300 dark:text-gray-600">
+        <div className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-8 text-center border border-gray-100 dark:border-gray-700">
+          <div className="w-24 h-24 mx-auto mb-6 text-[#ed875a] dark:text-[#ed8c61]">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
           </div>
           <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">Your cart is empty</h2>
           <p className="text-gray-600 dark:text-gray-300 mb-8">Looks like you haven&apos;t added anything to your cart yet.</p>
-          <Link href="/" className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md font-medium transition-colors">
+          <Link href="/" className="inline-block bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white py-3 px-6 font-medium transition-all hover:shadow-lg">
             Continue Shopping
           </Link>
         </div>
@@ -80,8 +82,8 @@ export default function CheckoutPage() {
   //     <div className="container mx-auto px-4 py-12 max-w-5xl">
   //       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">Checkout</h1>
   //       
-  //       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
-  //         <div className="w-24 h-24 mx-auto mb-6 text-gray-300 dark:text-gray-600">
+  //       <div className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-8 text-center">
+  //         <div className="w-24 h-24 mx-auto mb-6 text-[#ed875a] dark:text-[#ed8c61]">
   //           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
   //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
   //           </svg>
@@ -91,13 +93,13 @@ export default function CheckoutPage() {
   //         <div className="flex flex-col sm:flex-row gap-4 justify-center">
   //           <Link 
   //             href="/login?returnUrl=/checkout" 
-  //             className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md font-medium transition-colors"
+  //             className="inline-block bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white py-3 px-6 font-medium transition-all hover:shadow-lg"
   //           >
   //             Login
   //           </Link>
   //           <Link 
   //             href="/signup" 
-  //             className="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 py-3 px-6 rounded-md font-medium transition-colors"
+  //             className="inline-block bg-[#f5f1ed] hover:bg-gray-200 text-gray-800 py-3 px-6 font-medium transition-all"
   //           >
   //             Sign Up
   //           </Link>
@@ -115,7 +117,7 @@ export default function CheckoutPage() {
         {/* Checkout form */}
         <div className="lg:w-2/3 space-y-6">
           {/* Product summary */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <div className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-4 border border-gray-100 dark:border-gray-700">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Order Summary</h2>
             
             <div className="space-y-4">
@@ -163,36 +165,55 @@ export default function CheckoutPage() {
           </div>
           
           {/* Delivery Address */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-6 border border-gray-100 dark:border-gray-700">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Delivery Address</h2>
             
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Pincode*
-                </label>
+                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name*</label>
+                <input
+                  type="text"
+                  id="fullName"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full border border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent"
+                  placeholder="Enter your full name"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number*</label>
+                <input
+                  type="tel"
+                  id="phoneNumber"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full border border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent"
+                  placeholder="Enter your phone number"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pincode*</label>
                 <input
                   type="text"
                   id="pincode"
                   value={pincode}
                   onChange={(e) => setPincode(e.target.value)}
                   maxLength={6}
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full border border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent"
                   placeholder="Enter pincode"
                   required
                 />
               </div>
-              
-              <div>
-                <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Address*
-                </label>
+              <div className="md:col-span-2">
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address*</label>
                 <textarea
                   id="address"
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
                   rows={4}
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full border border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent"
                   placeholder="Enter your complete address"
                   required
                 />
@@ -201,7 +222,7 @@ export default function CheckoutPage() {
           </div>
           
           {/* Payment Methods */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
+          <div className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-6 border border-gray-100 dark:border-gray-700">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Payment Method</h2>
             
             <div className="space-y-3">
@@ -213,7 +234,7 @@ export default function CheckoutPage() {
                   value="card"
                   checked={paymentMethod === 'card'}
                   onChange={() => setPaymentMethod('card')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                 />
                 <label htmlFor="card" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                   Credit/Debit Card
@@ -228,7 +249,7 @@ export default function CheckoutPage() {
                   value="upi"
                   checked={paymentMethod === 'upi'}
                   onChange={() => setPaymentMethod('upi')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                 />
                 <label htmlFor="upi" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                   UPI
@@ -243,7 +264,7 @@ export default function CheckoutPage() {
                   value="cod"
                   checked={paymentMethod === 'cod'}
                   onChange={() => setPaymentMethod('cod')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                 />
                 <label htmlFor="cod" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                   Cash on Delivery
@@ -260,7 +281,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     id="cardNumber"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent"
                     placeholder="XXXX XXXX XXXX XXXX"
                     maxLength={19}
                   />
@@ -274,7 +295,7 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       id="expiry"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent"
                       placeholder="MM/YY"
                       maxLength={5}
                     />
@@ -287,7 +308,7 @@ export default function CheckoutPage() {
                     <input
                       type="password"
                       id="cvv"
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent"
                       placeholder="XXX"
                       maxLength={3}
                     />
@@ -305,7 +326,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     id="upiId"
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 dark:border-gray-600 py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent"
                     placeholder="yourname@upi"
                   />
                 </div>
@@ -316,7 +337,7 @@ export default function CheckoutPage() {
         
         {/* Order summary */}
         <div className="lg:w-1/3">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 sticky top-20">
+          <div className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-6 sticky top-20 border border-gray-100 dark:border-gray-700">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Payment Summary</h2>
             
             {/* Price breakdown */}
@@ -331,7 +352,7 @@ export default function CheckoutPage() {
                 <span className="text-gray-600 dark:text-gray-300">Shipping</span>
                 <span className="text-gray-800 dark:text-gray-200 font-medium">
                   {shippingCost === 0 ? (
-                    <span className="text-green-600 dark:text-green-400">Free</span>
+                    <span className="text-[#d44506] dark:text-[#ed875a]">Free</span>
                   ) : (
                     `₹${formatPrice(shippingCost)}`
                   )}
@@ -349,9 +370,9 @@ export default function CheckoutPage() {
             
             {/* Place order button */}
             <button 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md font-medium transition-colors disabled:bg-blue-400 dark:disabled:bg-blue-700 disabled:cursor-not-allowed flex items-center justify-center"
+              className="w-full bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white py-3 px-6 font-medium transition-all hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
               onClick={handleSubmit}
-              disabled={isProcessing || !deliveryAddress || !pincode}
+              disabled={isProcessing || !fullName || !phoneNumber || !deliveryAddress || !pincode}
             >
               {isProcessing ? (
                 <>

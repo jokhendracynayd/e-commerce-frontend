@@ -22,7 +22,7 @@ export default async function Home() {
     currentPrice: 399.99,
     savings: 200,
     discount: 33,
-    imageSrc: "https://picsum.photos/id/225/600/600",
+    imageSrc: "https://i.pinimg.com/736x/91/fb/55/91fb55d198e4c999f4436dc991958d51.jpg",
     features: ["15 bar pressure", "Milk frother", "Programmable", "Energy efficient"],
     endTime: "2023-12-31T23:59:59"
   };
@@ -45,25 +45,25 @@ export default async function Home() {
       <TrendingProducts products={trendingProducts} />
       
       {/* Deal of the Day Section */}
-      <section className="py-12 px-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
+      <section className="pb-6 px-4">
         <div className="container mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[#d44506] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               Deal of the Day
             </h2>
             <div className="flex gap-1 text-sm">
-              <div className="bg-gray-900 dark:bg-gray-700 text-white px-2 py-1 rounded">10</div>
+              <div className="bg-gray-900 dark:bg-gray-700 text-white px-3 py-1.5">10</div>
               <span className="text-gray-500 my-auto">:</span>
-              <div className="bg-gray-900 dark:bg-gray-700 text-white px-2 py-1 rounded">24</div>
+              <div className="bg-gray-900 dark:bg-gray-700 text-white px-3 py-1.5">24</div>
               <span className="text-gray-500 my-auto">:</span>
-              <div className="bg-gray-900 dark:bg-gray-700 text-white px-2 py-1 rounded">36</div>
+              <div className="bg-gray-900 dark:bg-gray-700 text-white px-3 py-1.5">36</div>
             </div>
           </div>
           
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden">
             <div className="grid grid-cols-1 md:grid-cols-2">
               <div className="relative overflow-hidden h-80 md:h-auto">
                 <Image 
@@ -72,7 +72,7 @@ export default async function Home() {
                   fill
                   className="object-cover"
                 />
-                <div className="absolute top-4 left-4 bg-red-500 text-white text-lg font-bold w-16 h-16 rounded-full flex flex-col items-center justify-center">
+                <div className="absolute top-4 left-4 bg-[#d44506] text-white text-lg font-bold w-16 h-16 flex flex-col items-center justify-center">
                   <span>{dealOfTheDay.discount}%</span>
                   <span className="text-xs">OFF</span>
                 </div>
@@ -88,7 +88,7 @@ export default async function Home() {
                   <span className="text-lg text-gray-500 dark:text-gray-400 line-through">
                     ${dealOfTheDay.originalPrice}
                   </span>
-                  <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+                  <span className="text-sm font-medium" style={{ color: '#ed875a' }}>
                     Save ${dealOfTheDay.savings}
                   </span>
                 </div>
@@ -97,7 +97,7 @@ export default async function Home() {
                   <ul className="space-y-1">
                     {dealOfTheDay.features.map((feature, index) => (
                       <li key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#ed875a] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         {feature}
@@ -106,10 +106,10 @@ export default async function Home() {
                   </ul>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <button className="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg">
+                  <button className="bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-md text-white font-medium py-3 px-6 transition-all duration-300">
                     Buy Now
                   </button>
-                  <button className="bg-white dark:bg-gray-700 border border-primary text-primary dark:text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2">
+                  <button className="bg-white dark:bg-gray-700 border border-[#ed875a] text-[#ed875a] dark:text-white font-medium py-3 px-6 hover:bg-[#ed875a]/5 transition-all duration-300 flex items-center justify-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>

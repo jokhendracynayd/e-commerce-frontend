@@ -257,116 +257,124 @@ export default function PriceFilter({ range, onChange, min, max }: PriceFilterPr
   };
 
   return (
-    <div className="space-y-5">
-      {/* Slider track */}
-      <div 
-        className="relative h-2 mt-7 mb-5" 
-        ref={sliderRef}
-        onClick={handleTrackClick}
-      >
-        {/* Background track */}
-        <div 
-          className="absolute h-0.5 bg-gray-200 dark:bg-gray-700 rounded-full w-full top-1/2 -translate-y-1/2 cursor-pointer"
-          ref={trackRef}
-        ></div>
-        
-        {/* Active track */}
-        <div 
-          className="absolute h-0.5 bg-blue-500 dark:bg-blue-400 rounded-full top-1/2 -translate-y-1/2 cursor-pointer" 
-          style={{ 
-            left: `${minPos}%`, 
-            right: `${100 - maxPos}%` 
-          }}
-        ></div>
-        
-        {/* Min thumb */}
-        <div 
-          ref={minThumbRef}
-          className={`absolute w-4 h-4 bg-white dark:bg-gray-800 border border-blue-500 dark:border-blue-400 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer shadow-md ${isDragging === 'min' ? 'ring-2 ring-blue-300 dark:ring-blue-700' : ''}`}
-          style={{ left: `${minPos}%` }}
-          onMouseDown={handleThumbMouseDown('min')}
-          onTouchStart={handleTouchStart('min')}
-        ></div>
-        
-        {/* Max thumb */}
-        <div 
-          ref={maxThumbRef}
-          className={`absolute w-4 h-4 bg-white dark:bg-gray-800 border border-blue-500 dark:border-blue-400 rounded-full top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer shadow-md ${isDragging === 'max' ? 'ring-2 ring-blue-300 dark:ring-blue-700' : ''}`}
-          style={{ left: `${maxPos}%` }}
-          onMouseDown={handleThumbMouseDown('max')}
-          onTouchStart={handleTouchStart('max')}
-        ></div>
-      </div>
-      
-      {/* Min/Max Input Dropdowns */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="relative flex-1">
-          <button 
+    <div className="pb-4">
+      {/* Selected price range display */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {/* Min price dropdown */}
+        <div className="relative">
+          <button
             onClick={() => {
               setIsMinDropdownOpen(!isMinDropdownOpen);
               setIsMaxDropdownOpen(false);
             }}
-            className="w-full flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded py-1.5 px-2 text-xs text-gray-700 dark:text-gray-300"
+            className="inline-flex items-center px-3 py-1.5 text-xs border border-[#ed875a]/20 dark:border-[#ed8c61]/20 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-[#ed875a] dark:hover:border-[#ed8c61]"
+            type="button"
           >
-            <span className="block truncate font-medium">Min {minPrice > 0 ? `₹${minPrice}` : ''}</span>
-            <span className="ml-1 pointer-events-none">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </span>
+            ₹{minPrice.toLocaleString('en-IN')}
+            <svg className="w-2.5 h-2.5 ml-2" aria-hidden="true" fill="none" viewBox="0 0 10 6">
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
+            </svg>
           </button>
-          
           {isMinDropdownOpen && (
-            <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg">
-              <ul className="max-h-36 overflow-auto py-1">
+            <div className="absolute left-0 top-full mt-1 z-10 bg-white dark:bg-gray-800 border border-[#ed875a]/20 dark:border-[#ed8c61]/20 w-auto shadow-lg">
+              <ul className="text-xs text-gray-700 dark:text-gray-300">
                 {minOptions.map((option) => (
-                  <li 
-                    key={option}
-                    onClick={() => handleMinOptionSelect(option)}
-                    className={`cursor-pointer px-3 py-1.5 text-xs hover:bg-gray-50 dark:hover:bg-gray-750 ${option === minPrice ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
-                  >
-                    ₹{option}
+                  <li key={option}>
+                    <button
+                      onClick={() => handleMinOptionSelect(option)}
+                      className={`block w-full px-4 py-2 text-left hover:bg-[#f5f1ed] dark:hover:bg-[#d44506]/10 ${
+                        option === minPrice ? 'bg-[#f5f1ed] dark:bg-[#d44506]/10 text-[#ed875a] dark:text-[#ed8c61] font-medium' : ''
+                      }`}
+                    >
+                      ₹{option.toLocaleString('en-IN')}
+                    </button>
                   </li>
                 ))}
               </ul>
             </div>
           )}
         </div>
-        
-        <span className="text-xs text-gray-500 dark:text-gray-400">to</span>
-        
-        <div className="relative flex-1">
-          <button 
+
+        <span className="text-xs text-gray-500">to</span>
+
+        {/* Max price dropdown */}
+        <div className="relative">
+          <button
             onClick={() => {
               setIsMaxDropdownOpen(!isMaxDropdownOpen);
               setIsMinDropdownOpen(false);
             }}
-            className="w-full flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded py-1.5 px-2 text-xs text-gray-700 dark:text-gray-300"
+            className="inline-flex items-center px-3 py-1.5 text-xs border border-[#ed875a]/20 dark:border-[#ed8c61]/20 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-[#ed875a] dark:hover:border-[#ed8c61]"
+            type="button"
           >
-            <span className="block truncate font-medium">₹{maxPrice === max ? `${max}+` : maxPrice}</span>
-            <span className="ml-1 pointer-events-none">
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </span>
+            ₹{maxPrice.toLocaleString('en-IN')}
+            <svg className="w-2.5 h-2.5 ml-2" aria-hidden="true" fill="none" viewBox="0 0 10 6">
+              <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 4 4 4-4" />
+            </svg>
           </button>
-          
           {isMaxDropdownOpen && (
-            <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg">
-              <ul className="max-h-36 overflow-auto py-1">
+            <div className="absolute left-0 top-full mt-1 z-10 bg-white dark:bg-gray-800 border border-[#ed875a]/20 dark:border-[#ed8c61]/20 w-auto shadow-lg">
+              <ul className="text-xs text-gray-700 dark:text-gray-300">
                 {maxOptions.map((option, index) => (
-                  <li 
-                    key={option}
-                    onClick={() => handleMaxOptionSelect(option)}
-                    className={`cursor-pointer px-3 py-1.5 text-xs hover:bg-gray-50 dark:hover:bg-gray-750 ${option === maxPrice ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-700 dark:text-gray-300'}`}
-                  >
-                    ₹{maxDisplayOptions[index]}
+                  <li key={option}>
+                    <button
+                      onClick={() => handleMaxOptionSelect(option)}
+                      className={`block w-full px-4 py-2 text-left hover:bg-[#f5f1ed] dark:hover:bg-[#d44506]/10 ${
+                        option === maxPrice ? 'bg-[#f5f1ed] dark:bg-[#d44506]/10 text-[#ed875a] dark:text-[#ed8c61] font-medium' : ''
+                      }`}
+                    >
+                      ₹{maxDisplayOptions[index]}
+                    </button>
                   </li>
                 ))}
               </ul>
             </div>
           )}
         </div>
+      </div>
+
+      {/* Price range slider */}
+      <div 
+        ref={sliderRef} 
+        className="relative h-1 bg-gray-200 dark:bg-gray-700 cursor-pointer"
+        onClick={handleTrackClick}
+      >
+        {/* Active track */}
+        <div 
+          ref={trackRef}
+          className="absolute h-full bg-[#ed875a] dark:bg-[#ed8c61]" 
+          style={{ left: `${minPos}%`, width: `${maxPos - minPos}%` }}
+        />
+        
+        {/* Min thumb */}
+        <div 
+          ref={minThumbRef}
+          className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white dark:bg-gray-800 border-2 border-[#ed875a] dark:border-[#ed8c61] transform -translate-x-1/2 cursor-grab"
+          style={{ left: `${minPos}%` }}
+          onMouseDown={handleThumbMouseDown('min')}
+          onTouchStart={handleTouchStart('min')}
+          tabIndex={0}
+          role="slider"
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-valuenow={minPrice}
+          aria-label="Minimum price"
+        />
+        
+        {/* Max thumb */}
+        <div 
+          ref={maxThumbRef}
+          className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white dark:bg-gray-800 border-2 border-[#ed875a] dark:border-[#ed8c61] transform -translate-x-1/2 cursor-grab"
+          style={{ left: `${maxPos}%` }}
+          onMouseDown={handleThumbMouseDown('max')}
+          onTouchStart={handleTouchStart('max')}
+          tabIndex={0}
+          role="slider"
+          aria-valuemin={min}
+          aria-valuemax={max}
+          aria-valuenow={maxPrice}
+          aria-label="Maximum price"
+        />
       </div>
     </div>
   );

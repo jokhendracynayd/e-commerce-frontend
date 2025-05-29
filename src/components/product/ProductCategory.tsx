@@ -34,7 +34,7 @@ export function ProductCategory({ title, products }: ProductCategoryProps) {
   return (
     <section className="py-6 px-4 bg-white dark:bg-dark-background">
       <div className="w-full">
-        <h2 className="text-2xl font-bold text-foreground dark:text-dark-foreground mb-4">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-dark-foreground mb-4">
           {title}
         </h2>
         
@@ -42,7 +42,7 @@ export function ProductCategory({ title, products }: ProductCategoryProps) {
           {/* Left scroll button */}
           <button 
             onClick={handleScrollLeft}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-dark-background rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-dark-background rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700"
             aria-label="Scroll left"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5">
@@ -53,7 +53,7 @@ export function ProductCategory({ title, products }: ProductCategoryProps) {
           {/* Products container */}
           <div 
             ref={scrollContainerRef}
-            className="flex overflow-x-auto gap-5 py-6 px-8 scrollbar-hide snap-x"
+            className="flex overflow-x-auto gap-0 py-6 px-8 scrollbar-hide snap-x"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {products.map((product) => (
@@ -79,7 +79,7 @@ export function ProductCategory({ title, products }: ProductCategoryProps) {
           {/* Right scroll button */}
           <button 
             onClick={handleScrollRight}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-dark-background rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-dark-background rounded-full shadow-md flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700"
             aria-label="Scroll right"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5">

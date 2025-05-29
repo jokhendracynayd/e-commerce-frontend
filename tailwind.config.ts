@@ -27,8 +27,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        heading: ["Poppins", "ui-sans-serif", "system-ui"],
+        sans: ["var(--font-inter)", "ui-sans-serif", "system-ui", "sans-serif"],
+        heading: ["var(--font-poppins)", "ui-sans-serif", "system-ui"],
       },
       borderRadius: {
         xl: "1rem",
@@ -50,15 +50,19 @@ const config: Config = {
             },
             h1: {
               color: "#1A1A1A",
+              fontFamily: "var(--font-poppins)",
             },
             h2: {
               color: "#1A1A1A",
+              fontFamily: "var(--font-poppins)",
             },
             h3: {
               color: "#1A1A1A",
+              fontFamily: "var(--font-poppins)",
             },
             h4: {
               color: "#1A1A1A",
+              fontFamily: "var(--font-poppins)",
             },
           },
         },

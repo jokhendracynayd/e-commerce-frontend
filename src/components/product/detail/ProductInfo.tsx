@@ -82,7 +82,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
       {/* Rating and reviews */}
       <div className="flex items-center gap-4">
         <div className="flex items-center">
-          <span className="bg-green-600 text-white text-sm px-2 py-0.5 rounded flex items-center">
+          <span className="bg-[#d44506] text-white text-sm px-2 py-0.5 flex items-center">
             {product.rating.toFixed(1)} ★
           </span>
           <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
@@ -94,10 +94,10 @@ export function ProductInfo({ product }: ProductInfoProps) {
         {product.isAssured && (
           <div className="flex items-center">
             <span className="flex items-center">
-              <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" viewBox="0 0 16 16" fill="currentColor">
+              <svg className="w-4 h-4 text-[#ed875a] dark:text-[#ed8c61]" viewBox="0 0 16 16" fill="currentColor">
                 <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
               </svg>
-              <span className="ml-1 text-xs font-medium text-blue-600 dark:text-blue-400">Assured</span>
+              <span className="ml-1 text-xs font-medium text-[#ed875a] dark:text-[#ed8c61]">Assured</span>
             </span>
           </div>
         )}
@@ -117,7 +117,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
           )}
           
           {discountPercentage && (
-            <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+            <span className="text-sm font-semibold text-[#d44506] dark:text-[#ed875a]">
               {discountPercentage}% off
             </span>
           )}
@@ -163,7 +163,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 onClick={() => setSelectedColorVariant(variant)}
                 className={`w-12 h-12 rounded-full flex items-center justify-center ${
                   selectedColorVariant?.id === variant.id 
-                    ? 'ring-2 ring-blue-500 dark:ring-blue-400' 
+                    ? 'ring-2 ring-[#ed875a] dark:ring-[#ed8c61]' 
                     : 'ring-1 ring-gray-300 dark:ring-gray-600'
                 }`}
                 aria-label={`Select ${variant.color} color`}
@@ -186,7 +186,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
           
           {/* Free delivery badge */}
           {product.hasFreeDel && (
-            <span className="text-xs bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 px-2 py-0.5 rounded">
+            <span className="text-xs bg-[#f5f1ed] dark:bg-[#d44506]/20 text-[#d44506] dark:text-[#ed875a] px-2 py-0.5">
               Free
             </span>
           )}
@@ -209,14 +209,14 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 <input 
                   type="text" 
                   placeholder="Enter pincode" 
-                  className="flex-1 py-2.5 px-4 text-sm border border-gray-300 dark:border-gray-600 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="flex-1 py-2.5 px-4 text-sm border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent dark:bg-gray-700 dark:text-white"
                   maxLength={6}
                 />
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 text-sm font-medium rounded-r-md transition-colors flex items-center justify-center">
+                <button className="bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-md text-white px-5 py-2.5 text-sm font-medium transition-all flex items-center justify-center">
                   Check
                 </button>
               </div>
-              <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 font-medium">
+              <div className="mt-2 text-xs text-[#ed875a] dark:text-[#ed8c61] font-medium">
                 <button className="flex items-center gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -259,7 +259,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
       
       {/* Success message for cart */}
       {cartSuccess && (
-        <div className="flex items-center p-3 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-md">
+        <div className="flex items-center p-3 bg-[#f5f1ed] dark:bg-[#d44506]/20 text-[#d44506] dark:text-[#ed875a]">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
@@ -272,7 +272,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
         <button 
           onClick={handleAddToCart}
           disabled={addingToCart}
-          className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 px-6 rounded-md font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+          className="flex-1 bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-lg text-white py-3 px-6 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-70"
         >
           {addingToCart ? (
             <>
@@ -294,7 +294,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
         <button 
           onClick={handleBuyNow}
           disabled={addingToCart}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+          className="flex-1 bg-gradient-to-r from-[#2d2d2d] to-[#4d4d4d] hover:shadow-lg text-white py-3 px-6 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-70"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -306,14 +306,14 @@ export function ProductInfo({ product }: ProductInfoProps) {
       {/* Exchange offer */}
       {product.exchangeOffer?.available && (
         <div className="flex items-start gap-2 border-t border-gray-200 dark:border-gray-700 pt-4">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#ed875a] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
           </svg>
           <div>
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Save up to ₹{product.exchangeOffer.maxDiscount} with exchange
             </p>
-            <button className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-1">
+            <button className="text-xs text-[#ed875a] dark:text-[#ed8c61] font-medium mt-1">
               Check eligibility
             </button>
           </div>

@@ -21,14 +21,14 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   };
   
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] overflow-hidden">
       {/* Tabs */}
       <div className="flex border-b border-gray-200 dark:border-gray-700">
         <button
           onClick={() => setActiveTab('description')}
           className={`px-4 py-3 text-sm font-medium ${
             activeTab === 'description'
-              ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+              ? 'text-[#ed875a] dark:text-[#ed8c61] border-b-2 border-[#ed875a] dark:border-[#ed8c61]'
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
           }`}
         >
@@ -38,7 +38,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           onClick={() => setActiveTab('specifications')}
           className={`px-4 py-3 text-sm font-medium ${
             activeTab === 'specifications'
-              ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+              ? 'text-[#ed875a] dark:text-[#ed8c61] border-b-2 border-[#ed875a] dark:border-[#ed8c61]'
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
           }`}
         >
@@ -48,7 +48,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           onClick={() => setActiveTab('reviews')}
           className={`px-4 py-3 text-sm font-medium ${
             activeTab === 'reviews'
-              ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+              ? 'text-[#ed875a] dark:text-[#ed8c61] border-b-2 border-[#ed875a] dark:border-[#ed8c61]'
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100'
           }`}
         >
@@ -67,7 +67,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {product.highlights.map((highlight, index) => (
                   <li key={index} className="flex items-start gap-2">
-                    <span className="text-green-600 dark:text-green-400 mt-0.5">•</span>
+                    <span className="text-[#ed875a] dark:text-[#ed8c61] mt-0.5">•</span>
                     <span className="text-sm text-gray-700 dark:text-gray-300">{highlight}</span>
                   </li>
                 ))}
@@ -147,7 +147,11 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                         </div>
                         <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                           <div 
-                            className="h-full bg-yellow-400 dark:bg-yellow-500 rounded-full" 
+                            className={`h-full rounded-full ${
+                              star >= 4 ? 'bg-green-500 dark:bg-green-600' : 
+                              star === 3 ? 'bg-yellow-500 dark:bg-yellow-600' : 
+                              'bg-red-500 dark:bg-red-600'
+                            }`}
                             style={{ width: `${percentage}%` }}
                           ></div>
                         </div>
@@ -167,13 +171,17 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 <div key={review.id} className="pb-6 border-b border-gray-200 dark:border-gray-700 last:border-0">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="bg-green-600 text-white text-xs px-1.5 py-0.5 rounded">
+                      <span className={`text-white text-xs px-1.5 py-0.5 ${
+                        review.rating >= 4 ? 'bg-green-500 dark:bg-green-600' : 
+                        review.rating === 3 ? 'bg-yellow-500 dark:bg-yellow-600' : 
+                        'bg-red-500 dark:bg-red-600'
+                      }`}>
                         {review.rating} ★
                       </span>
                       <h4 className="font-medium text-gray-800 dark:text-white">{review.title}</h4>
                     </div>
                     {review.isVerifiedPurchase && (
-                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                      <span className="text-xs text-[#ed875a] dark:text-[#ed8c61] font-medium">
                         Verified Purchase
                       </span>
                     )}
@@ -201,7 +209,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                     <div className="text-gray-500 dark:text-gray-400">
                       {review.user} | {review.date}
                     </div>
-                    <button className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
+                    <button className="flex items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-[#ed875a] dark:hover:text-[#ed8c61]">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
                       </svg>
@@ -215,7 +223,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             {/* Show more reviews button */}
             {product.reviewCount > product.reviews.length && (
               <div className="text-center">
-                <button className="px-6 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+                <button className="px-6 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-[#f5f1ed] dark:hover:bg-gray-600 transition-colors">
                   Show more reviews
                 </button>
               </div>

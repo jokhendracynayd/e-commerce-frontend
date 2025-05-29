@@ -190,7 +190,7 @@ export default function OrdersPage() {
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-white dark:bg-dark-background p-8 rounded-xl shadow-md max-w-md w-full">
+        <div className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-8 border border-gray-100 dark:border-gray-700 max-w-md w-full">
           <p className="text-center text-gray-500 dark:text-gray-400">Loading orders...</p>
         </div>
       </div>
@@ -201,16 +201,16 @@ export default function OrdersPage() {
     <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Breadcrumbs */}
       <div className="flex items-center text-sm text-gray-500 mb-6">
-        <Link href="/" className="hover:text-primary">Home</Link>
+        <Link href="/" className="hover:text-[#ed875a]">Home</Link>
         <span className="mx-2">›</span>
-        <Link href="/profile" className="hover:text-primary">My Account</Link>
+        <Link href="/profile" className="hover:text-[#ed875a]">My Account</Link>
         <span className="mx-2">›</span>
         <span className="text-gray-800 dark:text-gray-200">My Orders</span>
       </div>
       
       <div className="flex flex-col md:flex-row gap-6">
         {/* Filters sidebar */}
-        <div className="w-full md:w-64 bg-white dark:bg-dark-background rounded-lg shadow p-6">
+        <div className="w-full md:w-64 bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-6 border border-gray-100 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Filters</h2>
           
           {/* Order Status Filters */}
@@ -220,7 +220,7 @@ export default function OrdersPage() {
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
-                  className="rounded text-primary focus:ring-primary h-4 w-4"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                   checked={statusFilters.onTheWay}
                   onChange={() => handleStatusFilterChange('onTheWay')}
                 />
@@ -229,7 +229,7 @@ export default function OrdersPage() {
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
-                  className="rounded text-primary focus:ring-primary h-4 w-4"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                   checked={statusFilters.delivered}
                   onChange={() => handleStatusFilterChange('delivered')}
                 />
@@ -238,7 +238,7 @@ export default function OrdersPage() {
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
-                  className="rounded text-primary focus:ring-primary h-4 w-4"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                   checked={statusFilters.cancelled}
                   onChange={() => handleStatusFilterChange('cancelled')}
                 />
@@ -247,7 +247,7 @@ export default function OrdersPage() {
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
-                  className="rounded text-primary focus:ring-primary h-4 w-4"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                   checked={statusFilters.returned}
                   onChange={() => handleStatusFilterChange('returned')}
                 />
@@ -263,7 +263,7 @@ export default function OrdersPage() {
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
-                  className="rounded text-primary focus:ring-primary h-4 w-4"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                   checked={timeFilters.last30Days}
                   onChange={() => handleTimeFilterChange('last30Days')}
                 />
@@ -272,7 +272,7 @@ export default function OrdersPage() {
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
-                  className="rounded text-primary focus:ring-primary h-4 w-4"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                   checked={timeFilters.year2024}
                   onChange={() => handleTimeFilterChange('year2024')}
                 />
@@ -281,7 +281,7 @@ export default function OrdersPage() {
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
-                  className="rounded text-primary focus:ring-primary h-4 w-4"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                   checked={timeFilters.year2023}
                   onChange={() => handleTimeFilterChange('year2023')}
                 />
@@ -290,7 +290,7 @@ export default function OrdersPage() {
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
-                  className="rounded text-primary focus:ring-primary h-4 w-4"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                   checked={timeFilters.year2022}
                   onChange={() => handleTimeFilterChange('year2022')}
                 />
@@ -299,7 +299,7 @@ export default function OrdersPage() {
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
-                  className="rounded text-primary focus:ring-primary h-4 w-4"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                   checked={timeFilters.year2021}
                   onChange={() => handleTimeFilterChange('year2021')}
                 />
@@ -308,7 +308,7 @@ export default function OrdersPage() {
               <label className="flex items-center">
                 <input 
                   type="checkbox" 
-                  className="rounded text-primary focus:ring-primary h-4 w-4"
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed8c61]"
                   checked={timeFilters.older}
                   onChange={() => handleTimeFilterChange('older')}
                 />
@@ -325,11 +325,11 @@ export default function OrdersPage() {
             <input
               type="text"
               placeholder="Search your orders here"
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-r-md flex items-center justify-center">
+            <button className="bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-lg text-white px-4 py-2 flex items-center justify-center transition-all">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -340,7 +340,7 @@ export default function OrdersPage() {
           {filteredOrders.length > 0 ? (
             <div className="space-y-4">
               {filteredOrders.map((order) => (
-                <div key={order.id} className="bg-white dark:bg-dark-background rounded-md shadow p-4 flex flex-col md:flex-row items-start md:items-center gap-4">
+                <div key={order.id} className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-4 flex flex-col md:flex-row items-start md:items-center gap-4 border border-gray-100 dark:border-gray-700">
                   {/* Product image */}
                   <div className="w-20 h-20 flex-shrink-0">
                     <div className="relative w-20 h-20">
@@ -349,7 +349,7 @@ export default function OrdersPage() {
                         alt={order.product.name}
                         width={80}
                         height={80}
-                        className="object-contain rounded-md"
+                        className="object-contain"
                         onError={(e) => {
                           e.currentTarget.src = "https://picsum.photos/200";
                         }}
@@ -376,17 +376,17 @@ export default function OrdersPage() {
                   <div className="md:ml-4 flex flex-col items-end gap-2">
                     <div className={`flex items-center ${
                       order.status === 'Delivered' 
-                        ? 'text-green-600' 
+                        ? 'text-[#4caf50]' 
                         : order.status === 'Cancelled' 
-                          ? 'text-red-600' 
-                          : 'text-blue-600'
+                          ? 'text-[#d44506]' 
+                          : 'text-[#ed875a]'
                     }`}>
-                      <span className={`h-2.5 w-2.5 rounded-full mr-2 ${
+                      <span className={`h-2.5 w-2.5 mr-2 ${
                         order.status === 'Delivered' 
-                          ? 'bg-green-600' 
+                          ? 'bg-[#4caf50]' 
                           : order.status === 'Cancelled' 
-                            ? 'bg-red-600' 
-                            : 'bg-blue-600'
+                            ? 'bg-[#d44506]' 
+                            : 'bg-[#ed875a]'
                       }`}></span>
                       <span>{order.status} on {order.statusDate}</span>
                     </div>
@@ -396,7 +396,7 @@ export default function OrdersPage() {
                     )}
                     
                     {order.canReview && (
-                      <button className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
+                      <button className="text-[#ed875a] hover:text-[#d44506] text-sm font-medium flex items-center transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                         </svg>
@@ -408,8 +408,8 @@ export default function OrdersPage() {
               ))}
             </div>
           ) : (
-            <div className="bg-white dark:bg-dark-background rounded-lg shadow-sm p-8 text-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-8 text-center border border-gray-100 dark:border-gray-700">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-[#ed875a] dark:text-[#ed8c61]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m-8-4l8 4m8 4l-8 4m8-4l-8-4m-8 4l8-4" />
               </svg>
               <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">No orders found</h3>
@@ -417,7 +417,7 @@ export default function OrdersPage() {
               <div className="mt-6">
                 <Link 
                   href="/products"
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-lg transition-all"
                 >
                   Browse Products
                 </Link>

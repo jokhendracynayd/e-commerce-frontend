@@ -21,6 +21,21 @@ const nextConfig: NextConfig = {
         hostname: 'picsum.photos',
         pathname: '**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pinimg.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.freepik.com',
+        pathname: '**',
+      },
     ],
   },
 };

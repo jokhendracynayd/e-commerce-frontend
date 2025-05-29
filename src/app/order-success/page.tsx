@@ -18,8 +18,8 @@ export default function OrderSuccessPage() {
   
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
-        <div className="w-24 h-24 mx-auto mb-6 text-green-500 dark:text-green-400">
+      <div className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-8 text-center border border-gray-100 dark:border-gray-700">
+        <div className="w-24 h-24 mx-auto mb-6 text-[#ed875a] dark:text-[#ed8c61]">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
@@ -33,7 +33,7 @@ export default function OrderSuccessPage() {
           Thank you for your purchase. We&apos;ve received your order and will begin processing it right away.
         </p>
         
-        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-8 max-w-md mx-auto">
+        <div className="bg-[#f5f1ed] dark:bg-[#d44506]/10 p-4 mb-8 max-w-md mx-auto border border-gray-100 dark:border-gray-700">
           <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">
             <span className="font-medium">Order Number:</span> #ORD-{Math.floor(100000 + Math.random() * 900000)}
           </p>
@@ -45,7 +45,7 @@ export default function OrderSuccessPage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link 
             href="/"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md font-medium transition-colors"
+            className="inline-block bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white py-3 px-6 font-medium transition-all hover:shadow-lg"
           >
             Continue Shopping
           </Link>

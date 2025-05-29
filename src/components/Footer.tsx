@@ -44,7 +44,7 @@ export function Footer() {
               <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center mr-3">
                 <span className="text-white font-bold text-xl">E</span>
               </div>
-              <h3 className="font-bold text-xl text-gray-900 dark:text-white">E-Commerce</h3>
+              <h3 className="font-bold text-xl text-gray-900 dark:text-white font-heading">E-Commerce</h3>
             </div>
             
             <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md">
@@ -138,7 +138,7 @@ export function Footer() {
           </div>
           
           <div>
-            <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-5">Contact</h4>
+            <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-5 font-heading">Contact</h4>
             <ul className="space-y-3">
               <li className="flex items-start">
                 <svg className="w-5 h-5 text-gray-500 dark:text-gray-400 mt-0.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

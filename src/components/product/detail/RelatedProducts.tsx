@@ -2,7 +2,24 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { ProductDetail } from '@/types/product';
-import { ProductCard } from '@/components/product/ProductCard';
+import { ProductListingCard } from '@/components/product/ProductListingCard';
+import { CSSProperties } from 'react';
+
+// Custom wrapper to override ProductListingCard styles for Similar Products
+function RelatedProductCard(props: React.ComponentProps<typeof ProductListingCard>) {
+  return (
+    <div className="related-product-wrapper">
+      <ProductListingCard {...props} />
+      
+      {/* Add styles to hide the Add to Cart button */}
+      <style jsx global>{`
+        .related-product-wrapper .absolute.bottom-0.right-0 {
+          display: none !important;
+        }
+      `}</style>
+    </div>
+  );
+}
 
 interface RelatedProductsProps {
   products: ProductDetail[];
@@ -61,7 +78,7 @@ export function RelatedProducts({ products, title = 'Similar Products' }: Relate
       {canScrollLeft && (
         <button
           onClick={scrollLeft}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-gray-800 rounded-full shadow-md flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-gray-800 shadow-[0_4px_10px_-2px_rgba(237,135,90,0.2)] flex items-center justify-center text-[#ed875a] dark:text-[#ed8c61] hover:shadow-lg"
           aria-label="Scroll left"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -74,7 +91,7 @@ export function RelatedProducts({ products, title = 'Similar Products' }: Relate
       {canScrollRight && (
         <button
           onClick={scrollRight}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-gray-800 rounded-full shadow-md flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white dark:bg-gray-800 shadow-[0_4px_10px_-2px_rgba(237,135,90,0.2)] flex items-center justify-center text-[#ed875a] dark:text-[#ed8c61] hover:shadow-lg"
           aria-label="Scroll right"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -91,8 +108,8 @@ export function RelatedProducts({ products, title = 'Similar Products' }: Relate
       >
         <div className="flex gap-4">
           {products.map(product => (
-            <div key={product.id} className="w-[220px] flex-shrink-0">
-              <ProductCard
+            <div key={product.id} className="w-[250px] flex-shrink-0">
+              <RelatedProductCard
                 id={product.id}
                 title={product.title}
                 image={product.images[0]}
@@ -104,6 +121,10 @@ export function RelatedProducts({ products, title = 'Similar Products' }: Relate
                 reviewCount={product.reviewCount}
                 isAssured={product.isAssured}
                 hasFreeDel={product.hasFreeDel}
+                deliveryInfo={product.deliveryInfo}
+                subtitle={product.subtitle}
+                colorVariants={product.colorVariants}
+                exchangeOffer={product.exchangeOffer}
               />
             </div>
           ))}

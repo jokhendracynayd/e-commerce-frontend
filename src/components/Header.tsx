@@ -17,7 +17,14 @@ export function Header() {
   const userMenuRef = useRef<HTMLDivElement>(null);
   const categoryMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const pathname = usePathname();
+  // Wrap usePathname in a try-catch for error handling
+  let pathname = '/';
+  try {
+    pathname = usePathname() || '/';
+  } catch (error) {
+    console.error('Error using pathname in Header:', error);
+    // Use default pathname if there's an error
+  }
   
   // Use auth context instead of mock values
   const { isAuthenticated, user, logout } = useAuth();
@@ -123,9 +130,9 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-md">
+    <header className="sticky top-0 z-50 bg-white dark:bg-gray-900">
       {/* Announcement bar */}
-      <div className="bg-primary/10 dark:bg-primary/20 text-primary-dark dark:text-primary-light py-2">
+      <div className="bg-primary/10 dark:bg-primary/20 text-[#d44506] italic dark:text-primary-light py-2">
         <div className="container mx-auto px-4 text-center text-sm font-medium">
           Free shipping on orders over $50 | Use code WELCOME10 for 10% off your first order
         </div>
@@ -148,7 +155,7 @@ export function Header() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center space-x-2">
-              <Image src="/images/logo/logo.png" alt="Logo" width={100} height={100} />
+              <Image src="/images/logo/logo.svg" alt="Logo" width={100} height={100} />
               {/* <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-blue-600 flex items-center justify-center">
                 <span className="text-xl font-bold text-white">M</span>
               </div>
@@ -214,7 +221,7 @@ export function Header() {
               className={`text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light font-medium transition-colors relative ${pathname === '/deals' ? 'text-primary dark:text-primary-light' : ''}`}
             >
               Deals
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">Hot</span>
+              <span className="absolute -top-2 -right-2 bg-[#d44506] text-white text-xs font-bold px-1.5 py-0.5 rounded-full">Hot</span>
             </Link>
             
             <Link 
@@ -411,7 +418,7 @@ export function Header() {
           <div className="container mx-auto px-4 py-2">
             {/* Mobile categories */}
             <div className="py-2">
-              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
+              <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 font-heading">
                 Categories
               </h3>
               <div className="grid grid-cols-2 gap-2">
@@ -438,7 +445,7 @@ export function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 <span>Deals</span>
-                <span className="ml-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">Hot</span>
+                <span className="ml-2 bg-[#d44506] text-white text-xs font-bold px-1.5 py-0.5 rounded-full">Hot</span>
               </Link>
               <Link 
                 href="/new-arrivals" 

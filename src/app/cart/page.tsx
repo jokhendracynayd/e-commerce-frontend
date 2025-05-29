@@ -48,7 +48,7 @@ export default function CartPage() {
       <div className="container mx-auto px-4 py-12 max-w-5xl">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 tracking-tight">Your Shopping Cart</h1>
         
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-10 text-center border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-10 text-center border border-gray-100 dark:border-gray-700">
           <motion.div 
             initial={{ scale: 0.8, opacity: 0 }} 
             animate={{ scale: 1, opacity: 1 }} 
@@ -63,7 +63,7 @@ export default function CartPage() {
           <p className="text-gray-600 dark:text-gray-300 mb-10 max-w-md mx-auto">
             Looks like you haven&apos;t added anything to your cart yet. Explore our products and find something you&apos;ll love.
           </p>
-          <Link href="/" className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white py-3 px-8 rounded-lg font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5">
+          <Link href="/" className="inline-flex items-center bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white py-3 px-8 font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
@@ -75,10 +75,10 @@ export default function CartPage() {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recommended Products</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
-                <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-md mb-2"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4 mb-2"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-1/2"></div>
+              <div key={i} className="bg-white dark:bg-gray-800 p-3 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.05)] border border-gray-100 dark:border-gray-700">
+                <div className="aspect-square bg-[#f5f1ed] dark:bg-gray-700 mb-2"></div>
+                <div className="h-4 bg-[#f5f1ed] dark:bg-gray-600 w-3/4 mb-2"></div>
+                <div className="h-4 bg-[#f5f1ed] dark:bg-gray-600 w-1/2"></div>
               </div>
             ))}
           </div>
@@ -105,7 +105,7 @@ export default function CartPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-5 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300"
+              className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-5 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300"
             >
               <div className="flex flex-col sm:flex-row gap-6">
                 {/* Product image */}
@@ -146,7 +146,7 @@ export default function CartPage() {
                       
                       <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                         <span className="flex items-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-[#ed875a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                           In stock
@@ -155,7 +155,7 @@ export default function CartPage() {
                     </div>
                     <button 
                       onClick={() => removeFromCart(item.product.id)}
-                      className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+                      className="text-gray-400 hover:text-[#d44506] dark:text-gray-500 dark:hover:text-[#ed875a] transition-colors p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                       aria-label="Remove item"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -199,7 +199,7 @@ export default function CartPage() {
                         </div>
                       )}
                       {item.product.originalPrice && (
-                        <div className="text-xs font-medium text-green-600 dark:text-green-400 mt-0.5">
+                        <div className="text-xs font-medium text-[#d44506] dark:text-[#ed875a] mt-0.5">
                           {Math.round(((item.product.originalPrice - item.product.price) / item.product.originalPrice) * 100)}% off
                         </div>
                       )}
@@ -210,8 +210,8 @@ export default function CartPage() {
             </motion.div>
           ))}
           
-          <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 rounded-xl p-5 mt-8 border border-gray-100 dark:border-gray-700">
-            <Link href="/" className="text-blue-600 dark:text-blue-400 font-medium flex items-center hover:underline transition-all">
+          <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-5 mt-8 border border-gray-100 dark:border-gray-700">
+            <Link href="/" className="text-[#ed875a] dark:text-[#ed8c61] font-medium flex items-center hover:underline transition-all">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
@@ -219,7 +219,7 @@ export default function CartPage() {
             </Link>
             
             <button 
-              className="text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 font-medium flex items-center"
+              className="text-gray-700 dark:text-gray-300 hover:text-[#d44506] dark:hover:text-[#ed875a] font-medium flex items-center"
               onClick={() => items.forEach(item => removeFromCart(item.product.id))}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -232,12 +232,12 @@ export default function CartPage() {
         
         {/* Order summary */}
         <div className="lg:w-1/3">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 sticky top-20 border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 shadow-[0_4px_20px_-2px_rgba(237,135,90,0.1)] p-6 sticky top-20 border border-gray-100 dark:border-gray-700">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Order Summary</h2>
             
             {/* Estimated delivery */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6 flex items-start">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-3 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="bg-[#f5f1ed] dark:bg-[#d44506]/10 p-4 mb-6 flex items-start">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#ed875a] mr-3 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
@@ -258,12 +258,12 @@ export default function CartPage() {
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                   placeholder="Enter coupon code"
-                  className="flex-1 border border-gray-300 dark:border-gray-600 rounded-l-lg py-2.5 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="flex-1 border border-gray-300 dark:border-gray-600 py-2.5 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all"
                 />
                 <button 
-                  className={`px-4 py-2.5 rounded-r-lg font-medium transition-all ${
+                  className={`px-4 py-2.5 font-medium transition-all ${
                     applyingCoupon
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                      ? 'bg-[#f5f1ed] dark:bg-[#d44506]/20 text-[#d44506] dark:text-[#ed875a]'
                       : 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-500'
                   }`}
                   onClick={handleApplyCoupon}
@@ -278,7 +278,7 @@ export default function CartPage() {
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center"
+                  className="mt-2 text-sm text-[#d44506] dark:text-[#ed875a] flex items-center"
                 >
                   <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -298,14 +298,14 @@ export default function CartPage() {
                 <span className="text-gray-600 dark:text-gray-300">Shipping</span>
                 <span className="text-gray-800 dark:text-gray-200 font-medium">
                   {shippingCost === 0 ? (
-                    <span className="text-green-600 dark:text-green-400">Free</span>
+                    <span className="text-[#d44506] dark:text-[#ed875a]">Free</span>
                   ) : (
                     `₹${formatPrice(shippingCost)}`
                   )}
                 </span>
               </div>
               {applyingCoupon && (
-                <div className="flex justify-between text-green-600 dark:text-green-400">
+                <div className="flex justify-between text-[#d44506] dark:text-[#ed875a]">
                   <span className="flex items-center">
                     <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -338,7 +338,7 @@ export default function CartPage() {
             
             {/* Checkout button */}
             <Link href="/checkout" className="block w-full">
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 px-6 rounded-lg font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center">
+              <button className="w-full bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white py-3.5 px-6 font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>

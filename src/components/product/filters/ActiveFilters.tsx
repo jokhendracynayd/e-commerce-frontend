@@ -70,12 +70,12 @@ export default function ActiveFilters({
       return option ? (
         <div 
           key={`${filterKey}-${value}`}
-          className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800"
+          className="inline-flex items-center bg-[#f5f1ed] dark:bg-[#d44506]/10 px-2 py-1 text-xs text-[#ed875a] dark:text-[#ed8c61] border border-[#ed875a]/20 dark:border-[#ed8c61]/20"
         >
           <span className="mr-1 font-medium">{option.name}{labelSuffix}</span>
           <button 
             onClick={() => onRemoveFilter(filterKey, value)}
-            className="ml-1 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+            className="ml-1 p-0.5 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20 rounded-full"
           >
             <svg className="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor">
               <path
@@ -96,13 +96,13 @@ export default function ActiveFilters({
         <div className="flex flex-wrap gap-1.5">
           {/* Price Range Pill */}
           {(filters.priceRange[0] > 0 || filters.priceRange[1] < 50000) && (
-            <div className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800">
+            <div className="inline-flex items-center bg-[#f5f1ed] dark:bg-[#d44506]/10 px-2 py-1 text-xs text-[#ed875a] dark:text-[#ed8c61] border border-[#ed875a]/20 dark:border-[#ed8c61]/20">
               <span className="mr-1 font-medium">
                 ₹{filters.priceRange[0]} - ₹{filters.priceRange[1]}
               </span>
               <button
                 onClick={() => onRemoveFilter('priceRange')}
-                className="ml-1 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+                className="ml-1 rounded-full p-0.5 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20"
               >
                 <svg className="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor">
                   <path
@@ -119,18 +119,18 @@ export default function ActiveFilters({
           {filters.ratings.map((rating) => (
             <div
               key={`rating-${rating}`}
-              className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800"
+              className="inline-flex items-center bg-[#f5f1ed] dark:bg-[#d44506]/10 px-2 py-1 text-xs text-[#ed875a] dark:text-[#ed8c61] border border-[#ed875a]/20 dark:border-[#ed8c61]/20"
             >
               <span className="flex items-center mr-1 font-medium">
                 {rating}
-                <svg className="w-2.5 h-2.5 ml-0.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-2.5 h-2.5 ml-0.5 text-[#d44506]" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
                 & Up
               </span>
               <button
                 onClick={() => onRemoveFilter('ratings', rating)}
-                className="ml-1 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+                className="ml-1 rounded-full p-0.5 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20"
               >
                 <svg className="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor">
                   <path
@@ -149,12 +149,12 @@ export default function ActiveFilters({
             return (
               <div
                 key={`brand-${brandId}`}
-                className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800"
+                className="inline-flex items-center bg-[#f5f1ed] dark:bg-[#d44506]/10 px-2 py-1 text-xs text-[#ed875a] dark:text-[#ed8c61] border border-[#ed875a]/20 dark:border-[#ed8c61]/20"
               >
                 <span className="mr-1 font-medium">{brand ? brand.name : brandId}</span>
                 <button
                   onClick={() => onRemoveFilter('brands', brandId)}
-                  className="ml-1 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+                  className="ml-1 rounded-full p-0.5 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20"
                 >
                   <svg className="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor">
                     <path
@@ -170,11 +170,11 @@ export default function ActiveFilters({
 
           {/* Boolean feature pills */}
           {filters.fAssured && (
-            <div className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800">
-              <span className="mr-1">F-Assured</span>
+            <div className="inline-flex items-center bg-[#f5f1ed] dark:bg-[#d44506]/10 px-2 py-1 text-xs text-[#ed875a] dark:text-[#ed8c61] border border-[#ed875a]/20 dark:border-[#ed8c61]/20">
+              <span className="mr-1 font-medium">Assured</span>
               <button
                 onClick={() => onRemoveFilter('fAssured')}
-                className="ml-1 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+                className="ml-1 rounded-full p-0.5 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20"
               >
                 <svg className="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor">
                   <path
@@ -200,11 +200,11 @@ export default function ActiveFilters({
           {renderArrayFilterPills('offers', offers)}
           
           {filters.gstInvoice && (
-            <div className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800">
-              <span className="mr-1">GST Invoice</span>
+            <div className="inline-flex items-center bg-[#f5f1ed] dark:bg-[#d44506]/10 px-2 py-1 text-xs text-[#ed875a] dark:text-[#ed8c61] border border-[#ed875a]/20 dark:border-[#ed8c61]/20">
+              <span className="mr-1 font-medium">GST Invoice</span>
               <button
                 onClick={() => onRemoveFilter('gstInvoice')}
-                className="ml-1 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+                className="ml-1 rounded-full p-0.5 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20"
               >
                 <svg className="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor">
                   <path
@@ -226,12 +226,12 @@ export default function ActiveFilters({
             return (
               <div
                 key={`avail-${availId}`}
-                className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800"
+                className="inline-flex items-center bg-[#f5f1ed] dark:bg-[#d44506]/10 px-2 py-1 text-xs text-[#ed875a] dark:text-[#ed8c61] border border-[#ed875a]/20 dark:border-[#ed8c61]/20"
               >
-                <span className="mr-1">{availOption ? availOption.name : availId}</span>
+                <span className="mr-1 font-medium">{availOption ? availOption.name : availId}</span>
                 <button
                   onClick={() => onRemoveFilter('availability', availId)}
-                  className="ml-1 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+                  className="ml-1 rounded-full p-0.5 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20"
                 >
                   <svg className="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor">
                     <path
@@ -248,12 +248,12 @@ export default function ActiveFilters({
           {filters.discount.map((discountVal) => (
             <div
               key={`discount-${discountVal}`}
-              className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800"
+              className="inline-flex items-center bg-[#f5f1ed] dark:bg-[#d44506]/10 px-2 py-1 text-xs text-[#ed875a] dark:text-[#ed8c61] border border-[#ed875a]/20 dark:border-[#ed8c61]/20"
             >
-              <span className="mr-1">{discountVal}% or more</span>
+              <span className="mr-1 font-medium">{discountVal}% or more</span>
               <button
                 onClick={() => onRemoveFilter('discount', discountVal)}
-                className="ml-1 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+                className="ml-1 rounded-full p-0.5 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20"
               >
                 <svg className="w-2.5 h-2.5" viewBox="0 0 20 20" fill="currentColor">
                   <path
