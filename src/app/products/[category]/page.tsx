@@ -44,6 +44,27 @@ export default function CategoryPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   
+  // Set viewMode based on screen width - default to list for mobile
+  useEffect(() => {
+    // Handle initial viewMode setting based on screen size
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setViewMode('list');
+      } else {
+        setViewMode('grid');
+      }
+    };
+    
+    // Set initial value
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 12;
@@ -157,74 +178,87 @@ export default function CategoryPage() {
     if (totalPages <= 1) return null;
     
     return (
-      <div className="flex justify-center mt-8">
-        <nav className="flex items-center space-x-1">
-          <button
-            onClick={() => currentPage > 1 && paginate(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={`px-3 py-1.5 rounded-md ${
-              currentPage === 1 
-                ? 'text-gray-400 cursor-not-allowed' 
-                : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            <span className="sr-only">Previous</span>
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          
-          {/* Only show a few pages at a time with ellipsis */}
-          {[...Array(totalPages)].map((_, i) => {
-            const pageNumber = i + 1;
+      <div className="flex flex-col justify-center items-center mt-10 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 p-2">
+          <nav className="flex items-center space-x-1">
+            {/* Previous button */}
+            <button
+              onClick={() => currentPage > 1 && paginate(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`px-3 py-2 rounded-md transition-all duration-300 ${
+                currentPage === 1 
+                  ? 'text-gray-300 dark:text-gray-500 cursor-not-allowed' 
+                  : 'text-gray-700 dark:text-gray-200 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20 hover:text-[#ed875a] dark:hover:text-[#ed8c61]'
+              }`}
+            >
+              <span className="sr-only">Previous</span>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
             
-            // Show first page, last page, current page, and pages around current
-            if (
-              pageNumber === 1 || 
-              pageNumber === totalPages || 
-              (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
-            ) {
-              return (
-                <button
-                  key={pageNumber}
-                  onClick={() => paginate(pageNumber)}
-                  className={`px-3 py-1.5 rounded-md ${
-                    currentPage === pageNumber
-                      ? 'bg-blue-600 text-white font-medium'
-                      : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {pageNumber}
-                </button>
-              );
-            }
+            {/* Page numbers */}
+            {[...Array(totalPages)].map((_, i) => {
+              const pageNumber = i + 1;
+              
+              // Show first page, last page, current page, and pages around current
+              if (
+                pageNumber === 1 || 
+                pageNumber === totalPages || 
+                (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+              ) {
+                return (
+                  <button
+                    key={pageNumber}
+                    onClick={() => paginate(pageNumber)}
+                    className={`min-w-[2.5rem] h-10 px-3 py-2 rounded-md transition-all duration-300 font-medium ${
+                      currentPage === pageNumber
+                        ? 'bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white shadow-md transform scale-105'
+                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-[#ed875a] dark:hover:text-[#ed8c61]'
+                    }`}
+                  >
+                    {pageNumber}
+                  </button>
+                );
+              }
+              
+              // Add ellipsis (but only once)
+              if (
+                (pageNumber === 2 && currentPage > 3) ||
+                (pageNumber === totalPages - 1 && currentPage < totalPages - 2)
+              ) {
+                return (
+                  <span key={pageNumber} className="px-3 py-2 text-gray-500 dark:text-gray-400">
+                    •••
+                  </span>
+                );
+              }
+              
+              return null;
+            })}
             
-            // Add ellipsis (but only once)
-            if (
-              (pageNumber === 2 && currentPage > 3) ||
-              (pageNumber === totalPages - 1 && currentPage < totalPages - 2)
-            ) {
-              return <span key={pageNumber} className="px-3 py-1.5">...</span>;
-            }
-            
-            return null;
-          })}
-          
-          <button
-            onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={`px-3 py-1.5 rounded-md ${
-              currentPage === totalPages 
-                ? 'text-gray-400 cursor-not-allowed' 
-                : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
-          >
-            <span className="sr-only">Next</span>
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </nav>
+            {/* Next button */}
+            <button
+              onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`px-3 py-2 rounded-md transition-all duration-300 ${
+                currentPage === totalPages 
+                  ? 'text-gray-300 dark:text-gray-500 cursor-not-allowed' 
+                  : 'text-gray-700 dark:text-gray-200 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20 hover:text-[#ed875a] dark:hover:text-[#ed8c61]'
+              }`}
+            >
+              <span className="sr-only">Next</span>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+        
+        {/* Page indicator */}
+        <div className="mt-3 text-sm text-gray-500 dark:text-gray-400">
+          Page <span className="font-medium text-[#ed875a] dark:text-[#ed8c61]">{currentPage}</span> of {totalPages}
+        </div>
       </div>
     );
   };
@@ -257,43 +291,49 @@ export default function CategoryPage() {
   );
   
   return (
-    <div className="container mx-auto mt-2">
-      {/* Breadcrumbs */}
-      {/* <div className="mb-6 text-sm text-gray-500 dark:text-gray-400">
-        <Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400">Home</Link>
-        <span className="mx-2">&gt;</span>
-        <span className="text-gray-800 dark:text-white">{categoryName}</span>
-      </div> */}
-      
+    <div className="container mx-auto mt-2 px-2 sm:px-4">
       {/* Mobile filter toggle */}
       <div className="lg:hidden mb-4">
         <button 
           onClick={toggleMobileFilter}
-          className="flex items-center justify-center w-full py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm"
+          className="flex items-center justify-center w-full py-3.5 bg-white dark:bg-gray-800 border border-[#ed875a]/10 dark:border-[#ed8c61]/20 rounded-lg shadow-none hover:border-[#ed875a]/30 transition-all duration-300"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-300" viewBox="0 0 20 20" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-[#ed875a] dark:text-[#ed8c61]" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
           </svg>
-          <span className="font-semibold text-gray-800 dark:text-white">Filters</span>
+          <span className="font-medium text-gray-800 dark:text-white">Filters & Sort</span>
         </button>
       </div>
       
       <div className="flex flex-col lg:flex-row gap-2">
         
         {/* Filters sidebar - hidden on mobile unless toggled */}
-        <div className={`${isMobileFilterOpen ? 'block' : 'hidden'} lg:block lg:w-1/5 max-w-[280px]`}>
-        {/* Sort options and view toggle */}
-        <div className="bg-white dark:bg-gray-800 shadow-[0_4px_15px_rgba(237,135,90,0.1)] border border-[#f5f1ed] dark:border-[#d44506]/10 p-4 md:p-5 mb-6">
+        <div className={`${isMobileFilterOpen ? 'block' : 'hidden'} lg:block lg:w-1/5 max-w-[280px] z-40 fixed lg:static top-0 left-0 w-full h-full lg:h-auto bg-white dark:bg-gray-900 lg:bg-transparent overflow-auto pb-20 lg:pb-0`}>
+          {/* Close button for mobile */}
+          <div className="lg:hidden flex justify-between items-center p-4 border-b border-[#ed875a]/10 dark:border-[#ed8c61]/10">
+            <h3 className="text-lg font-medium text-gray-800 dark:text-white">Filters & Sort</h3>
+            <button 
+              onClick={toggleMobileFilter} 
+              className="p-2 rounded-full text-[#ed875a] dark:text-[#ed8c61] bg-[#ed875a]/5 dark:bg-[#ed8c61]/10 hover:bg-[#ed875a]/10 dark:hover:bg-[#ed8c61]/20 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          
+          {/* Sort options and view toggle */}
+          <div className="bg-white dark:bg-gray-800 shadow-[0_2px_10px_rgba(237,135,90,0.05)] border border-[#f5f1ed] dark:border-[#d44506]/10 p-4 md:p-5 mb-6">
             <div className="flex flex-wrap items-center justify-between">
               <div className="flex items-center">
-                <h2 className="font-semibold dark:text-white flex items-center">
+                <h2 className="font-medium dark:text-white flex items-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-[#ed875a] dark:text-[#ed8c61]" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                    <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" />
                   </svg>
-                  <span>{filteredProducts.length} FILTERS</span>
+                  <span className="text-gray-800 dark:text-gray-100">{filteredProducts.length} Results</span>
                 </h2>
                 {isLoading && (
-                  <div className="ml-3 flex items-center bg-[#f5f1ed] dark:bg-[#d44506]/10 py-1 px-2">
+                  <div className="ml-3 flex items-center bg-[#f5f1ed] dark:bg-[#d44506]/10 py-1 px-2 rounded-sm">
                     <svg className="animate-spin h-4 w-4 text-[#ed875a] dark:text-[#ed8c61] mr-1" viewBox="0 0 24 24">
                       <circle 
                         className="opacity-25" 
@@ -381,21 +421,23 @@ export default function CategoryPage() {
         </div>
         
         {/* Product listing section */}
-        <div className="lg:flex-1">
-          
-        
+        <div className="lg:flex-1 lg:ml-4">
           {/* Products display */}
           {isLoading ? (
             <ProductsSkeleton />
           ) : filteredProducts.length > 0 ? (
             <>
               <div className={viewMode === 'grid' 
-                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
-                : 'space-y-4'
+                ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3'
+                : 'space-y-2 sm:space-y-4 flex flex-col'
               }>
                 {currentProducts.map((product) => (
-                  <div key={product.id} className={viewMode === 'list' ? 'bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border border-gray-100 dark:border-gray-700' : ''}>
-                    {/* Use the new ProductListingCard component for both views */}
+                  <div key={product.id} className={`${
+                    viewMode === 'list' 
+                      ? 'bg-white dark:bg-gray-800 rounded-lg shadow-none p-2 border border-gray-100 dark:border-gray-700' 
+                      : 'bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 h-full'
+                  }`}>
+                    {/* Product Card */}
                     <ProductListingCard 
                       id={product.id}
                       title={product.title}
@@ -414,6 +456,8 @@ export default function CategoryPage() {
                       colorVariants={product.colorVariants}
                       exchangeOffer={product.exchangeOffer}
                       sponsoredTag={product.sponsoredTag}
+                      viewMode={viewMode}
+                      isMobileFilterOpen={isMobileFilterOpen}
                     />
                   </div>
                 ))}
@@ -441,6 +485,14 @@ export default function CategoryPage() {
           )}
         </div>
       </div>
+      
+      {/* Modal overlay when filter sidebar is open on mobile */}
+      {isMobileFilterOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden transition-all duration-300"
+          onClick={toggleMobileFilter}
+        ></div>
+      )}
     </div>
   );
   

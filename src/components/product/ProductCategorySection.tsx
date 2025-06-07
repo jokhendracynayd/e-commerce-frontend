@@ -306,7 +306,7 @@ export const categories: CategoryType[] = [
 
 export function ProductCategorySection() {
   return (
-    <div className="w-full space-y-2 bg-gray-50 dark:bg-gray-900">
+    <div className="w-full py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 bg-gray-50/60 dark:bg-gray-900/80 px-2 sm:px-3 md:px-4">
       {categories.map((category) => (
         <ProductCategory 
           key={category.id}

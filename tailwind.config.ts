@@ -38,6 +38,24 @@ const config: Config = {
         card: "0 4px 12px rgba(0, 0, 0, 0.05)",
         elevated: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
       },
+      keyframes: {
+        "fadeIn": {
+          "0%": { opacity: 0 },
+          "100%": { opacity: 1 }
+        },
+        "pulse-gentle": {
+          "0%, 100%": {
+            opacity: 1,
+          },
+          "50%": {
+            opacity: 0.8,
+          },
+        }
+      },
+      animation: {
+        "fadeIn": "fadeIn 0.3s ease-in-out",
+        "pulse-gentle": "pulse-gentle 2s infinite ease-in-out",
+      },
       typography: {
         DEFAULT: {
           css: {

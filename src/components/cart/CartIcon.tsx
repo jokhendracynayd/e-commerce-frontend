@@ -10,12 +10,12 @@ export function CartIcon() {
     <div className="relative">
       <Link 
         href="/cart" 
-        className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         aria-label="Shopping cart"
       >
         <svg 
           xmlns="http://www.w3.org/2000/svg" 
-          className="h-6 w-6 text-gray-700 dark:text-gray-300" 
+          className="h-5 w-5 sm:h-5.5 sm:w-5.5 lg:h-6 lg:w-6 text-gray-700 dark:text-gray-300" 
           fill="none" 
           viewBox="0 0 24 24" 
           stroke="currentColor"
@@ -29,7 +29,7 @@ export function CartIcon() {
         </svg>
         
         {totalItems > 0 && (
-          <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+          <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 text-[10px] sm:text-xs font-bold text-white bg-red-500 rounded-full">
             {totalItems > 99 ? '99+' : totalItems}
           </span>
         )}

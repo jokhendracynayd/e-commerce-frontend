@@ -1,0 +1,50 @@
+// Export API endpoints
+export * from './endpoints';
+
+// Export error handling utilities
+export * from './error-handler';
+
+// Export auth-related functions and types
+export * from './auth-api';
+
+// Export product-related functions and types
+export * from './products-api';
+
+// Export cart-related functions and types
+export * from './cart-api';
+
+// Export order-related functions and types
+export * from './orders-api';
+
+// Export core Axios client and authentication utilities
+export {
+  axiosClient,
+  setAuthToken,
+  setRefreshToken,
+  setUserId,
+  clearAuthToken,
+  clearAllTokens,
+  isAuthenticated,
+  getAuthState,
+  AUTH_EVENTS
+} from './axios-client';
+
+// Export user-related functions and types
+export * from './user-api';
+
+// Default export of all API services
+import authApi from './auth-api';
+import productsApi from './products-api';
+import cartApi from './cart-api';
+import ordersApi from './orders-api';
+import userApi from './user-api';
+
+const api = {
+  auth: authApi,
+  products: productsApi,
+  cart: cartApi,
+  orders: ordersApi,
+  user: userApi,
+};
+
+export default api; 

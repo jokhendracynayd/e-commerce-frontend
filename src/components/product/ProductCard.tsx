@@ -53,7 +53,7 @@ export function ProductCard({
 
   return (
     <div 
-      className="group w-full min-w-[270px] md:min-w-[280px] max-w-[280px] bg-white dark:bg-gray-800 overflow-hidden shadow-none hover:-translate-y-1 transition-all duration-300 relative hover:z-10"
+      className="group w-full min-w-[120px] xs:min-w-[150px] sm:min-w-[190px] md:min-w-[220px] lg:min-w-[250px] max-w-[280px] bg-white dark:bg-gray-800 overflow-hidden hover:-translate-y-1 transition-all duration-300 relative hover:z-10 rounded-lg"
       style={{ 
         width: '100%', 
         transition: 'all 0.3s ease'
@@ -68,61 +68,58 @@ export function ProductCard({
       }}
     >
       {/* Image Container */}
-      <div className="relative h-56 sm:h-72 w-full overflow-hidden">
+      <div className="relative h-28 xs:h-36 sm:h-48 md:h-56 lg:h-64 w-full overflow-hidden">
         <Link href={link} className="block h-full w-full">
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50/30 dark:bg-gray-700/20">
             <Image 
               src={image} 
               alt={title}
-              width={250}
-              height={250}
-              className={`object-contain max-h-64 transition-transform duration-500 ${isHovered ? 'scale-110' : ''}`}
-              style={{ maxWidth: '100%', height: 'auto' }}
+              width={200}
+              height={200}
+              sizes="(max-width: 480px) 120px, (max-width: 640px) 150px, (max-width: 768px) 190px, 250px"
+              className={`object-contain max-h-full w-auto transition-transform duration-500 p-1 xs:p-2 ${isHovered ? 'scale-110' : ''}`}
             />
-            
-            {/* Remove inner shadow effect */}
-            <div className="absolute inset-0 transition-opacity duration-300" />
           </div>
         </Link>
         
         {/* Quick action buttons */}
-        <div className={`absolute right-3 top-3 flex flex-col gap-2 transition-all duration-300 transform ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
+        <div className={`absolute right-1 top-1 sm:right-2 sm:top-2 flex flex-col gap-1 sm:gap-1.5 transition-all duration-300 transform ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
           <button 
             onClick={(e) => {
               e.preventDefault();
               if (onAddToWishlist) onAddToWishlist();
             }} 
-            className="w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:cursor-pointer"
+            className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center transition-colors hover:bg-primary/10 hover:cursor-pointer"
             aria-label="Add to wishlist"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5" strokeWidth={2}>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </button>
         </div>
         
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-2">
+        <div className="absolute top-1 left-1 sm:top-2 sm:left-2 flex flex-col gap-1 sm:gap-1.5">
           {badge && (
-            <span className="inline-block bg-accent text-white text-xs font-bold px-2.5 py-1.5 rounded-md">
+            <span className="inline-block bg-accent text-white text-[8px] xs:text-[10px] sm:text-xs font-medium sm:font-bold px-1 xs:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
               {badge}
             </span>
           )}
           
           {isNew && (
-            <span className="inline-block bg-green-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-md">
+            <span className="inline-block bg-green-500 text-white text-[8px] xs:text-[10px] sm:text-xs font-medium sm:font-bold px-1 xs:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
               New
             </span>
           )}
           
           {isBestSeller && (
-            <span className="inline-block bg-amber-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-md">
+            <span className="inline-block bg-amber-500 text-white text-[8px] xs:text-[10px] sm:text-xs font-medium sm:font-bold px-1 xs:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
               Best Seller
             </span>
           )}
           
           {discountPercentage && discountPercentage >= 5 && (
-            <span className="inline-block bg-[#d44506] text-white text-xs font-bold px-2.5 py-1.5 rounded-md">
+            <span className="inline-block bg-[#d44506] text-white text-[8px] xs:text-[10px] sm:text-xs font-medium sm:font-bold px-1 xs:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
               {discountPercentage}% OFF
             </span>
           )}
@@ -130,35 +127,35 @@ export function ProductCard({
         
         {/* Assured badge */}
         {isAssured && (
-          <div className="absolute bottom-3 right-3">
-            <div className="bg-gradient-to-r from-[#ed8c61] to-[#ed875a] text-white text-xs px-2.5 py-1.5 rounded-md font-medium flex items-center gap-1">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+          <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2">
+            <div className="bg-gradient-to-r from-[#ed8c61] to-[#ed875a] text-white text-[8px] xs:text-[10px] sm:text-xs px-1 xs:px-1.5 sm:px-2 py-0.5 rounded font-medium flex items-center gap-0.5 sm:gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-4 sm:h-4">
                 <path fillRule="evenodd" d="M16.403 12.652a3 3 0 000-5.304 3 3 0 00-3.75-3.751 3 3 0 00-5.305 0 3 3 0 00-3.751 3.75 3 3 0 000 5.305 3 3 0 003.75 3.751 3 3 0 005.305 0 3 3 0 003.751-3.75zm-2.546-4.46a.75.75 0 00-1.214-.883l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
               </svg>
-              Assured
+              <span className="tracking-tight">Assured</span>
             </div>
           </div>
         )}
       </div>
       
       {/* Product Info */}
-      <div className="p-4">
+      <div className="p-1.5 xs:p-2 sm:p-3 md:p-4">
         <Link href={link} className="block group-hover:text-primary transition-colors">
-          <h3 className="font-heading font-medium text-gray-800 dark:text-gray-100 line-clamp-2 h-12 text-sm sm:text-base">
+          <h3 className="font-heading font-medium text-gray-800 dark:text-gray-100 line-clamp-2 h-8 xs:h-9 sm:h-12 text-[11px] xs:text-xs sm:text-sm md:text-base">
             {title}
           </h3>
         </Link>
         
         {/* Rating */}
         {rating && (
-          <div className="flex items-center mt-2">
-            <div className="flex items-center bg-[#e7e1dc] text-gray-800 text-xs px-2 py-0.5 rounded-sm">
+          <div className="flex flex-wrap items-center mt-0.5 xs:mt-1 sm:mt-2 gap-1">
+            <div className="flex items-center bg-[#e7e1dc] text-gray-800 text-[8px] xs:text-[10px] sm:text-xs px-1 xs:px-1.5 sm:px-2 py-0.5 rounded-sm">
               <span className="font-semibold">{rating.toFixed(1)}</span>
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
                 viewBox="0 0 20 20" 
                 fill="currentColor" 
-                className={`w-3.5 h-3.5 ml-0.5 ${
+                className={`w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 ml-0.5 ${
                   rating >= 4 ? 'text-[#0e6b65]' : 
                   rating >= 3 ? 'text-[#14958f]' : 
                   rating >= 2 ? 'text-[#45ada5]' : 
@@ -169,33 +166,33 @@ export function ProductCard({
               </svg>
             </div>
             {reviewCount !== undefined && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5">
-                {reviewCount > 1000 ? `${(reviewCount / 1000).toFixed(1)}k reviews` : `${reviewCount} reviews`}
+              <span className="text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs text-gray-500 dark:text-gray-400">
+                {reviewCount > 1000 ? `${(reviewCount / 1000).toFixed(1)}k` : `${reviewCount}`}
               </span>
             )}
           </div>
         )}
         
         {/* Price Section */}
-        <div className="mt-3 flex items-baseline flex-wrap gap-1.5">
+        <div className="mt-1 xs:mt-1.5 sm:mt-2 flex items-baseline flex-wrap gap-0.5 xs:gap-1 sm:gap-1.5">
           {price ? (
-            <span className="font-bold text-gray-900 dark:text-white text-lg">
+            <span className="font-bold text-gray-900 dark:text-white text-xs xs:text-sm sm:text-base md:text-lg">
               ₹{price.toLocaleString()}
             </span>
           ) : discount ? (
-            <span className="font-bold text-green-600 dark:text-green-400 text-lg">
+            <span className="font-bold text-green-600 dark:text-green-400 text-xs xs:text-sm sm:text-base md:text-lg">
               {discount}
             </span>
           ) : null}
           
           {originalPrice && (
-            <span className="text-sm text-gray-500 line-through">
+            <span className="text-[10px] xs:text-xs sm:text-sm text-gray-500 line-through">
               ₹{originalPrice.toLocaleString()}
             </span>
           )}
           
           {discountPercentage && (
-            <span className="text-xs font-semibold text-[#ed8c61] dark:text-green-400 ml-1">
+            <span className="text-[8px] xs:text-[10px] sm:text-xs font-semibold text-[#ed8c61] dark:text-green-400 ml-0.5">
               ({discountPercentage}% off)
             </span>
           )}
@@ -203,15 +200,15 @@ export function ProductCard({
         
         {/* Delivery Info */}
         {(deliveryInfo || hasFreeDel) && (
-          <div className="mt-2 flex items-center text-xs text-gray-600 dark:text-gray-300">
+          <div className="mt-0.5 xs:mt-1 sm:mt-1.5 flex items-center text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs text-gray-600 dark:text-gray-300">
             {hasFreeDel && (
               <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 mr-1 text-green-500">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5 mr-0.5 text-green-500">
                   <path d="M6.5 3c-1.051 0-2.093.04-3.125.117A1.49 1.49 0 002 4.607V10.5h9V4.606c0-.771-.59-1.43-1.375-1.489A41.568 41.568 0 006.5 3zM2 12v2.5A1.5 1.5 0 003.5 16h.041a3 3 0 015.918 0h.791a.75.75 0 00.75-.75V12H2z" />
                   <path d="M6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM13.25 5a.75.75 0 00-.75.75v8.514a3.001 3.001 0 014.893 1.44c.37-.275.607-.714.607-1.201V6.75a.75.75 0 00-.75-.75h-4z" />
                   <path d="M14.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                 </svg>
-                <span className="font-medium text-green-600 dark:text-green-400">Free Delivery</span>
+                <span className="font-medium text-green-600 dark:text-green-400">Free</span>
               </div>
             )}
             {deliveryInfo && !hasFreeDel && (
@@ -222,15 +219,15 @@ export function ProductCard({
       </div>
       
       {/* Add to cart quick button - visible on hover */}
-      <div className={`absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 p-3 transform transition-transform duration-300 shadow-md ${isHovered ? 'translate-y-0' : 'translate-y-full'}`}>
+      <div className={`absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 p-1.5 xs:p-2 sm:p-2.5 transform transition-transform duration-300 shadow-md ${isHovered ? 'translate-y-0' : 'translate-y-full'}`}>
         <button 
-          className="w-full bg-[#ed8c61] hover:bg-[#ed875a] text-white py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-sm hover:cursor-pointer"
+          className="w-full bg-[#ed8c61] hover:bg-[#ed875a] text-white py-1 xs:py-1.5 sm:py-2 text-[10px] xs:text-xs sm:text-sm font-medium transition-colors flex items-center justify-center gap-1 sm:gap-2 shadow-sm hover:cursor-pointer rounded-sm"
           onClick={(e) => {
             e.preventDefault();
             if (onAddToCart) onAddToCart();
           }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
           </svg>
           <span className="whitespace-nowrap">Add to Cart</span>

@@ -136,15 +136,15 @@ export function CategoryNavigation() {
   
   return (
     <section className="bg-white dark:bg-gray-900 shadow-sm relative overflow-hidden">
-      <div className="container mx-auto px-4 py-6 relative">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 md:py-6 relative">
         {/* Scroll Buttons - Only show on larger screens */}
         {showLeftScroll && (
           <button 
             onClick={() => scrollCategories('left')}
-            className="hidden md:flex absolute left-4 top-1/2 z-10 items-center justify-center w-8 h-8 bg-white dark:bg-gray-800 rounded-full shadow-md text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="hidden md:flex absolute left-2 sm:left-3 md:left-4 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-white dark:bg-gray-800 rounded-full shadow-md text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             aria-label="Scroll left"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
@@ -153,10 +153,10 @@ export function CategoryNavigation() {
         {showRightScroll && (
           <button 
             onClick={() => scrollCategories('right')}
-            className="hidden md:flex absolute right-4 top-1/2 z-10 items-center justify-center w-8 h-8 bg-white dark:bg-gray-800 rounded-full shadow-md text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="hidden md:flex absolute right-2 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-7 h-7 sm:w-8 sm:h-8 bg-white dark:bg-gray-800 rounded-full shadow-md text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             aria-label="Scroll right"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -165,10 +165,10 @@ export function CategoryNavigation() {
         {/* Categories Scrollable Container */}
         <div 
           ref={scrollContainerRef} 
-          className="overflow-x-auto pb-4 hide-scrollbar"
+          className="overflow-x-auto pb-2 sm:pb-3 md:pb-4 hide-scrollbar"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          <div className="flex justify-center space-x-4 md:space-x-6 min-w-max">
+          <div className="flex justify-center space-x-2 xs:space-x-3 sm:space-x-4 md:space-x-6 min-w-max">
             {categories.map((category) => (
               <div 
                 key={category.id}
@@ -184,28 +184,30 @@ export function CategoryNavigation() {
                       : 'hover:scale-105'
                   }`}
                 >
-                  <div className={`relative mb-3 flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-lg
+                  <div className={`relative mb-1 xs:mb-2 sm:mb-3 flex items-center justify-center w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-lg
                     ${pathname === category.href 
                       ? 'text-primary' 
                       : 'text-gray-700 dark:text-gray-300'
                     } transition-colors duration-200`}
                   >
-                    <Image 
-                      src={category.icon} 
-                      alt={category.name} 
-                      width={48} 
-                      height={48} 
-                      className="object-contain group-hover:scale-110 transition-transform duration-200" 
-                    />
+                    <div className="relative w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 md:w-14 md:h-14">
+                      <Image 
+                        src={category.icon} 
+                        alt={category.name} 
+                        fill
+                        sizes="(max-width: 640px) 32px, (max-width: 768px) 40px, (max-width: 1024px) 48px, 56px"
+                        className="object-contain group-hover:scale-110 transition-transform duration-200" 
+                      />
+                    </div>
                     
                     {category.featured && (
-                      <span className="absolute top-0 right-0 bg-primary text-white text-xs px-1 rounded-bl-lg">
+                      <span className="absolute top-0 right-0 bg-primary text-white text-[8px] xs:text-[10px] sm:text-xs px-0.5 sm:px-1 rounded-bl-lg">
                         New
                       </span>
                     )}
                   </div>
                   
-                  <span className={`text-center text-sm font-medium transition-colors
+                  <span className={`text-center text-[10px] xs:text-xs sm:text-sm font-medium transition-colors
                     ${pathname === category.href 
                       ? 'text-primary dark:text-primary-light' 
                       : 'text-gray-700 dark:text-gray-300 group-hover:text-primary dark:group-hover:text-primary-light'
@@ -217,10 +219,10 @@ export function CategoryNavigation() {
                 
                 {/* Tooltip */}
                 {showTooltip === category.id && category.description && (
-                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 w-48 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-xs p-2 rounded shadow-lg z-10 pointer-events-none">
+                  <div className="hidden sm:block absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 w-36 sm:w-44 md:w-48 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-[10px] sm:text-xs p-1.5 sm:p-2 rounded shadow-lg z-10 pointer-events-none">
                     <div className="relative">
                       {category.description}
-                      <div className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-3 h-3 rotate-45 bg-white dark:bg-gray-800"></div>
+                      <div className="absolute bottom-[-6px] sm:bottom-[-8px] left-1/2 transform -translate-x-1/2 w-2 h-2 sm:w-3 sm:h-3 rotate-45 bg-white dark:bg-gray-800"></div>
                     </div>
                   </div>
                 )}
@@ -230,12 +232,12 @@ export function CategoryNavigation() {
         </div>
         
         {/* Mobile Scroll Indicator */}
-        <div className="md:hidden flex justify-center mt-2">
+        <div className="md:hidden flex justify-center mt-1 sm:mt-2">
           <div className="flex space-x-1">
             {categories.map((_, index) => (
               <div 
                 key={index} 
-                className={`w-1.5 h-1.5 rounded-full ${
+                className={`w-1 h-1 xs:w-1.5 xs:h-1.5 rounded-full ${
                   index === 0 ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-700'
                 }`} 
               />

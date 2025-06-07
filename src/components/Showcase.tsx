@@ -83,7 +83,7 @@ export function Showcase() {
   const slide = slides[currentSlide];
   
   return (
-    <div className="relative w-full mt-2 h-[350px] md:h-[400px] overflow-hidden">
+    <div className="relative w-full mt-1 sm:mt-2 h-[250px] xs:h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] overflow-hidden">
       <div
         className="relative w-full h-full flex items-center"
         style={{ backgroundColor: slide.backgroundColor }}
@@ -91,10 +91,10 @@ export function Showcase() {
         {/* Left arrow navigation */}
         <button
           onClick={handlePrevSlide}
-          className="absolute left-2 z-20 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all"
+          className="absolute left-1 sm:left-2 md:left-4 z-20 w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all"
           aria-label="Previous slide"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
@@ -108,6 +108,7 @@ export function Showcase() {
               alt={slide.title}
               fill
               priority
+              sizes="100vw"
               className="object-cover object-center opacity-85"
               style={{ zIndex: 1 }}
             />
@@ -116,45 +117,55 @@ export function Showcase() {
           </div>
           
           {/* Product image and brand info - left side */}
-          <div className="relative flex-1 flex items-center justify-between px-8 md:px-16" style={{ zIndex: 5 }}>
+          <div className="relative flex-1 flex items-center justify-between px-3 xs:px-5 sm:px-8 md:px-16" style={{ zIndex: 5 }}>
             {/* Brand and text info */}
-            <div className="z-10 mr-auto ml-4 md:ml-8 lg:ml-16">
-              <div className="flex items-center space-x-2 mb-3">
-                <Image 
-                  src={slide.brandLogo} 
-                  alt="Brand Logo" 
-                  width={60}
-                  height={60}
-                  className="object-cover rounded-full h-12 w-12 border-2 border-white/70"
-                />
-                <span className="text-white text-sm">Unique</span>
+            <div className="z-10 mr-auto ml-1 xs:ml-2 sm:ml-4 md:ml-8 lg:ml-16">
+              <div className="flex items-center space-x-2 mb-1 sm:mb-2 md:mb-3">
+                <div className="relative h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12">
+                  <Image 
+                    src={slide.brandLogo} 
+                    alt="Brand Logo" 
+                    fill
+                    sizes="(max-width: 640px) 32px, (max-width: 768px) 40px, 48px"
+                    className="object-cover rounded-full border-2 border-white/70"
+                  />
+                </div>
+                <span className="text-white text-xs sm:text-sm">Unique</span>
               </div>
-              <div className="space-y-2 text-white drop-shadow-lg">
-                <h2 className="text-3xl md:text-4xl font-semibold font-heading">{slide.title}</h2>
-                <p className="text-lg md:text-xl">{slide.subtitle}</p>
-                <p className="text-2xl md:text-3xl font-bold">{slide.tagline}</p>
-                <div className="text-xs mt-4">
+              <div className="space-y-1 sm:space-y-2 text-white drop-shadow-lg">
+                <h2 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-semibold font-heading">{slide.title}</h2>
+                <p className="text-sm xs:text-base sm:text-lg md:text-xl">{slide.subtitle}</p>
+                <p className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold">{slide.tagline}</p>
+                <div className="text-[10px] xs:text-xs mt-2 sm:mt-3 md:mt-4">
                   <span>Powered by </span>
                   <span className="font-bold">nxt</span>
                   <span className="text-amber-400">★</span>
                 </div>
               </div>
+              
+              {/* Shop now button - Only visible on md and larger screens */}
+              <Link 
+                href={slide.link}
+                className="hidden md:inline-block mt-5 px-6 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-full transition-all"
+              >
+                Shop now
+              </Link>
             </div>
           </div>
           
           {/* Blue accent section - right side */}
-          <div className="absolute right-0 h-full w-24 md:w-32" style={{ zIndex: 3 }}>
+          <div className="absolute right-0 h-full w-12 xs:w-16 sm:w-20 md:w-24 lg:w-32" style={{ zIndex: 3 }}>
             <div 
               className="h-full w-full flex items-center justify-center opacity-75"
               style={{ backgroundColor: slide.accentColor }}
             >
               {/* Decorative elements */}
               <div className="relative w-full h-full">
-                <div className="absolute top-1/4 right-8">
-                  <div className="w-6 h-6 rounded-full bg-yellow-300/80"></div>
+                <div className="absolute top-1/4 right-3 xs:right-5 sm:right-6 md:right-8">
+                  <div className="w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full bg-yellow-300/80"></div>
                 </div>
-                <div className="absolute top-1/3 right-6 md:right-12">
-                  <div className="w-8 h-8 rounded-full bg-yellow-300/90"></div>
+                <div className="absolute top-1/3 right-2 xs:right-4 sm:right-6 md:right-12">
+                  <div className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 rounded-full bg-yellow-300/90"></div>
                 </div>
               </div>
             </div>
@@ -164,16 +175,24 @@ export function Showcase() {
         {/* Right arrow navigation */}
         <button
           onClick={handleNextSlide}
-          className="absolute right-2 z-20 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all"
+          className="absolute right-1 sm:right-2 md:right-4 z-20 w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-white/20 flex items-center justify-center text-white hover:bg-white/30 transition-all"
           aria-label="Next slide"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
         
+        {/* Mobile shop now button - Fixed at bottom, only visible on small screens */}
+        <Link 
+          href={slide.link}
+          className="md:hidden absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 px-4 py-1.5 xs:px-5 xs:py-2 bg-white/20 hover:bg-white/30 text-white text-xs xs:text-sm font-medium rounded-full transition-all"
+        >
+          Shop now
+        </Link>
+        
         {/* Slide indicators */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
+        <div className="absolute bottom-2 sm:bottom-3 md:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1.5 sm:space-x-2 z-20">
           {slides.map((_, index) => (
             <button
               key={index}
@@ -181,7 +200,7 @@ export function Showcase() {
                 setIsAutoPlaying(false);
                 setCurrentSlide(index);
               }}
-              className={`w-2 h-2 rounded-full ${
+              className={`w-1.5 h-1.5 xs:w-2 xs:h-2 rounded-full ${
                 index === currentSlide ? 'bg-white' : 'bg-white/40'
               }`}
               aria-label={`Go to slide ${index + 1}`}

@@ -65,28 +65,28 @@ export function ProductInfo({ product }: ProductInfoProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Brand */}
       <div>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{product.brand}</p>
+        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{product.brand}</p>
       </div>
       
       {/* Title */}
-      <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{product.title}</h1>
+      <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{product.title}</h1>
       
       {/* Subtitle */}
       {product.subtitle && (
-        <p className="text-sm text-gray-500 dark:text-gray-400">{product.subtitle}</p>
+        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{product.subtitle}</p>
       )}
       
       {/* Rating and reviews */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 md:gap-4">
         <div className="flex items-center">
-          <span className="bg-[#d44506] text-white text-sm px-2 py-0.5 flex items-center">
+          <span className="bg-[#d44506] text-white text-xs sm:text-sm px-1.5 sm:px-2 py-0.5 flex items-center">
             {product.rating.toFixed(1)} ★
           </span>
-          <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
-            {product.reviewCount.toLocaleString()} Ratings & Reviews
+          <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 ml-1 sm:ml-2">
+            {product.reviewCount.toLocaleString()} Ratings
           </span>
         </div>
         
@@ -94,7 +94,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
         {product.isAssured && (
           <div className="flex items-center">
             <span className="flex items-center">
-              <svg className="w-4 h-4 text-[#ed875a] dark:text-[#ed8c61]" viewBox="0 0 16 16" fill="currentColor">
+              <svg className="w-3 h-3 sm:w-4 sm:h-4 text-[#ed875a] dark:text-[#ed8c61]" viewBox="0 0 16 16" fill="currentColor">
                 <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
               </svg>
               <span className="ml-1 text-xs font-medium text-[#ed875a] dark:text-[#ed8c61]">Assured</span>
@@ -104,20 +104,20 @@ export function ProductInfo({ product }: ProductInfoProps) {
       </div>
       
       {/* Pricing */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+      <div className="space-y-1 sm:space-y-2">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+          <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
             ₹{formatPrice(product.price)}
           </span>
           
           {product.originalPrice && (
-            <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
+            <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through">
               ₹{formatPrice(product.originalPrice)}
             </span>
           )}
           
           {discountPercentage && (
-            <span className="text-sm font-semibold text-[#d44506] dark:text-[#ed875a]">
+            <span className="text-xs sm:text-sm font-semibold text-[#d44506] dark:text-[#ed875a]">
               {discountPercentage}% off
             </span>
           )}
@@ -128,17 +128,17 @@ export function ProductInfo({ product }: ProductInfoProps) {
       
       {/* Bank offers */}
       {product.bankOffers && product.bankOffers.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Available offers</p>
+        <div className="space-y-1 sm:space-y-2">
+          <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Available offers</p>
           <ul className="space-y-1">
             {product.bankOffers.slice(0, 3).map((offer, index) => (
-              <li key={index} className="flex items-start gap-2 text-sm">
+              <li key={index} className="flex items-start gap-1 sm:gap-2 text-xs sm:text-sm">
                 <span className="text-green-600 dark:text-green-400 mt-0.5">•</span>
                 <span>{offer}</span>
               </li>
             ))}
             {product.bankOffers.length > 3 && (
-              <button className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+              <button className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-medium">
                 View {product.bankOffers.length - 3} more offers
               </button>
             )}
@@ -148,20 +148,20 @@ export function ProductInfo({ product }: ProductInfoProps) {
       
       {/* Color variants */}
       {product.colorVariants && product.colorVariants.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Color</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Color</p>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
               {selectedColorVariant?.color || product.colorVariants[0].color}
             </p>
           </div>
           
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
             {product.colorVariants.map((variant) => (
               <button
                 key={variant.id}
                 onClick={() => setSelectedColorVariant(variant)}
-                className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center ${
                   selectedColorVariant?.id === variant.id 
                     ? 'ring-2 ring-[#ed875a] dark:ring-[#ed8c61]' 
                     : 'ring-1 ring-gray-300 dark:ring-gray-600'
@@ -169,7 +169,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
                 aria-label={`Select ${variant.color} color`}
               >
                 <span 
-                  className="w-10 h-10 rounded-full" 
+                  className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full" 
                   style={{ backgroundColor: variant.hex }}
                   title={variant.color}
                 />
@@ -180,45 +180,45 @@ export function ProductInfo({ product }: ProductInfoProps) {
       )}
       
       {/* Delivery info */}
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Delivery</p>
+          <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Delivery</p>
           
           {/* Free delivery badge */}
           {product.hasFreeDel && (
-            <span className="text-xs bg-[#f5f1ed] dark:bg-[#d44506]/20 text-[#d44506] dark:text-[#ed875a] px-2 py-0.5">
+            <span className="text-xs bg-[#f5f1ed] dark:bg-[#d44506]/20 text-[#d44506] dark:text-[#ed875a] px-1.5 sm:px-2 py-0.5">
               Free
             </span>
           )}
         </div>
         
         <div className="flex items-start gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
           <div className="flex-1">
-            <p className="text-sm text-gray-700 dark:text-gray-300">
+            <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
               {product.deliveryInfo || 'Standard Delivery'}
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Enter pincode for exact delivery dates
             </p>
-            <div className="mt-3 relative">
+            <div className="mt-2 sm:mt-3 relative">
               <div className="flex w-full max-w-[300px] shadow-sm rounded-md overflow-hidden">
                 <input 
                   type="text" 
                   placeholder="Enter pincode" 
-                  className="flex-1 py-2.5 px-4 text-sm border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="flex-1 py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent dark:bg-gray-700 dark:text-white"
                   maxLength={6}
                 />
-                <button className="bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-md text-white px-5 py-2.5 text-sm font-medium transition-all flex items-center justify-center">
+                <button className="bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-md text-white px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all flex items-center justify-center">
                   Check
                 </button>
               </div>
-              <div className="mt-2 text-xs text-[#ed875a] dark:text-[#ed8c61] font-medium">
+              <div className="mt-1.5 sm:mt-2 text-xs text-[#ed875a] dark:text-[#ed8c61] font-medium">
                 <button className="flex items-center gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                   Use my current location
@@ -230,73 +230,71 @@ export function ProductInfo({ product }: ProductInfoProps) {
       </div>
       
       {/* Quantity selector */}
-      <div className="space-y-3">
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</p>
-        <div className="flex items-center w-32">
+      <div className="space-y-2 sm:space-y-3">
+        <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</p>
+        <div className="flex items-center w-24 sm:w-28 md:w-32">
           <button 
             onClick={decrementQuantity}
             disabled={quantity <= 1}
-            className="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-700 rounded-l-md bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-50"
+            className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center border border-gray-300 dark:border-gray-700 rounded-l-md bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-50"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
             </svg>
           </button>
-          <div className="h-8 px-4 flex items-center justify-center border-t border-b border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+          <div className="h-6 sm:h-8 px-2 sm:px-4 flex items-center justify-center border-t border-b border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-xs sm:text-sm text-gray-800 dark:text-gray-200">
             {quantity}
           </div>
           <button 
             onClick={incrementQuantity}
             disabled={quantity >= 10}
-            className="w-8 h-8 flex items-center justify-center border border-gray-300 dark:border-gray-700 rounded-r-md bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-50"
+            className="w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center border border-gray-300 dark:border-gray-700 rounded-r-md bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-50"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
           </button>
         </div>
       </div>
       
-      {/* Success message for cart */}
-      {cartSuccess && (
-        <div className="flex items-center p-3 bg-[#f5f1ed] dark:bg-[#d44506]/20 text-[#d44506] dark:text-[#ed875a]">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          <span>Added to cart!</span>
-        </div>
-      )}
-      
       {/* Action buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 pt-2">
+      <div className="flex flex-col sm:flex-row gap-3 pt-4 sm:pt-6">
         <button 
-          onClick={handleAddToCart}
+          onClick={handleAddToCart} 
           disabled={addingToCart}
-          className="flex-1 bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-lg text-white py-3 px-6 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+          className={`w-full relative h-10 sm:h-12 flex items-center justify-center text-sm sm:text-base font-medium transition-all ${
+            cartSuccess 
+              ? 'bg-green-600 text-white' 
+              : 'bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-lg text-white'
+          }`}
         >
           {addingToCart ? (
-            <>
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+            <div className="flex items-center justify-center">
+              <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
               Adding...
-            </>
+            </div>
+          ) : cartSuccess ? (
+            <div className="flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Added to cart
+            </div>
           ) : (
-            <>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
               Add to Cart
-            </>
+            </div>
           )}
         </button>
+        
         <button 
           onClick={handleBuyNow}
-          disabled={addingToCart}
-          className="flex-1 bg-gradient-to-r from-[#2d2d2d] to-[#4d4d4d] hover:shadow-lg text-white py-3 px-6 font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+          className="w-full h-10 sm:h-12 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 text-sm sm:text-base font-medium transition-all flex items-center justify-center"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
           Buy Now
