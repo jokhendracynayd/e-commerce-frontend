@@ -31,6 +31,7 @@ export type ProductListingCardProps = {
   sponsoredTag?: boolean;
   viewMode?: 'grid' | 'list';
   isMobileFilterOpen?: boolean;
+  currency?: string;
 };
 
 export function ProductListingCard({ 
@@ -52,7 +53,8 @@ export function ProductListingCard({
   exchangeOffer,
   sponsoredTag,
   viewMode = 'grid',
-  isMobileFilterOpen = false
+  isMobileFilterOpen = false,
+  currency = 'INR'
 }: ProductListingCardProps) {
   // For tracking currently selected color variant
   const [currentVariantIndex, setCurrentVariantIndex] = useState(0);
@@ -93,9 +95,17 @@ export function ProductListingCard({
   };
   
   // Calculate discount percentage if not provided
-  const discountPercentage = price && originalPrice 
-    ? Math.round(((originalPrice - price) / originalPrice) * 100) 
-    : null;
+  let discountPercentage = null;
+  if (price && originalPrice && originalPrice > price) {
+    // Calculate discount percentage (avoid division by zero)
+    const calculatedDiscount = ((originalPrice - price) / originalPrice) * 100;
+    
+    // Handle extreme discount cases - ensure it's at least 1% if there's any discount
+    if (calculatedDiscount > 0) {
+      // For very high discounts (like 90%+), ensure we don't exaggerate
+      discountPercentage = Math.min(Math.max(1, Math.round(calculatedDiscount)), 90);
+    }
+  }
 
   // Format price as Indian Rupees
   const formatPrice = (val: number) => {
@@ -106,7 +116,12 @@ export function ProductListingCard({
   const getBadgeClass = () => {
     if (!badge) return "";
     
-    // Use consistent premium color for all badges
+    // Use different colors based on badge type
+    if (badge === 'Featured') return "bg-purple-600 text-white";
+    if (badge === 'Sale') return "bg-red-600 text-white";
+    if (badge === 'New') return "bg-green-600 text-white";
+    
+    // Default badge style
     return "bg-[#d44506] text-white";
   };
     
@@ -195,8 +210,8 @@ export function ProductListingCard({
             <div className="absolute top-0 left-0 flex flex-col items-start">
               {badge && (
                 <span className={`${
-                  viewMode === 'list' ? 'm-1 text-[10px] px-1.5 py-0.5' : 'm-2 text-xs px-2.5 py-1'
-                } ${getBadgeClass()} font-bold z-10 shadow-sm`}>
+                  viewMode === 'list' ? 'm-1 text-[10px] px-2 py-0.5' : 'm-2 text-xs px-3 py-1'
+                } ${getBadgeClass()} font-bold z-10 shadow-md rounded-sm`}>
                   {badge}
                 </span>
               )}
@@ -283,7 +298,7 @@ export function ProductListingCard({
                   </span>
                   {reviewCount !== undefined && (
                     <span className="text-[10px] xs:text-xs font-medium text-gray-500 dark:text-gray-400 ml-1">
-                      ({reviewCount > 1000 ? `${(reviewCount / 1000).toFixed(1)}k` : reviewCount})
+                      ({reviewCount >= 1000 ? `${(reviewCount / 1000).toFixed(1)}k` : reviewCount})
                     </span>
                   )}
                 </div>
@@ -309,7 +324,7 @@ export function ProductListingCard({
                   <svg className="w-3 h-3 mr-1 text-[#ed875a]" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 01-1 1h-1.05a2.5 2.5 0 01-4.9 0H6.05a2.5 2.5 0 01-4.9 0H1a1 1 0 01-1-1V5a1 1 0 011-1h10a1 1 0 011 1v2z" clipRule="evenodd" />
                   </svg>
-                  Upto ₹{exchangeOffer.maxDiscount} Off on Exchange
+                  Upto {currency === 'USD' ? '$' : '₹'}{exchangeOffer.maxDiscount} Off on Exchange
                 </div>
               )}
               
@@ -382,13 +397,13 @@ export function ProductListingCard({
               <div className="flex items-center flex-wrap mt-1">
                 {price && (
                   <span className="font-bold text-gray-900 dark:text-white text-base tracking-tight">
-                    ₹{formatPrice(price)}
+                    {currency === 'USD' ? '$' : '₹'}{formatPrice(price)}
                   </span>
                 )}
                 
                 {originalPrice && (
                   <span className="text-xs text-gray-500 line-through ml-2">
-                    ₹{formatPrice(originalPrice)}
+                    {currency === 'USD' ? '$' : '₹'}{formatPrice(originalPrice)}
                   </span>
                 )}
                 
@@ -452,7 +467,7 @@ export function ProductListingCard({
                   </span>
                   {reviewCount !== undefined && (
                     <span className="text-xs font-medium text-gray-500 dark:text-gray-400 ml-1.5">
-                      ({reviewCount > 1000 ? `${(reviewCount / 1000).toFixed(1)}k` : reviewCount})
+                      ({reviewCount >= 1000 ? `${(reviewCount / 1000).toFixed(1)}k` : reviewCount})
                     </span>
                   )}
                 </div>

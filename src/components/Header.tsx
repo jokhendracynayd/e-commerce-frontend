@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { CartIcon } from './cart/CartIcon';
 import { useAuth } from '@/context/AuthContext';
+import { categoriesApi } from '@/lib/api';
+import { CategoryNode } from '@/types/categories';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,6 +16,9 @@ export function Header() {
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [userMenuTimeout, setUserMenuTimeout] = useState<NodeJS.Timeout | null>(null);
   const [categoryMenuTimeout, setCategoryMenuTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [categories, setCategories] = useState<CategoryNode[]>([]);
+  const [flatCategories, setFlatCategories] = useState<CategoryNode[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const categoryMenuRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -28,6 +33,41 @@ export function Header() {
   
   // Use auth context with isLoading state
   const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth();
+  
+  // Helper function to flatten category tree
+  const flattenCategoryTree = (categories: CategoryNode[]): CategoryNode[] => {
+    return categories.reduce((acc, category) => {
+      const { children, ...categoryWithoutChildren } = category;
+      return [
+        ...acc,
+        categoryWithoutChildren,
+        ...(children ? flattenCategoryTree(children) : [])
+      ];
+    }, [] as CategoryNode[]);
+  };
+  
+  // Fetch categories when component mounts
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const categoriesData = await categoriesApi.getCategoryTree();
+        setCategories(categoriesData);
+        
+        // Create flattened list for easier path building
+        const flattened = flattenCategoryTree(categoriesData);
+        setFlatCategories(flattened);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        setCategories([]);
+        setFlatCategories([]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    
+    fetchCategories();
+  }, []);
   
   // Function to toggle mobile menu
   const toggleMenu = () => {
@@ -120,14 +160,151 @@ export function Header() {
     };
   }, []);
 
-  // Sample category data
-  const categories = [
-    { id: 1, name: "Electronics", slug: "electronics", subcategories: ["Phones", "Laptops", "Accessories"] },
-    { id: 2, name: "Fashion", slug: "fashion", subcategories: ["Men's Clothing", "Women's Clothing", "Jewelry"] },
-    { id: 3, name: "Home & Garden", slug: "home-garden", subcategories: ["Furniture", "Decor", "Kitchen"] },
-    { id: 4, name: "Sports", slug: "sports", subcategories: ["Fitness", "Outdoor", "Team Sports"] },
-    { id: 5, name: "Toys", slug: "toys", subcategories: ["Action Figures", "Board Games", "Educational"] }
-  ];
+  // Helper function to render mobile nested categories
+  const renderMobileCategories = (categories: CategoryNode[], level = 0) => {
+    return (
+      <>
+        {categories.map(category => {
+          const categoryPath = buildCategoryPath(category, flatCategories);
+          
+          return (
+            <div key={category.id} className="space-y-1">
+              <Link 
+                href={categoryPath}
+                className={`text-xs sm:text-sm text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light py-1.5 sm:py-2 transition-colors block ${level > 0 ? `pl-${level * 4}` : ''}`}
+                style={level > 0 ? { paddingLeft: `${level * 12}px` } : {}}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {category.name}
+              </Link>
+              
+              {category.children && category.children.length > 0 && (
+                <div className="pl-4">
+                  {renderMobileCategories(category.children, level + 1)}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+
+  // Helper function to build hierarchical paths
+  const buildCategoryPath = (category: CategoryNode, allCategories: CategoryNode[]): string => {
+    const path: string[] = [category.slug];
+    
+    let currentCat = category;
+    while (currentCat.parentId) {
+      const parentCategory = allCategories.find(cat => cat.id === currentCat.parentId);
+      if (parentCategory) {
+        path.unshift(parentCategory.slug);
+        currentCat = parentCategory;
+      } else {
+        break;
+      }
+    }
+    return '/' + path.join('/');
+  };
+
+  // Helper function to render nested categories recursively
+  const renderNestedCategories = (categories: CategoryNode[], isRoot = false) => {
+    return (
+      <>
+        {categories.map(category => {
+          const categoryPath = buildCategoryPath(category, flatCategories);
+          
+          return (
+            <div key={category.id} className="category-item relative px-1 w-full">
+              <Link 
+                href={categoryPath} 
+                className={`block px-4 py-2 text-sm lg:text-base text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md font-medium hover:text-primary dark:hover:text-primary-light transition-colors ${!isRoot ? 'flex justify-between items-center' : ''}`}
+              >
+                <span>{category.name}</span>
+                {category.children && category.children.length > 0 && (
+                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-3.5 w-3.5 lg:h-4 lg:w-4 ${isRoot ? 'inline-block ml-2' : 'ml-2'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isRoot ? "M9 5l7 7-7 7" : "M9 5l7 7-7 7"} />
+                  </svg>
+                )}
+              </Link>
+              
+              {/* Nested subcategories flyout */}
+              {category.children && category.children.length > 0 && (
+                <div 
+                  className="absolute left-full top-0 ml-0 w-44 lg:w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 opacity-0 invisible submenu z-[100]"
+                >
+                  {renderNestedCategories(category.children, false)}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </>
+    );
+  };
+
+  // Add CSS for correct hover behavior at component level
+  useEffect(() => {
+    // Add style tag to document head
+    const styleTag = document.createElement('style');
+    styleTag.textContent = `
+      /* Base styling for category items */
+      .category-item {
+        position: relative;
+      }
+
+      /* Show submenu on hover with a delay to prevent flickering */
+      .category-item:hover > .submenu {
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        transition-delay: 100ms;
+      }
+      
+      /* Maintain visibility when moving to submenu */
+      .submenu:hover {
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+      }
+      
+      /* Create a safe hover area with invisible pseudo-element */
+      .category-item::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: -10px; /* Safety margin */
+        width: 20px; /* Width of the safety area */
+        height: 100%;
+        background: transparent;
+        z-index: 1;
+      }
+      
+      /* Create a buffer zone between parent and child */
+      .submenu::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -10px;
+        width: 10px;
+        height: 100%;
+        background: transparent;
+        z-index: 2;
+      }
+      
+      /* Reset submenu visibility when not hovering */
+      .category-item .submenu {
+        pointer-events: none;
+        transition: opacity 150ms ease, visibility 150ms ease;
+      }
+    `;
+    document.head.appendChild(styleTag);
+    
+    // Clean up function
+    return () => {
+      document.head.removeChild(styleTag);
+    };
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 bg-white dark:bg-gray-900 w-full">
@@ -188,32 +365,16 @@ export function Header() {
                 className={`absolute left-0 mt-2 w-56 lg:w-64 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 z-50 transition-all duration-200 grid grid-cols-1 ${isCategoryMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
                 style={{transform: isCategoryMenuOpen ? 'translateY(0)' : 'translateY(-10px)'}}
               >
-                {categories.map(category => (
-                  <div key={category.id} className="group relative px-1">
-                    <Link 
-                      href={`/category/${category.slug}`} 
-                      className="block px-4 py-2 text-sm lg:text-base text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md font-medium group-hover:text-primary dark:group-hover:text-primary-light transition-colors"
-                    >
-                      {category.name}
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 lg:h-4 lg:w-4 inline-block ml-2 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    
-                    {/* Subcategories flyout */}
-                    <div className="absolute left-full top-0 ml-1 w-44 lg:w-48 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                      {category.subcategories.map((subcat, index) => (
-                        <Link 
-                          key={index} 
-                          href={`/category/${category.slug}/${subcat.toLowerCase().replace(/\s+/g, '-')}`} 
-                          className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md hover:text-primary dark:hover:text-primary-light transition-colors"
-                        >
-                          {subcat}
-                        </Link>
-                      ))}
-                    </div>
+                {loadingCategories ? (
+                  <div className="flex items-center justify-center px-4 py-3">
+                    <div className="w-5 h-5 border-2 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+                    <span className="ml-2 text-sm text-gray-500">Loading...</span>
                   </div>
-                ))}
+                ) : categories.length > 0 ? (
+                  renderNestedCategories(categories, true)
+                ) : (
+                  <div className="px-4 py-3 text-sm text-gray-500">No categories found</div>
+                )}
               </div>
             </div>
 
@@ -383,12 +544,6 @@ export function Header() {
                   >
                     Login
                   </Link>
-                  <Link 
-                    href="/register"
-                    className="bg-primary hover:bg-primary-dark text-white px-3 lg:px-4 py-1.5 lg:py-2 rounded-full text-xs lg:text-sm font-medium transition-colors"
-                  >
-                    Sign Up
-                  </Link>
                 </div>
               )}
             </div>
@@ -427,18 +582,16 @@ export function Header() {
               <h3 className="text-xs sm:text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 font-heading">
                 Categories
               </h3>
-              <div className="grid grid-cols-2 gap-1 sm:gap-2">
-                {categories.map(category => (
-                  <Link 
-                    key={category.id}
-                    href={`/category/${category.slug}`}
-                    className="text-xs sm:text-sm text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light py-1.5 sm:py-2 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {category.name}
-                  </Link>
-                ))}
-              </div>
+              {loadingCategories ? (
+                <div className="flex items-center py-2">
+                  <div className="w-4 h-4 border-2 border-gray-300 border-t-primary rounded-full animate-spin"></div>
+                  <span className="ml-2 text-xs text-gray-500">Loading categories...</span>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {renderMobileCategories(categories)}
+                </div>
+              )}
             </div>
             
             <div className="border-t border-gray-200 dark:border-gray-800 my-1 sm:my-2"></div>

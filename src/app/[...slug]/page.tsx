@@ -8,6 +8,95 @@ import { getListingProducts } from '@/services/productlist-data';
 import { useCategories } from '@/context/CategoryContext';
 import { CategoryNode } from '@/types/categories';
 import { CategoryBreadcrumb } from '@/components/product/CategoryBreadcrumb';
+import { getProductsByCategorySlug } from '@/services/productService';
+
+// Define API response interfaces
+interface ApiProductVariant {
+  id: string;
+  variantName: string;
+  sku: string;
+  price: string;
+  stockQuantity: number;
+  additionalPrice: string;
+}
+
+interface ApiProductImage {
+  id: string;
+  imageUrl: string;
+  altText?: string;
+  position: number;
+}
+
+interface ApiProductDeal {
+  id: string;
+  dealType: string;
+  discount: string;
+  startTime: string;
+  endTime: string;
+}
+
+interface ApiProductTag {
+  id: string;
+  name: string;
+}
+
+interface ApiBrand {
+  id: string;
+  name: string;
+  slug: string;
+  logo?: string;
+}
+
+interface ApiCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  icon?: string;
+}
+
+interface ApiProduct {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  shortDescription?: string;
+  price: string;
+  discountPrice?: string;
+  currency: string;
+  stockQuantity: number;
+  sku: string;
+  isActive: boolean;
+  isFeatured: boolean;
+  visibility: string;
+  averageRating: number;
+  reviewCount: number;
+  brand?: ApiBrand;
+  category?: ApiCategory;
+  subCategory?: ApiCategory;
+  images: ApiProductImage[];
+  variants: ApiProductVariant[];
+  tags: ApiProductTag[];
+  deals: ApiProductDeal[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ApiResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    data: ApiProduct[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+  timestamp: string;
+  path: string;
+}
 
 type SortOption = {
   id: string;
@@ -26,7 +115,8 @@ const sortOptions: SortOption[] = [
 
 export default function CategoryPage() {
   const params = useParams();
-  const categorySlug = typeof params.category === 'string' ? params.category : '';
+  const slugArray = Array.isArray(params.slug) ? params.slug : [];
+  const categorySlug = slugArray.length > 0 ? slugArray[slugArray.length - 1] : '';
   
   // Get categories from context
   const { categoryTree, flatCategories, isLoading: categoriesLoading } = useCategories();
@@ -115,15 +205,118 @@ export default function CategoryPage() {
     try {
       setIsLoading(true);
       
-      // In a real implementation, you would call your API with categoryId
-      // const response = await productsApi.getProductsByCategory(categoryId);
-      // setProducts(response);
+      // Extract the category slug
+      const category = flatCategories.find(cat => cat.id === categoryId);
+      if (!category) {
+        setIsLoading(false);
+        setProducts([]);
+        return;
+      }
       
-      // For now, use the dummy data
+      // Filter options for API call
+      const params = {
+        page: currentPage,
+        limit: productsPerPage,
+        sortBy: sortBy === 'popularity' ? 'averageRating' : sortBy,
+        sortOrder: sortBy === 'price_low_to_high' ? 'asc' : 'desc',
+        minPrice: filters.priceRange[0],
+        maxPrice: filters.priceRange[1],
+        inStock: filters.availability.includes('instock'),
+        isFeatured: filters.brands.length > 0 ? undefined : undefined
+      };
+      
+      // Get dummy products as fallback/template
       const dummyProducts = getListingProducts();
-      setProducts(dummyProducts);
       
-      // Wait a bit to simulate loading
+      try {
+        // Make the real API call
+        const response = await getProductsByCategorySlug(
+          category.slug,
+          true, // recursive
+          params
+        ) as ApiResponse;
+        
+        console.log('Category Products API Response:', response);
+        
+        // If we have API data, transform it to match our UI format
+        if (response && response.data && response.data.data && response.data.data.length > 0) {
+          const apiProducts = response.data.data;
+          const mappedProducts = apiProducts.map((apiProduct: ApiProduct) => {
+            // Try to find a matching dummy product to use as a template
+            const dummyProduct = dummyProducts[0]; // Use first one as template
+            
+            // Map API response to ProductListingCard format
+            return {
+              id: apiProduct.id,
+              title: apiProduct.title,
+              image: apiProduct.images && apiProduct.images.length > 0 
+                ? apiProduct.images[0].imageUrl 
+                : dummyProduct.image,
+              price: apiProduct.discountPrice 
+                ? parseFloat(apiProduct.discountPrice) 
+                : parseFloat(apiProduct.price),
+              originalPrice: apiProduct.discountPrice 
+                ? parseFloat(apiProduct.price) 
+                : undefined,
+              link: `/${apiProduct.slug}/p/${apiProduct.id}`,
+              isAssured: dummyProduct.isAssured, // Keep from dummy data
+              rating: apiProduct.averageRating || dummyProduct.rating,
+              reviewCount: apiProduct.reviewCount || dummyProduct.reviewCount,
+              badge: apiProduct.deals && apiProduct.deals.length > 0 
+                ? apiProduct.deals[0].dealType === 'DEAL_OF_DAY' 
+                  ? 'Deal of the Day' 
+                  : apiProduct.deals[0].dealType 
+                : dummyProduct.badge,
+              deliveryInfo: dummyProduct.deliveryInfo, // Keep from dummy data
+              hasFreeDel: dummyProduct.hasFreeDel, // Keep from dummy data
+              subtitle: apiProduct.shortDescription || dummyProduct.subtitle,
+              discount: apiProduct.discountPrice 
+                ? `${Math.round(((parseFloat(apiProduct.price) - parseFloat(apiProduct.discountPrice)) / parseFloat(apiProduct.price)) * 100)}% off` 
+                : dummyProduct.discount,
+              exchangeOffer: dummyProduct.exchangeOffer, // Keep from dummy data
+              colorVariants: apiProduct.variants 
+                ? apiProduct.variants.map((variant: ApiProductVariant, index: number) => ({
+                    id: variant.id,
+                    color: variant.variantName,
+                    hex: dummyProduct.colorVariants && dummyProduct.colorVariants[index] 
+                      ? dummyProduct.colorVariants[index].hex 
+                      : '#000000',
+                    image: dummyProduct.colorVariants && dummyProduct.colorVariants[index] 
+                      ? dummyProduct.colorVariants[index].image 
+                      : apiProduct.images && apiProduct.images.length > 0 
+                        ? apiProduct.images[0].imageUrl 
+                        : dummyProduct.image
+                  }))
+                : dummyProduct.colorVariants,
+              sponsoredTag: dummyProduct.sponsoredTag, // Keep from dummy data
+              currency: apiProduct.currency || dummyProduct.currency || 'INR'
+            };
+          });
+          
+          // Update the product state with API data
+          setProducts(mappedProducts);
+          console.log('Using API data for products:', mappedProducts.length);
+          
+          // Update pagination metadata if available from API
+          // This could be used to show total counts and enable server-side pagination
+          if (response.data) {
+            const { total, totalPages } = response.data;
+            console.log(`Total products from API: ${total}, Total pages: ${totalPages}`);
+            // We could set server pagination state here if needed
+            // but for now we'll continue using client-side pagination
+          }
+        } else {
+          // Fallback to dummy data if no API results
+          setProducts(dummyProducts);
+          console.log('Falling back to dummy data - no API results');
+        }
+      } catch (apiError) {
+        console.error('API call error:', apiError);
+        // Fallback to dummy data on error
+        setProducts(dummyProducts);
+        console.log('Falling back to dummy data due to API error');
+      }
+      
       setTimeout(() => {
         setIsLoading(false);
       }, 500);
@@ -153,6 +346,12 @@ export default function CategoryPage() {
   // Apply filters and sorting when filters or sort option changes
   useEffect(() => {
     let result = [...products];
+    
+    // Note: We're using client-side filtering here to maintain compatibility with both
+    // API data and dummy data. In a production environment, you would typically
+    // send these filters directly to the API and handle filtering server-side.
+    // The current implementation allows for a graceful fallback to dummy data
+    // while still letting users filter and sort the products they see.
     
     // Filter by price
     result = result.filter(product => {
@@ -330,6 +529,24 @@ export default function CategoryPage() {
     );
   };
 
+  // Helper function to build hierarchical paths
+  const buildCategoryPath = (category: CategoryNode, allCategories: CategoryNode[]): string => {
+    const path: string[] = [category.slug];
+    
+    let currentCat = category;
+    while (currentCat.parentId) {
+      const parentCategory = allCategories.find(cat => cat.id === currentCat.parentId);
+      if (parentCategory) {
+        path.unshift(parentCategory.slug);
+        currentCat = parentCategory;
+      } else {
+        break;
+      }
+    }
+    
+    return '/' + path.join('/');
+  };
+  
   // Child categories component - shows any subcategories
   const ChildCategories = () => {
     if (childCategories.length === 0) return null;
@@ -341,7 +558,7 @@ export default function CategoryPage() {
           {childCategories.map(category => (
             <a 
               key={category.id} 
-              href={`/products/${category.slug}`}
+              href={buildCategoryPath(category, flatCategories)}
               className="inline-flex items-center px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               {category.name}
@@ -381,58 +598,92 @@ export default function CategoryPage() {
   
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Mobile filter backdrop overlay */}
+      {isMobileFilterOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm touch-none cursor-pointer"
+          onClick={toggleMobileFilter}
+          aria-hidden="true"
+        />
+      )}
+
       <div className="flex flex-col md:flex-row md:space-x-8">
         {/* Filter sidebar and category navigation */}
         <aside className={`
-          md:block md:w-64 flex-shrink-0 bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden
-          ${isMobileFilterOpen ? 'fixed inset-0 z-40 p-4 overflow-y-auto bg-white dark:bg-gray-900' : 'hidden md:block'}
+          md:block md:w-64 flex-shrink-0 bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-transform duration-300 ease-in-out
+          ${isMobileFilterOpen 
+            ? 'fixed right-0 top-0 bottom-0 z-50 w-[85%] max-w-xs overflow-y-auto bg-white dark:bg-gray-900 translate-x-0 shadow-xl' 
+            : 'hidden md:block md:transform-none md:shadow-none'
+          }
         `}>
-          {/* Mobile filter header */}
+          {/* Mobile filter header - fixed at top */}
           {isMobileFilterOpen && (
-            <div className="flex justify-between items-center mb-4">
+            <div className="sticky top-0 z-10 flex justify-between items-center p-4 mb-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-medium text-gray-800 dark:text-white">Filters</h2>
               <button
                 onClick={toggleMobileFilter}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
+                className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary"
+                aria-label="Close filters"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
           )}
           
-          {/* Breadcrumb navigation - moved to filter sidebar */}
-          <div className="mb-4 px-2">
-            <Breadcrumbs />
-          </div>
-          
-          {/* Category title - moved to filter sidebar */}
-          <div className="mb-4 px-2">
-            <h1 className="text-xl font-bold text-gray-800 dark:text-white">
-              {currentCategory?.name || 'Products'}
-            </h1>
-          </div>
-          
-          {/* Subcategories - moved to filter sidebar */}
-          <div className="mb-4 px-2">
-            <ChildCategories />
-          </div>
-          
-          {/* Category description - moved to filter sidebar */}
-          {currentCategory?.description && (
-            <div className="mb-4 px-2 text-xs text-gray-600 dark:text-gray-400">
-              {currentCategory.description}
+          {/* Filter content with proper padding on mobile */}
+          <div className={isMobileFilterOpen ? 'px-4' : ''}>
+            {/* Breadcrumb navigation */}
+            <div className="mb-4 px-2">
+              <Breadcrumbs />
             </div>
-          )}
-          
-          <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
-            <FilterSidebar 
-              onFilterChange={handleFilterChange}
-              initialFilters={filters}
-              categoryName={currentCategory?.name || ''}
-              totalProducts={products.length}
-            />
+            
+            {/* Category title */}
+            <div className="mb-4 px-2">
+              <h1 className="text-xl font-bold text-gray-800 dark:text-white">
+                {currentCategory?.name || 'Products'}
+              </h1>
+            </div>
+            
+            {/* Subcategories */}
+            <div className="mb-4 px-2">
+              <ChildCategories />
+            </div>
+            
+            {/* Category description */}
+            {currentCategory?.description && (
+              <div className="mb-4 px-2 text-xs text-gray-600 dark:text-gray-400">
+                {currentCategory.description}
+              </div>
+            )}
+            
+            <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
+              <FilterSidebar 
+                onFilterChange={handleFilterChange}
+                initialFilters={filters}
+                categoryName={currentCategory?.name || ''}
+                totalProducts={products.length}
+              />
+            </div>
+            
+            {/* Mobile Apply and Reset buttons */}
+            {/* {isMobileFilterOpen && (
+              <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4 mt-4 flex gap-2">
+                <button
+                  onClick={clearAllFilters}
+                  className="flex-1 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={toggleMobileFilter}
+                  className="flex-1 py-2 px-4 bg-primary hover:bg-primary-dark text-white rounded-md font-medium"
+                >
+                  Apply Filters
+                </button>
+              </div>
+            )} */}
           </div>
         </aside>
         

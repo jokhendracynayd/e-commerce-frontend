@@ -10,78 +10,16 @@ import axiosClient, {
 import { ENDPOINTS, API_BASE_URL } from './endpoints';
 import { ApiError, handleApiError } from './error-handler';
 import axios from 'axios';
-
-// Types for auth requests and responses
-export interface RegisterRequest {
-  email: string;
-  password: string;
-  fullName: string;
-  phone?: string;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface RefreshTokenRequest {
-  userId: string;
-  refreshToken: string;
-}
-
-export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
-export interface ApiResponseWrapper<T> {
-  statusCode: number;
-  message: string;
-  data: T;
-  timestamp: string;
-  path: string;
-}
-
-export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: UserDetails;
-}
-
-export interface TokenResponse {
-  accessToken: string;
-  refreshToken: string;
-}
-
-export interface UserDetails {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  fullName?: string;
-  phone?: string | null;
-  role: 'USER' | 'ADMIN' | 'SELLER';
-  is_email_verified?: boolean;  // Using snake_case to match backend
-  is_phone_verified?: boolean;  // Using snake_case to match backend
-  isEmailVerified?: boolean;    // camelCase alternate for frontend
-  isPhoneVerified?: boolean;    // camelCase alternate for frontend
-  status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
-  profileImage?: string | null;
-  gender?: string | null;
-  dateOfBirth?: string | null;
-  bio?: string | null;
-  preferences?: any | null;
-  lastLoginAt?: string;
-  loginIp?: string;
-  signupIp?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  deletedAt?: string | null;
-  failedLoginAttempts?: number;
-  lastPasswordChange?: string | null;
-  password_change_required?: boolean;
-}
+import { 
+  RegisterRequest,
+  LoginRequest,
+  RefreshTokenRequest,
+  ChangePasswordRequest,
+  ApiResponseWrapper,
+  AuthResponse,
+  TokenResponse,
+  UserDetails
+} from '@/types/auth';
 
 // Authentication API functions
 export const authApi = {

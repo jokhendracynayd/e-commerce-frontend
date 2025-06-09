@@ -42,6 +42,7 @@ export const ENDPOINTS = {
     BY_SLUG: (slug: string) => `/categories/slug/${slug}`,
     TREE: '/categories/tree',
     PRODUCTS: (id: string) => `/categories/${id}/products`,
+    RECURSIVE_PRODUCTS: (id: string) => `/categories/${id}/recursive-products`,
   },
   
   BRANDS: {
@@ -84,5 +85,10 @@ export const ENDPOINTS = {
     FLASH: '/deals/flash',
     TRENDING: '/deals/trending',
     DEAL_OF_DAY: '/deals/of-the-day',
+    BY_TYPE: {
+      TRENDING: '/deals/types/TRENDING/products',
+      FLASH: '/deals/types/FLASH/products',
+      DEAL_OF_DAY: '/deals/types/DEAL_OF_DAY/products',
+    }
   },
 }; 

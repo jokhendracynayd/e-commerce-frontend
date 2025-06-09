@@ -1,4 +1,4 @@
-import { ProductListingCardProps } from './ProductListingCard';
+import { ProductListingCardProps } from '../components/product/ProductListingCard';
 
 // Product categories for navigation
 export const productCategories = [
@@ -25,7 +25,7 @@ export const listingProductsData: Omit<ProductListingCardProps, 'id'>[] = [
     image: 'https://i.pinimg.com/736x/43/15/ae/4315ae69df9daa2550203db798b0d77f.jpg',
     price: 2995,
     originalPrice: 5995,
-    link: '/product/fastrack-optimus-pro',
+    link: '/fastrack-optimus-pro/p/opt-123',
     isAssured: true,
     rating: 4.3,
     reviewCount: 1243,
@@ -52,7 +52,7 @@ export const listingProductsData: Omit<ProductListingCardProps, 'id'>[] = [
     image: 'https://i.pinimg.com/736x/37/a8/ae/37a8ae2095512429d5d0ffa5d8675378.jpg',
     price: 1399,
     originalPrice: 5999,
-    link: '/product/noise-colorfit-pro-4',
+    link: '/noise-colorfit-pro-4/p/ncp-456',
     isAssured: true,
     rating: 4.5,
     reviewCount: 3562,
@@ -77,7 +77,7 @@ export const listingProductsData: Omit<ProductListingCardProps, 'id'>[] = [
     image: 'https://i.pinimg.com/736x/3d/37/d7/3d37d7aa9787256dda0591dc2c121001.jpg',
     price: 1999,
     originalPrice: 3999,
-    link: '/product/redmi-watch-move',
+    link: '/redmi-watch-move/p/rwm-789',
     isAssured: true,
     rating: 4.2,
     reviewCount: 2341,

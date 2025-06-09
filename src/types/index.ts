@@ -89,4 +89,10 @@ export interface TenantSettings {
     customCheckout: boolean;
     aiRecommendations: boolean;
   }
-} 
+}
+
+// Re-export types from other files
+export * from './product';
+export * from './categories';
+export * from './auth';
+export * from './user'; 

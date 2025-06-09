@@ -1,51 +1,13 @@
 import axiosClient from './axios-client';
 import { ENDPOINTS } from './endpoints';
 import { handleApiError } from './error-handler';
-import { UserDetails } from './auth-api';
-
-// Types for user requests and responses
-export interface UserUpdateRequest {
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
-  gender?: string;
-  dateOfBirth?: string;
-  bio?: string;
-}
-
-export interface AddressCreateRequest {
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  isDefault?: boolean;
-  type?: 'HOME' | 'OFFICE' | 'OTHER';
-  label?: string;
-  phone?: string;
-}
-
-export interface AddressUpdateRequest extends AddressCreateRequest {
-  id: string;
-}
-
-export interface UserAddress {
-  id: string;
-  addressLine1: string;
-  addressLine2?: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  isDefault: boolean;
-  type: 'HOME' | 'OFFICE' | 'OTHER';
-  label?: string;
-  phone?: string;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { UserDetails } from '@/types/auth';
+import {
+  UserUpdateRequest,
+  AddressCreateRequest,
+  AddressUpdateRequest,
+  UserAddress
+} from '@/types/user';
 
 // User API functions
 export const userApi = {

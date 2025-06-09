@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { TrendingProducts } from './TrendingProducts';
-import { Product } from './TrendingProducts';
+import { Product } from '@/types/product';
 import { getTrendingProducts } from '@/services/productService';
 
 type ClientTrendingProductsProps = {

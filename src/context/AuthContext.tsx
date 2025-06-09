@@ -2,30 +2,13 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import Cookies from 'js-cookie';
-import { authApi, AUTH_EVENTS, UserDetails } from '@/lib/api';
+import { authApi, AUTH_EVENTS } from '@/lib/api';
+import { UserDetails } from '@/types/auth';
+import { User } from '@/types/user';
 import { toast } from 'react-hot-toast';
 import { handleApiError, ApiError } from '@/lib/api/error-handler';
 import { getAuthState, isAuthenticated as checkIsAuthenticated } from '@/lib/api/axios-client';
 import { clearAuthState, checkIsFullyAuthenticated } from '@/lib/auth-utils';
-
-// User type definition
-export interface User {
-  id: string;
-  name: string;
-  firstName?: string;
-  lastName?: string;
-  email: string;
-  role: 'USER' | 'ADMIN' | 'SELLER';
-  initials: string;
-  status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
-  profileImage?: string | null;
-  isEmailVerified: boolean;
-  isPhoneVerified: boolean;
-  lastLoginAt?: string;
-  createdAt?: string;
-  phone?: string | null;
-  passwordChangeRequired: boolean;
-}
 
 // Auth context type definition
 interface AuthContextType {

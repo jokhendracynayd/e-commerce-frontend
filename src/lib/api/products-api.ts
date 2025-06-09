@@ -2,113 +2,49 @@ import { AxiosResponse } from 'axios';
 import axiosClient from './axios-client';
 import { ENDPOINTS } from './endpoints';
 import { handleApiError } from './error-handler';
+import { 
+  ApiProduct as Product, 
+  ProductListParams, 
+  ApiProductListResponse as ProductListResponse,
+  CreateReviewRequest,
+  ApiProductSpecification as ProductSpecification,
+  ApiProductReview as ProductReview,
+  ApiProductImage as ProductImage,
+  ApiProductVariant as ProductVariant,
+  ApiBrand as Brand,
+  ApiCategory as Category,
+  ApiTag as Tag,
+  CategoryProductsParams
+} from '@/types/product';
 
-// Product-related types
-export interface Product {
-  id: string;
+// Re-export types for backward compatibility
+export type { 
+  Product,
+  ProductImage,
+  ProductVariant, 
+  ProductSpecification,
+  Brand,
+  Category,
+  Tag,
+  ProductReview,
+  CreateReviewRequest,
+  ProductListParams,
+  ProductListResponse
+};
+
+// Additional types that might be used in documentation but not moved to centralized types yet
+export interface CreateProductDto {
   title: string;
-  slug: string;
-  description?: string;
-  shortDescription?: string;
+  description: string;
   price: number;
-  discountPrice?: number;
-  currency: string;
-  stockQuantity: number;
-  averageRating: number;
-  reviewCount: number;
-  isActive: boolean;
-  isFeatured: boolean;
-  images: ProductImage[];
-  brand?: Brand;
-  category?: Category;
-  subCategory?: Category;
-  tags?: Tag[];
-  variants?: ProductVariant[];
-  specifications?: ProductSpecification[];
-  createdAt: string;
-  updatedAt: string;
+  // Other fields as needed
 }
 
-export interface ProductImage {
-  id: string;
-  imageUrl: string;
-  altText?: string;
-  position: number;
-}
-
-export interface ProductVariant {
-  id: string;
-  variantName: string;
-  sku: string;
-  price: number;
-  stockQuantity: number;
-  additionalPrice: number;
-}
-
-export interface ProductSpecification {
-  id: string;
-  name: string;
-  value: string;
-  group?: string;
-}
-
-export interface Brand {
-  id: string;
-  name: string;
-  slug: string;
-  logo?: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
+export interface UpdateProductDto {
+  title?: string;
   description?: string;
-  icon?: string;
-  parentId?: string;
-}
-
-export interface Tag {
-  id: string;
-  name: string;
-}
-
-export interface ProductReview {
-  id: string;
-  rating: number;
-  comment?: string;
-  userId: string;
-  userName: string;
-  userImage?: string;
-  createdAt: string;
-}
-
-export interface CreateReviewRequest {
-  rating: number;
-  comment?: string;
-}
-
-export interface ProductListParams {
-  page?: number;
-  limit?: number;
-  search?: string;
-  categoryId?: string;
-  categorySlug?: string;
-  brandId?: string;
-  brandSlug?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  sortBy?: 'price' | 'popularity' | 'rating' | 'newest';
-  sortDirection?: 'asc' | 'desc';
-  featured?: boolean;
-}
-
-export interface ProductListResponse {
-  products: Product[];
-  totalCount: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  price?: number;
+  // Other fields as needed
 }
 
 // Product API functions
@@ -121,6 +57,37 @@ export const productsApi = {
       const response: AxiosResponse = await axiosClient.get(
         ENDPOINTS.PRODUCTS.BASE,
         { params }
+      );
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+  
+  /**
+   * Get products by category slug with recursive option
+   * This uses the enhanced /products API endpoint instead of the category-specific one
+   * 
+   * @param categorySlug - The slug of the category
+   * @param recursive - Whether to include products from subcategories
+   * @param params - Other filter parameters
+   */
+  getProductsByCategorySlug: async (
+    categorySlug: string, 
+    recursive: boolean = true, 
+    params: CategoryProductsParams = {}
+  ): Promise<ProductListResponse> => {
+    try {
+      // Build query parameters
+      const queryParams = {
+        ...params,
+        categorySlug,
+        recursive,
+      };
+      
+      const response: AxiosResponse = await axiosClient.get(
+        ENDPOINTS.PRODUCTS.BASE,
+        { params: queryParams }
       );
       return response.data;
     } catch (error) {
@@ -159,12 +126,56 @@ export const productsApi = {
   /**
    * Get trending products
    */
-  getTrendingProducts: async (limit?: number): Promise<Product[]> => {
+  getTrendingProducts: async (limit?: number, page: number = 1): Promise<Product[]> => {
     try {
       const response: AxiosResponse = await axiosClient.get(
-        ENDPOINTS.PRODUCTS.TRENDING,
-        { params: { limit } }
+        ENDPOINTS.DEALS.BY_TYPE.TRENDING,
+        { 
+          params: { 
+            limit,
+            page,
+            status: 'Active'
+          } 
+        }
       );
+      
+      // The API structure has changed, data is now in response.data.products
+      if (response.data && response.data.products) {
+        return response.data.products;
+      } else if (response.data && response.data.data && response.data.data.products) {
+        // Handle nested data structure if needed
+        return response.data.data.products;
+      }
+      
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+  
+  /**
+   * Get deal of the day products
+   */
+  getDealOfTheDay: async (): Promise<Product[]> => {
+    try {
+      const response: AxiosResponse = await axiosClient.get(
+        ENDPOINTS.DEALS.BY_TYPE.DEAL_OF_DAY,
+        { 
+          params: { 
+            limit: 1,
+            status: 'Active'
+          } 
+        }
+      );
+      
+      // The API structure has changed, data is now in response.data.products
+      if (response.data && response.data.products) {
+        return response.data.products;
+      } else if (response.data && response.data.data && response.data.data.products) {
+        // Handle nested data structure if needed
+        return response.data.data.products;
+      }
+      
       return response.data;
     } catch (error) {
       throw handleApiError(error);

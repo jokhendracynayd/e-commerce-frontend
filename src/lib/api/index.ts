@@ -32,12 +32,16 @@ export {
 // Export user-related functions and types
 export * from './user-api';
 
+// Export category-related functions and types
+export * from './categories-api';
+
 // Default export of all API services
 import authApi from './auth-api';
 import productsApi from './products-api';
 import cartApi from './cart-api';
 import ordersApi from './orders-api';
 import userApi from './user-api';
+import categoriesApi from './categories-api';
 
 const api = {
   auth: authApi,
@@ -45,6 +49,7 @@ const api = {
   cart: cartApi,
   orders: ordersApi,
   user: userApi,
+  categories: categoriesApi,
 };
 
 export default api; 

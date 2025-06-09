@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+import { useCategories } from '@/context/CategoryContext';
+import { CategoryNode } from '@/types/categories';
 
 export type CategoryType = {
   name: string;
@@ -14,11 +16,12 @@ export type CategoryType = {
   description?: string;
 };
 
-export const categories: CategoryType[] = [
+// This will be replaced by the dynamic data from API
+const fallbackCategories: CategoryType[] = [
   { 
     id: 'kilos',
     name: 'Kilos', 
-    href: '/products/kilos', 
+    href: '/kilos', 
     icon: 'https://i.pinimg.com/736x/c8/78/f3/c878f3cbb4a6cc56199b594f0e0d1871.jpg',
     featured: true,
     description: 'Premium groceries at wholesale prices'
@@ -26,7 +29,7 @@ export const categories: CategoryType[] = [
   { 
     id: 'mobiles',
     name: 'Mobiles', 
-    href: '/products/mobiles', 
+    href: '/mobiles', 
     icon: 'https://i.pinimg.com/736x/1c/ce/99/1cce99de15bfea9028d23b1965a04f0f.jpg',
     featured: true,
     description: 'Latest smartphones and accessories'
@@ -34,14 +37,14 @@ export const categories: CategoryType[] = [
   { 
     id: 'fashion',
     name: 'Fashion', 
-    href: '/products/fashion', 
+    href: '/fashion', 
     icon: 'https://i.pinimg.com/736x/5c/6c/e6/5c6ce698df5d40ab8aa4f523da92cc38.jpg',
     description: 'Trendy clothing and apparel'
   },
   { 
     id: 'electronics',
     name: 'Electronics', 
-    href: '/products/electronics', 
+    href: '/electronics', 
     icon: 'https://i.pinimg.com/736x/2b/18/d3/2b18d396018870983758de8d3f0db926.jpg',
     featured: true,
     description: 'Gadgets and tech essentials'
@@ -49,34 +52,75 @@ export const categories: CategoryType[] = [
   { 
     id: 'home-furniture',
     name: 'Home & Furniture', 
-    href: '/products/home-furniture', 
+    href: '/home-furniture', 
     icon: 'https://i.pinimg.com/736x/6b/81/3f/6b813ff256e49639e8e85f254d296807.jpg',
     description: 'Stylish decor for your space'
   },
   { 
     id: 'appliances',
     name: 'Appliances', 
-    href: '/products/appliances', 
+    href: '/appliances', 
     icon: 'https://i.pinimg.com/736x/61/26/e8/6126e833678890f28cfc282e3f4e879e.jpg',
     description: 'Premium home appliances'
   },
   { 
     id: 'beauty-toys',
     name: 'Beauty & Toys', 
-    href: '/products/beauty-toys', 
-    icon: 'https://i.pinimg.com/736x/bd/7e/a4/bd7ea444641930cbd78765067d3e0cf5.jpg',
+    href: '/beauty-toys', 
+    icon: 'https://i.pinimg.com/736x/b9/12/be/b912be58fd415901f4cb65e084b6b337.jpg',
     description: 'Self-care products and toys'
   },
   { 
     id: 'two-wheelers',
     name: 'Two Wheelers', 
-    href: '/products/two-wheelers', 
+    href: '/two-wheelers', 
     icon: 'https://i.pinimg.com/736x/fd/81/49/fd8149d6f5bee7d221bf25892d732e00.jpg',
     description: 'Bikes and two-wheeler accessories'
   },
 ];
 
 export function CategoryNavigation() {
+  // Get categories from context
+  const { categoryTree, flatCategories, isLoading, error } = useCategories();
+  
+  // Helper function to build hierarchical paths
+  const buildCategoryPath = (category: CategoryNode, allCategories: CategoryNode[]): string => {
+    const path: string[] = [category.slug];
+    
+    let currentCat = category;
+    while (currentCat.parentId) {
+      const parentCategory = allCategories.find(cat => cat.id === currentCat.parentId);
+      if (parentCategory) {
+        path.unshift(parentCategory.slug);
+        currentCat = parentCategory;
+      } else {
+        break;
+      }
+    }
+    
+    return '/' + path.join('/');
+  };
+  
+  // Map API categories to the format needed for display
+  const mapCategoriesToDisplay = (categories: CategoryNode[]): CategoryType[] => {
+    return categories
+      .filter(cat => !cat.parentId) // Only get top-level categories for navigation
+      .map(category => ({
+        id: category.id,
+        name: category.name,
+        href: buildCategoryPath(category, flatCategories), // Hierarchical path
+        icon: category.icon || 'https://via.placeholder.com/150',
+        description: category.description || undefined,
+        // You can set featured based on some criteria or from the API data
+        featured: false
+      }));
+  };
+
+  // Convert API categories to display format or use fallback if loading
+  const categories = !isLoading && categoryTree.length > 0 
+    ? mapCategoriesToDisplay(categoryTree) 
+    : fallbackCategories;
+  
   // Wrap the usePathname hook in a try-catch to prevent server rendering errors
   let pathname = '/';
   try {
@@ -133,6 +177,30 @@ export function CategoryNavigation() {
       });
     }
   };
+  
+  // Show loading state
+  if (isLoading) {
+    return (
+      <section className="bg-white dark:bg-gray-900 shadow-sm relative overflow-hidden">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 md:py-6 relative">
+          <div className="flex justify-center space-x-4 md:space-x-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="flex flex-col items-center animate-pulse">
+                <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-gray-200 dark:bg-gray-700 rounded-lg mb-2"></div>
+                <div className="w-14 h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+  
+  // Show error state  
+  if (error) {
+    console.error("Failed to load categories:", error);
+    // Fall back to static categories if there's an error
+  }
   
   return (
     <section className="bg-white dark:bg-gray-900 shadow-sm relative overflow-hidden">
@@ -250,6 +318,10 @@ export function CategoryNavigation() {
       <style jsx global>{`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
     </section>

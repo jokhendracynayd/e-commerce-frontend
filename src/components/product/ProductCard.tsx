@@ -20,6 +20,7 @@ export type ProductCardProps = {
   hasFreeDel: boolean;
   isNew?: boolean;
   isBestSeller?: boolean;
+  currency?: string;
   onAddToCart?: () => void;
   onAddToWishlist?: () => void;
   onQuickView?: () => void;
@@ -40,6 +41,7 @@ export function ProductCard({
   hasFreeDel = false,
   isNew = false,
   isBestSeller = false,
+  currency = 'INR',
   onAddToCart,
   onAddToWishlist,
   onQuickView
@@ -47,9 +49,18 @@ export function ProductCard({
   const [isHovered, setIsHovered] = useState(false);
   
   // Calculate discount percentage if both price and originalPrice are available
-  const discountPercentage = price && originalPrice 
-    ? Math.round(((originalPrice - price) / originalPrice) * 100) 
-    : null;
+  let discountPercentage = null;
+  if (price && originalPrice && originalPrice > price) {
+    // Calculate discount percentage (avoid division by zero)
+    const calculatedDiscount = ((originalPrice - price) / originalPrice) * 100;
+    
+    // Handle extreme discount cases - ensure it's at least 1% if there's any discount
+    if (calculatedDiscount > 0) {
+      // For very high discounts (like 90%+), ensure we don't exaggerate
+      discountPercentage = Math.min(Math.max(1, Math.round(calculatedDiscount)), 90);
+    }
+  }
+
 
   return (
     <div 
@@ -101,25 +112,29 @@ export function ProductCard({
         {/* Badges */}
         <div className="absolute top-1 left-1 sm:top-2 sm:left-2 flex flex-col gap-1 sm:gap-1.5">
           {badge && (
-            <span className="inline-block bg-accent text-white text-[8px] xs:text-[10px] sm:text-xs font-medium sm:font-bold px-1 xs:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
+            <span className={`inline-block ${
+              badge === 'Featured' ? 'bg-gradient-to-r from-[#8e54e9] to-[#7048e8]' : 
+              badge === 'Sale' ? 'bg-gradient-to-r from-[#f43f5e] to-[#e11d48]' : 
+              'bg-gradient-to-r from-[#ed8c61] to-[#ed875a]'
+            } text-white text-[10px] xs:text-[11px] sm:text-xs font-semibold sm:font-bold px-2 xs:px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-md shadow-sm border border-white/10`}>
               {badge}
             </span>
           )}
           
           {isNew && (
-            <span className="inline-block bg-green-500 text-white text-[8px] xs:text-[10px] sm:text-xs font-medium sm:font-bold px-1 xs:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
+            <span className="inline-block bg-gradient-to-r from-[#10b981] to-[#059669] text-white text-[8px] xs:text-[10px] sm:text-xs font-medium sm:font-bold px-1 xs:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md shadow-sm border border-white/10">
               New
             </span>
           )}
           
           {isBestSeller && (
-            <span className="inline-block bg-amber-500 text-white text-[8px] xs:text-[10px] sm:text-xs font-medium sm:font-bold px-1 xs:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
+            <span className="inline-block bg-gradient-to-r from-[#f59e0b] to-[#d97706] text-white text-[8px] xs:text-[10px] sm:text-xs font-medium sm:font-bold px-1 xs:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md shadow-sm border border-white/10">
               Best Seller
             </span>
           )}
           
           {discountPercentage && discountPercentage >= 5 && (
-            <span className="inline-block bg-[#d44506] text-white text-[8px] xs:text-[10px] sm:text-xs font-medium sm:font-bold px-1 xs:px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
+            <span className="inline-block bg-gradient-to-r from-[#ed8c61] to-[#ed6261] text-white text-[10px] xs:text-[11px] sm:text-xs font-semibold sm:font-bold px-2 xs:px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-md shadow-sm border border-white/10">
               {discountPercentage}% OFF
             </span>
           )}
@@ -146,8 +161,9 @@ export function ProductCard({
           </h3>
         </Link>
         
-        {/* Rating */}
-        {rating && (
+        {/* Rating - Only show if rating is available and greater than 0 */}
+        {/* 
+        {rating && rating > 0 && (
           <div className="flex flex-wrap items-center mt-0.5 xs:mt-1 sm:mt-2 gap-1">
             <div className="flex items-center bg-[#e7e1dc] text-gray-800 text-[8px] xs:text-[10px] sm:text-xs px-1 xs:px-1.5 sm:px-2 py-0.5 rounded-sm">
               <span className="font-semibold">{rating.toFixed(1)}</span>
@@ -165,33 +181,38 @@ export function ProductCard({
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             </div>
-            {reviewCount !== undefined && (
+            {reviewCount !== undefined && reviewCount > 0 && (
               <span className="text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs text-gray-500 dark:text-gray-400">
-                {reviewCount > 1000 ? `${(reviewCount / 1000).toFixed(1)}k` : `${reviewCount}`}
+                {reviewCount >= 1000 ? `${(reviewCount / 1000).toFixed(1)}k` : `${reviewCount}`}
               </span>
             )}
           </div>
         )}
+        */}
         
         {/* Price Section */}
         <div className="mt-1 xs:mt-1.5 sm:mt-2 flex items-baseline flex-wrap gap-0.5 xs:gap-1 sm:gap-1.5">
           {price ? (
             <span className="font-bold text-gray-900 dark:text-white text-xs xs:text-sm sm:text-base md:text-lg">
-              ₹{price.toLocaleString()}
+              {currency === 'USD' ? '$' : '₹'}{price.toLocaleString()}
             </span>
           ) : discount ? (
             <span className="font-bold text-green-600 dark:text-green-400 text-xs xs:text-sm sm:text-base md:text-lg">
               {discount}
             </span>
-          ) : null}
-          
-          {originalPrice && (
-            <span className="text-[10px] xs:text-xs sm:text-sm text-gray-500 line-through">
-              ₹{originalPrice.toLocaleString()}
+          ) : (
+            <span className="font-bold text-gray-900 dark:text-white text-xs xs:text-sm sm:text-base md:text-lg">
+              Call for price
             </span>
           )}
           
-          {discountPercentage && (
+          {originalPrice && (
+            <span className="text-[10px] xs:text-xs sm:text-sm text-gray-500 line-through">
+              {currency === 'USD' ? '$' : '₹'}{originalPrice.toLocaleString()}
+            </span>
+          )}
+          
+          {discountPercentage && discountPercentage >= 1 && (
             <span className="text-[8px] xs:text-[10px] sm:text-xs font-semibold text-[#ed8c61] dark:text-green-400 ml-0.5">
               ({discountPercentage}% off)
             </span>
@@ -219,6 +240,7 @@ export function ProductCard({
       </div>
       
       {/* Add to cart quick button - visible on hover */}
+      {/*
       <div className={`absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-800 p-1.5 xs:p-2 sm:p-2.5 transform transition-transform duration-300 shadow-md ${isHovered ? 'translate-y-0' : 'translate-y-full'}`}>
         <button 
           className="w-full bg-[#ed8c61] hover:bg-[#ed875a] text-white py-1 xs:py-1.5 sm:py-2 text-[10px] xs:text-xs sm:text-sm font-medium transition-colors flex items-center justify-center gap-1 sm:gap-2 shadow-sm hover:cursor-pointer rounded-sm"
@@ -233,6 +255,7 @@ export function ProductCard({
           <span className="whitespace-nowrap">Add to Cart</span>
         </button>
       </div>
+      */}
     </div>
   );
 } 

@@ -36,7 +36,37 @@ const nextConfig: NextConfig = {
         hostname: 'img.freepik.com',
         pathname: '**',
       },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'm.media-amazon.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'image01-in.oneplus.net',
+        pathname: '**',
+      },
     ],
+  },
+  // Add URL rewrites for SEO-friendly product URLs
+  async rewrites() {
+    return [
+      // Meesho-style URLs: /product-slug/p/product-id -> /product/[slug]
+      {
+        source: '/:productSlug/p/:productId',
+        destination: '/product/:productId',
+      },
+      // Category-product URLs: /category/product-slug-product-id -> /product/[slug]
+      {
+        source: '/:category/:productSlug-:productId',
+        destination: '/product/:productId',
+      },
+    ];
   },
 };
 

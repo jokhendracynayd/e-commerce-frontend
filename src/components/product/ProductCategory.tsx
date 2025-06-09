@@ -8,9 +8,10 @@ export type ProductType = ProductCardProps;
 export type ProductCategoryProps = {
   title: string;
   products: ProductType[];
+  viewAllLink?: string;
 };
 
-export function ProductCategory({ title, products }: ProductCategoryProps) {
+export function ProductCategory({ title, products, viewAllLink }: ProductCategoryProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
@@ -74,9 +75,16 @@ export function ProductCategory({ title, products }: ProductCategoryProps) {
   return (
     <section className="py-3 sm:py-4 md:py-6 px-2 sm:px-3 md:px-4 bg-white dark:bg-dark-background rounded-lg my-2 sm:my-3">
       <div className="w-full">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-dark-foreground mb-2 sm:mb-3 md:mb-4 px-2">
-          {title}
-        </h2>
+        <div className="flex justify-between items-center mb-2 sm:mb-3 md:mb-4 px-2">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-dark-foreground">
+            {title}
+          </h2>
+          {viewAllLink && (
+            <a href={viewAllLink} className="text-primary hover:text-primary-dark text-sm sm:text-base transition-colors">
+              View All
+            </a>
+          )}
+        </div>
         
         <div className="relative">
           {/* Left scroll button */}
@@ -118,6 +126,7 @@ export function ProductCategory({ title, products }: ProductCategoryProps) {
                   isAssured={product.isAssured}
                   deliveryInfo={product.deliveryInfo}
                   hasFreeDel={product.hasFreeDel || false}
+                  currency={product.currency}
                 />
               </div>
             ))}
