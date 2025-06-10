@@ -1,10 +1,19 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/context/CartContext';
 
 export function CartIcon() {
-  const { totalItems } = useCart();
+  const { items } = useCart();
+  const [displayCount, setDisplayCount] = useState(0);
+  
+  // Calculate total directly from items to ensure it's always in sync
+  useEffect(() => {
+    const itemCount = items.reduce((total, item) => total + item.quantity, 0);
+    console.log('CartIcon: Items length:', items.length, 'Calculated count:', itemCount);
+    setDisplayCount(itemCount);
+  }, [items]);
   
   return (
     <div className="relative">
@@ -28,9 +37,9 @@ export function CartIcon() {
           />
         </svg>
         
-        {totalItems > 0 && (
+        {displayCount > 0 && (
           <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 text-[10px] sm:text-xs font-bold text-white bg-red-500 rounded-full">
-            {totalItems > 99 ? '99+' : totalItems}
+            {displayCount > 99 ? '99+' : displayCount}
           </span>
         )}
       </Link>

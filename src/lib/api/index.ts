@@ -20,7 +20,6 @@ export * from './orders-api';
 export {
   axiosClient,
   setAuthToken,
-  setRefreshToken,
   setUserId,
   clearAuthToken,
   clearAllTokens,

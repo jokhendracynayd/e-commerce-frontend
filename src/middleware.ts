@@ -12,11 +12,9 @@ export function middleware(request: NextRequest) {
     pathname.startsWith(route)
   );
 
-  // When using localStorage for auth state, we can't check it in middleware
-  // because middleware runs on the server. Instead, we'll handle redirects
-  // on the client side by checking localStorage in the protected page components.
-  
-  // However, we can still check cookies if available
+  // For authentication, we check the isAuthenticated cookie
+  // Access tokens are stored in memory and not accessible in middleware
+  // Refresh tokens are stored in HTTP-only cookies
   const isAuthenticated = request.cookies.get('isAuthenticated')?.value === 'true';
 
   // If the path is protected and there's no authentication, redirect to login

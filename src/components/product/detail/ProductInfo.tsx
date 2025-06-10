@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProductDetail, ColorVariant } from '@/types/product';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface ProductInfoProps {
   product: ProductDetail;
@@ -12,6 +13,7 @@ interface ProductInfoProps {
 export function ProductInfo({ product }: ProductInfoProps) {
   const router = useRouter();
   const { addToCart } = useCart();
+  const { user } = useAuth();
   const [selectedColorVariant, setSelectedColorVariant] = useState<ColorVariant | undefined>(
     product.colorVariants && product.colorVariants.length > 0 
       ? product.colorVariants[0] 

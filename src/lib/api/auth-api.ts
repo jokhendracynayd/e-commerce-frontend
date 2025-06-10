@@ -1,7 +1,6 @@
 import { AxiosResponse } from 'axios';
 import axiosClient, { 
   setAuthToken, 
-  setRefreshToken, 
   setUserId, 
   clearAllTokens, 
   AUTH_EVENTS,
@@ -58,9 +57,8 @@ export const authApi = {
       // Extract response data from the wrapper
       const responseData: AuthResponse = response.data.data;
       
-      // Save auth tokens and user ID
+      // Save auth token and user ID in memory
       setAuthToken(responseData.accessToken);
-      setRefreshToken(responseData.refreshToken);
       setUserId(responseData.user.id);
       
       // Dispatch login event
@@ -122,30 +120,27 @@ export const authApi = {
   
   /**
    * Refresh the authentication token
+   * Note: The refresh token is now sent automatically via HTTP-only cookie
    */
-  refreshToken: async (data: RefreshTokenRequest): Promise<TokenResponse> => {
+  refreshToken: async (userId: string): Promise<TokenResponse> => {
     try {
       // Create a direct axios call to avoid interceptors that might cause recursion
       const response: AxiosResponse<ApiResponseWrapper<TokenResponse>> = await axiosClient.post(
         ENDPOINTS.AUTH.REFRESH, 
-        data,
+        { userId },
         {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
-          }
+          },
+          withCredentials: true // Important: Send cookies with the request
         }
       );
       
       const responseData = response.data.data;
       
-      // Update the auth token
+      // Update the auth token in memory
       setAuthToken(responseData.accessToken);
-      
-      // Update refresh token if provided
-      if (responseData.refreshToken) {
-        setRefreshToken(responseData.refreshToken);
-      }
       
       // Dispatch token refresh event
       if (typeof window !== 'undefined') {
@@ -156,15 +151,17 @@ export const authApi = {
       
       return responseData;
     } catch (error) {
-      // Clear tokens on refresh failure
-      clearAllTokens();
+      // Clear tokens on refresh failure with skipEvent=true to prevent infinite loops
+      clearAllTokens(true);
       
-      // Dispatch logout and error events
+      // Manually dispatch error event only
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent(AUTH_EVENTS.LOGOUT));
-        window.dispatchEvent(new CustomEvent(AUTH_EVENTS.AUTH_ERROR, {
-          detail: { message: 'Session expired. Please log in again.' }
-        }));
+        // Use setTimeout to break the synchronous call chain
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent(AUTH_EVENTS.AUTH_ERROR, {
+            detail: { message: 'Session expired. Please log in again.' }
+          }));
+        }, 0);
       }
       
       throw handleApiError(error);
@@ -194,7 +191,7 @@ export const authApi = {
       // Get auth state which includes the current token
       const authState = getAuthState();
       
-      // Call the backend to invalidate the session server-side
+      // Call the backend to invalidate the session server-side and clear the refresh token cookie
       const response = await axios.post(
         `${API_BASE_URL}${ENDPOINTS.AUTH.LOGOUT}`,
         {},
@@ -203,7 +200,8 @@ export const authApi = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             ...(authState.accessToken ? { 'Authorization': `Bearer ${authState.accessToken}` } : {})
-          }
+          },
+          withCredentials: true // Important: Send cookies with the request
         }
       );
       
@@ -215,24 +213,29 @@ export const authApi = {
         console.log('Logout successful:', result);
       }
       
-      // Clean up client-side state regardless of response
-      // This ensures the user is always logged out client-side even if the server request fails
-      clearAllTokens();
+      // Clean up client-side state - use true to skip event since we'll dispatch it separately
+      clearAllTokens(true);
       
       // Dispatch logout event to notify the app about the change
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent(AUTH_EVENTS.LOGOUT));
+        // Use setTimeout to break the synchronous call chain
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent(AUTH_EVENTS.LOGOUT));
+        }, 0);
       }
       
       return result;
     } catch (error) {
       console.error('Logout API call failed:', error);
       
-      // Even if the API call fails, ensure client-side logout happens
-      clearAllTokens();
+      // Even if the API call fails, ensure client-side logout happens (use true to skip event)
+      clearAllTokens(true);
       
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent(AUTH_EVENTS.LOGOUT));
+        // Use setTimeout to break the synchronous call chain
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent(AUTH_EVENTS.LOGOUT));
+        }, 0);
       }
       
       // We don't throw here - just return a default success response

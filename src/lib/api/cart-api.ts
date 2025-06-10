@@ -1,74 +1,82 @@
-import { AxiosResponse } from 'axios';
+import { AxiosResponse, CancelToken, AxiosError } from 'axios';
+import axios from 'axios';
 import axiosClient from './axios-client';
 import { ENDPOINTS } from './endpoints';
 import { handleApiError } from './error-handler';
 import { Product, ProductVariant } from './products-api';
+import { 
+  ApiCart, 
+  ApiCartItem, 
+  AddToCartRequest, 
+  UpdateCartItemRequest, 
+  AppliedCoupon 
+} from '@/types/cart';
 
-// Cart-related types
-export interface CartItem {
-  id: string;
-  productId: string;
-  quantity: number;
-  product: Product;
-  productVariantId?: string;
-  variant?: ProductVariant;
-  additionalInfo?: any;
-}
+// Default timeout for API requests (in milliseconds)
+const DEFAULT_TIMEOUT = 10000;
 
-export interface Cart {
-  id: string;
-  userId: string;
-  items: CartItem[];
-  itemsCount: number;
-  subtotal: number;
-  total: number;
-  currency: string;
-  createdAt: string;
-  updatedAt: string;
-  // Applied promotions
-  appliedCoupon?: AppliedCoupon;
-}
-
-export interface AppliedCoupon {
-  id: string;
-  code: string;
-  discountAmount: number;
-  discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING';
-  message?: string;
-}
-
-export interface AddToCartRequest {
-  productId: string;
-  quantity: number;
-  productVariantId?: string;
-  additionalInfo?: any;
-}
-
-export interface UpdateCartItemRequest {
-  quantity: number;
-}
-
-export interface CartSummary {
-  itemsCount: number;
-  subtotal: number;
-  shipping: number;
-  tax: number;
-  discount: number;
-  total: number;
-  currency: string;
-}
+/**
+ * Validates cart API request parameters
+ * @param params Parameters to validate
+ * @throws Error if validation fails
+ */
+const validateParams = {
+  addToCart: (params: AddToCartRequest): void => {
+    if (!params.productId) {
+      throw new Error('Product ID is required');
+    }
+    
+    if (!params.quantity || params.quantity <= 0) {
+      throw new Error('Quantity must be greater than 0');
+    }
+  },
+  
+  updateCartItem: (itemId: string, params: UpdateCartItemRequest): void => {
+    if (!itemId) {
+      throw new Error('Item ID is required');
+    }
+    
+    if (!params.quantity || params.quantity <= 0) {
+      throw new Error('Quantity must be greater than 0');
+    }
+  },
+  
+  removeCartItem: (itemId: string): void => {
+    if (!itemId) {
+      throw new Error('Item ID is required');
+    }
+  }
+};
 
 // Cart API functions
 export const cartApi = {
   /**
    * Get the current user's cart
    */
-  getCart: async (): Promise<Cart> => {
+  getCart: async (cancelToken?: CancelToken): Promise<ApiCart> => {
     try {
       const response: AxiosResponse = await axiosClient.get(
-        ENDPOINTS.CART.GET
+        ENDPOINTS.CART.GET,
+        {
+          cancelToken,
+          timeout: DEFAULT_TIMEOUT
+        }
       );
-      return response.data;
+      
+      // Extract cart from the nested data property
+      const responseData = response.data;
+      const cart = responseData.data; // Access the nested data property
+      
+      if (!cart) {
+        throw new Error('Invalid cart response from server');
+      }
+      
+      // Ensure items array exists
+      if (!Array.isArray(cart.items)) {
+        cart.items = [];
+      }
+      
+      return cart;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -77,13 +85,22 @@ export const cartApi = {
   /**
    * Add an item to the cart
    */
-  addToCart: async (data: AddToCartRequest): Promise<Cart> => {
+  addToCart: async (data: AddToCartRequest, cancelToken?: CancelToken): Promise<ApiCart> => {
     try {
+      // Validate input
+      validateParams.addToCart(data);
+      
       const response: AxiosResponse = await axiosClient.post(
         ENDPOINTS.CART.ADD_ITEM,
-        data
+        data,
+        {
+          cancelToken,
+          timeout: DEFAULT_TIMEOUT
+        }
       );
-      return response.data;
+      
+      // Extract cart from the nested data property
+      return response.data.data;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -92,13 +109,22 @@ export const cartApi = {
   /**
    * Update a cart item's quantity
    */
-  updateCartItem: async (itemId: string, data: UpdateCartItemRequest): Promise<Cart> => {
+  updateCartItem: async (itemId: string, data: UpdateCartItemRequest, cancelToken?: CancelToken): Promise<ApiCart> => {
     try {
+      // Validate input
+      validateParams.updateCartItem(itemId, data);
+      
       const response: AxiosResponse = await axiosClient.patch(
         ENDPOINTS.CART.UPDATE_ITEM(itemId),
-        data
+        data,
+        {
+          cancelToken,
+          timeout: DEFAULT_TIMEOUT
+        }
       );
-      return response.data;
+      
+      // Extract cart from the nested data property
+      return response.data.data;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -107,12 +133,21 @@ export const cartApi = {
   /**
    * Remove an item from the cart
    */
-  removeCartItem: async (itemId: string): Promise<Cart> => {
+  removeFromCart: async (itemId: string, cancelToken?: CancelToken): Promise<ApiCart> => {
     try {
+      // Validate input
+      validateParams.removeCartItem(itemId);
+      
       const response: AxiosResponse = await axiosClient.delete(
-        ENDPOINTS.CART.REMOVE_ITEM(itemId)
+        ENDPOINTS.CART.REMOVE_ITEM(itemId),
+        {
+          cancelToken,
+          timeout: DEFAULT_TIMEOUT
+        }
       );
-      return response.data;
+      
+      // Extract cart from the nested data property
+      return response.data.data;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -121,27 +156,18 @@ export const cartApi = {
   /**
    * Clear the cart (remove all items)
    */
-  clearCart: async (): Promise<Cart> => {
+  clearCart: async (cancelToken?: CancelToken): Promise<ApiCart> => {
     try {
       const response: AxiosResponse = await axiosClient.delete(
-        ENDPOINTS.CART.CLEAR
+        ENDPOINTS.CART.CLEAR,
+        {
+          cancelToken,
+          timeout: DEFAULT_TIMEOUT
+        }
       );
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
-  },
-  
-  /**
-   * Apply a coupon to the cart
-   */
-  applyCoupon: async (couponCode: string): Promise<Cart> => {
-    try {
-      const response: AxiosResponse = await axiosClient.post(
-        ENDPOINTS.COUPONS.APPLY,
-        { code: couponCode }
-      );
-      return response.data;
+      
+      // Extract cart from the nested data property
+      return response.data.data;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -150,22 +176,81 @@ export const cartApi = {
   /**
    * Validate a coupon code
    */
-  validateCoupon: async (couponCode: string): Promise<{ 
-    valid: boolean;
-    message?: string;
-    discount?: number;
-    discountType?: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING';
-  }> => {
+  validateCoupon: async (couponCode: string, cancelToken?: CancelToken): Promise<{ isValid: boolean; discount: number; message?: string }> => {
     try {
+      if (!couponCode) {
+        throw new Error('Coupon code is required');
+      }
+      
       const response: AxiosResponse = await axiosClient.post(
         ENDPOINTS.COUPONS.VALIDATE,
-        { code: couponCode }
+        { code: couponCode },
+        {
+          cancelToken,
+          timeout: DEFAULT_TIMEOUT
+        }
       );
-      return response.data;
+      
+      // Extract data from the nested response
+      return response.data.data || { isValid: false, discount: 0, message: 'Invalid response' };
     } catch (error) {
       throw handleApiError(error);
     }
   },
+  
+  /**
+   * Merge anonymous cart with user cart
+   */
+  mergeAnonymousCart: async (anonymousCartItems: AddToCartRequest[], cancelToken?: CancelToken): Promise<ApiCart> => {
+    try {
+      if (!anonymousCartItems || anonymousCartItems.length === 0) {
+        throw new Error('No items to merge');
+      }
+      
+      // Ensure the items structure matches what the backend expects (standardize to variantId)
+      const itemsToSend = anonymousCartItems.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        // Always use variantId as the field name for consistency with backend
+        variantId: item.variantId,
+        additionalInfo: item.additionalInfo
+      }));
+      
+      const response: AxiosResponse = await axiosClient.post(
+        ENDPOINTS.CART.MERGE,
+        { items: itemsToSend },
+        {
+          cancelToken,
+          timeout: DEFAULT_TIMEOUT * 2 // Double timeout for this operation as it might take longer
+        }
+      );
+      
+      // Extract cart from the nested data property
+      const responseData = response.data;
+      const cart = responseData.data;
+      
+      if (!cart) {
+        throw new Error('Invalid cart response from server after merge');
+      }
+      
+      // Ensure items array exists
+      if (!Array.isArray(cart.items)) {
+        cart.items = [];
+      }
+      
+      return cart;
+    } catch (error: unknown) {
+      // Add more specific error handling for merge operations
+      // Check if this is an Axios error with a response
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        const errorMessage = error.response.data.message;
+        throw new Error(`Cart merge failed: ${errorMessage}`);
+      }
+      
+      // For all other errors, use the standard error handler
+      throw handleApiError(error);
+    }
+  }
 };
 
 export default cartApi; 

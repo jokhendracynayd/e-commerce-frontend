@@ -7,7 +7,7 @@ import { UserDetails } from '@/types/auth';
 import { User } from '@/types/user';
 import { toast } from 'react-hot-toast';
 import { handleApiError, ApiError } from '@/lib/api/error-handler';
-import { getAuthState, isAuthenticated as checkIsAuthenticated } from '@/lib/api/axios-client';
+import { getAuthState, isAuthenticated as checkIsAuthenticated, setUserId } from '@/lib/api/axios-client';
 import { clearAuthState, checkIsFullyAuthenticated } from '@/lib/auth-utils';
 
 // Auth context type definition
@@ -131,35 +131,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadUserSession = async () => {
       try {
-        // Check combined auth state from both cookie and localStorage
+        // First check if we have isAuthenticated cookie - this indicates we were logged in
+        const isAuthCookie = Cookies.get('isAuthenticated') === 'true';
         const authState = getAuthState();
-        const isFullyAuthenticated = checkIsFullyAuthenticated();
         
-        // If any auth state is inconsistent, ensure user is logged out completely
-        if (!isFullyAuthenticated && authState.accessToken) {
-          // We have access token but not properly authenticated - inconsistent state
-          console.log('Inconsistent auth state detected, cleaning up...');
-          clearAuthState();
-          setIsAuthenticated(false);
-          setUser(null);
-          return;
-        }
-        
-        if (authState.isAuthenticated) {
-          // Check if token is close to expiring and refresh it proactively
-          if (authState.tokenExpiresIn && authState.tokenExpiresIn < 600) { // Less than 10 minutes remaining
-            console.log('Token is about to expire, refreshing proactively');
-            await refreshSession();
-          } else if (authState.accessToken) {
+        if (isAuthCookie) {
+          // We have an authentication cookie but no access token in memory (likely after page refresh)
+          // Try to refresh the access token using the HTTP-only refresh token cookie
+          if (!authState.accessToken) {
+            console.log('Auth cookie found but no access token in memory. Attempting token refresh...');
+            
+            try {
+              // Try to get the userId from cookie or fallback to path from URL if it exists
+              const storedUserId = Cookies.get('user_id');
+              
+              if (storedUserId) {
+                // Set userId first so it's available for the refresh call
+                setUserId(storedUserId);
+                
+                // Attempt to refresh the token
+                await authApi.refreshToken(storedUserId);
+                
+                // If successful, load the user session
+                await refreshSession();
+              } else {
+                console.error('No user ID available for token refresh');
+                clearAuthState(true); // Skip event to prevent infinite loops
+                setIsAuthenticated(false);
+                setUser(null);
+              }
+            } catch (refreshError) {
+              console.error('Failed to refresh token on page load:', refreshError);
+              clearAuthState(true); // Skip event to prevent infinite loops
+              setIsAuthenticated(false);
+              setUser(null);
+            }
+          } else {
+            // We have both the cookie and access token in memory, verify the session
             await refreshSession();
           }
         } else {
-          // Explicitly set not authenticated state
+          // No authentication cookie, we're definitely logged out
+          clearAuthState(true); // Skip event to prevent infinite loops
           setIsAuthenticated(false);
           setUser(null);
-          
-          // Also clear cookie to ensure consistency
-          Cookies.remove('isAuthenticated');
         }
       } catch (error) {
         console.error('Error loading user session:', error);
@@ -167,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // On error, reset to unauthenticated state
         setIsAuthenticated(false); 
         setUser(null);
-        clearAuthState();
+        clearAuthState(true); // Skip event to prevent infinite loops
       } finally {
         // Always set isLoading to false once we're done
         setIsLoading(false);
@@ -187,13 +202,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     
     const handleLogout = () => {
-      // Clear all auth state
-      clearAuthState();
-      
-      // Update component state
+      // When the logout event is triggered, only update component state
+      // Use skipEvent=true to avoid an infinite loop of dispatching logout events
       setUser(null);
       setIsAuthenticated(false);
       setIsLoading(false);
+      
+      // Clear cookies without triggering another event
+      Cookies.remove('isAuthenticated');
+      Cookies.remove('user_id');
     };
     
     const handleTokenRefresh = async () => {
@@ -235,8 +252,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ? { expires: 7 } // 7 days
         : undefined;   // Session only
       
-      // Additionally, set cookie for server-side auth checks
+      // Additionally, set cookies for server-side auth checks
       Cookies.set('isAuthenticated', 'true', { 
+        ...tokenOptions,
+        secure: process.env.NODE_ENV !== 'development',
+        sameSite: 'strict'
+      });
+      
+      // Store userId in a regular cookie for token refresh
+      Cookies.set('user_id', response.user.id, { 
         ...tokenOptions,
         secure: process.env.NODE_ENV !== 'development',
         sameSite: 'strict'
@@ -275,38 +299,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout function
   const logout = async () => {
     try {
-      // Show loading toast during logout
-      const loadingToast = toast.loading('Signing out...');
-      
-      // Call the API to logout
-      const response = await authApi.logout();
-      
-      // Remove loading toast
-      toast.dismiss(loadingToast);
-      
-      // Show success message if everything went well
-      if (response.success) {
-        toast.success('You have successfully signed out');
-      }
-      
-      // Clear all auth state consistently
-      clearAuthState();
-      
-      // Immediately update local state - don't wait for the event listener
-      setUser(null);
-      setIsAuthenticated(false);
-      setIsLoading(false);
+      await authApi.logout();
     } catch (error) {
-      // This block should rarely execute since authApi.logout() handles errors internally
-      console.error('Logout error in AuthContext:', error);
+      console.error('Logout API call failed:', error);
+    } finally {
+      // Always clear local state but avoid triggering the event again
+      clearAuthState(true);
       
-      // Force comprehensive cleanup
-      clearAuthState();
-      
-      // Force local logout state
+      // Update state
       setUser(null);
       setIsAuthenticated(false);
-      setIsLoading(false);
+      
+      // Redirect to home page
+      if (typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
     }
   };
 
@@ -329,14 +336,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // If the error is unauthorized, clear auth state
       if ((error as any)?.statusCode === 401) {
+        clearAuthState(true); // Skip event to avoid infinite loops
         setUser(null);
         setIsAuthenticated(false);
-        Cookies.remove('isAuthenticated');
-        
-        // Dispatch logout event
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent(AUTH_EVENTS.LOGOUT));
-        }
         
         // Toast error message
         toast.error('Your session has expired. Please log in again.');

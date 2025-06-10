@@ -4,6 +4,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import AddressForm from '@/components/address/AddressForm';
+import AddressList from '@/components/address/AddressList';
+import { Address } from '@/types/address';
 
 export default function ProfilePage() {
   const { isAuthenticated, user, logout, isLoading } = useAuth();
@@ -11,6 +14,10 @@ export default function ProfilePage() {
   const [activeSection, setActiveSection] = useState('profile');
   const mainContentRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Address management state
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressToEdit, setAddressToEdit] = useState<Address | null>(null);
   
   // Check if we're on mobile to avoid unnecessary scrolling on desktop
   useEffect(() => {
@@ -91,6 +98,27 @@ export default function ProfilePage() {
       logout();
       router.push('/');
     }
+  };
+  
+  // Address handlers
+  const handleAddNewAddress = () => {
+    setAddressToEdit(null);
+    setShowAddressForm(true);
+  };
+  
+  const handleEditAddress = (address: Address) => {
+    setAddressToEdit(address);
+    setShowAddressForm(true);
+  };
+  
+  const handleAddressSave = (address: Address) => {
+    setShowAddressForm(false);
+    setAddressToEdit(null);
+  };
+  
+  const handleAddressCancel = () => {
+    setShowAddressForm(false);
+    setAddressToEdit(null);
   };
   
   return (
@@ -522,90 +550,33 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="bg-[#f5f1ed]/40 dark:bg-gray-750/30 rounded-lg p-5 sm:p-6 mb-6">
-                  <button className="flex items-center p-3 bg-gradient-to-r from-[#ed875a]/10 to-[#ed8c61]/10 hover:from-[#ed875a]/20 hover:to-[#ed8c61]/20 text-[#ed875a] dark:text-[#ed8c61] hover:text-[#d44506] rounded-md border border-dashed border-[#ed875a]/30 w-full sm:w-auto justify-center transition-all duration-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    <span className="font-medium">Add a new address</span>
-                  </button>
-                
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
-                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-300">
-                      <div className="p-5">
-                        <div className="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-gray-700 mb-3">
-                          <div className="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#ed875a] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                            <h3 className="font-medium text-gray-900 dark:text-white">{user.name}</h3>
-                          </div>
-                          <span className="px-2.5 py-1 bg-[#ed875a]/10 text-[#d44506] dark:text-[#ed8c61] text-xs font-medium rounded-full">Home</span>
-                        </div>
-                        <div className="space-y-1 mb-4">
-                          <p className="text-sm text-gray-700 dark:text-gray-300">123 Main Street, Apartment 4B</p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">Mumbai, Maharashtra - 400001</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                            </svg>
-                            +91 9876543210
-                          </p>
-                        </div>
-                        <div className="flex space-x-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                          <button className="flex-1 flex items-center justify-center text-[#ed875a] hover:text-[#d44506] dark:text-[#ed8c61] dark:hover:text-[#ed875a] py-1.5 text-sm font-medium">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                            Edit
-                          </button>
-                          <button className="flex-1 flex items-center justify-center text-[#d44506] hover:text-[#c13d05] py-1.5 text-sm font-medium border-l border-gray-100 dark:border-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Remove
-                          </button>
-                        </div>
+                  {showAddressForm ? (
+                    <AddressForm 
+                      initialAddress={addressToEdit || undefined}
+                      onSave={handleAddressSave}
+                      onCancel={handleAddressCancel}
+                      buttonText={addressToEdit ? 'UPDATE ADDRESS' : 'SAVE ADDRESS'}
+                    />
+                  ) : (
+                    <>
+                      <button 
+                        onClick={handleAddNewAddress}
+                        className="flex items-center p-3 bg-gradient-to-r from-[#ed875a]/10 to-[#ed8c61]/10 hover:from-[#ed875a]/20 hover:to-[#ed8c61]/20 text-[#ed875a] dark:text-[#ed8c61] hover:text-[#d44506] rounded-md border border-dashed border-[#ed875a]/30 w-full sm:w-auto justify-center transition-all duration-300"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        <span className="font-medium">Add a new address</span>
+                      </button>
+                    
+                      <div className="mt-6">
+                        <AddressList 
+                          showAddNewButton={false}
+                          emptyStateMessage="You don't have any saved addresses yet. Add your first address to make checkout faster."
+                        />
                       </div>
-                    </div>
-
-                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-300">
-                      <div className="p-5">
-                        <div className="flex justify-between items-center pb-3 border-b border-gray-100 dark:border-gray-700 mb-3">
-                          <div className="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#ed875a] mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                            <h3 className="font-medium text-gray-900 dark:text-white">{user.name}</h3>
-                          </div>
-                          <span className="px-2.5 py-1 bg-[#ed875a]/10 text-[#d44506] dark:text-[#ed8c61] text-xs font-medium rounded-full">Office</span>
-                        </div>
-                        <div className="space-y-1 mb-4">
-                          <p className="text-sm text-gray-700 dark:text-gray-300">456 Business Park, Tower B, Floor 8</p>
-                          <p className="text-sm text-gray-700 dark:text-gray-300">Bangalore, Karnataka - 560001</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                            </svg>
-                            +91 8765432109
-                          </p>
-                        </div>
-                        <div className="flex space-x-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                          <button className="flex-1 flex items-center justify-center text-[#ed875a] hover:text-[#d44506] dark:text-[#ed8c61] dark:hover:text-[#ed875a] py-1.5 text-sm font-medium">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                            Edit
-                          </button>
-                          <button className="flex-1 flex items-center justify-center text-[#d44506] hover:text-[#c13d05] py-1.5 text-sm font-medium border-l border-gray-100 dark:border-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                    </>
+                  )}
                 </div>
               </div>
             )}

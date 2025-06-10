@@ -22,10 +22,10 @@ export interface LoginRequest {
 
 /**
  * Request payload for refreshing authentication tokens
+ * The refresh token is now sent via HTTP-only cookie
  */
 export interface RefreshTokenRequest {
   userId: string;
-  refreshToken: string;
 }
 
 /**
@@ -50,19 +50,21 @@ export interface ApiResponseWrapper<T> {
 
 /**
  * Response containing authentication data after successful login
+ * refreshToken is now sent via HTTP-only cookie
  */
 export interface AuthResponse {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string; // Optional as it's now primarily sent via cookie
   user: UserDetails;
 }
 
 /**
  * Response containing just the tokens after refresh
+ * refreshToken is now sent via HTTP-only cookie
  */
 export interface TokenResponse {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string; // Optional as it's now primarily sent via cookie
 }
 
 /**

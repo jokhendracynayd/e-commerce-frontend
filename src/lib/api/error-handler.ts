@@ -28,7 +28,7 @@ interface ApiErrorResponse {
 export function handleApiError(error: any): ApiError {
   if (error.response) {
     // Server responded with an error status
-    const { status, data } = error.response;
+    const { status, data, config } = error.response;
     
     // Handle our specific API response format
     let errorMessage: string;
@@ -59,6 +59,16 @@ export function handleApiError(error: any): ApiError {
       }
     } else {
       errorMessage = getDefaultErrorMessage(status);
+    }
+    
+    // Add more context for cart endpoints
+    const url = config?.url || '';
+    if (url.includes('/carts/') && status === 400) {
+      if (url.includes('/merge-anonymous')) {
+        errorMessage = 'Failed to merge cart: ' + errorMessage;
+      } else if (url.includes('/my-cart')) {
+        errorMessage = 'Failed to fetch cart: ' + errorMessage;
+      }
     }
     
     return {

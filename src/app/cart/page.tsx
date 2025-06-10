@@ -1,20 +1,52 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
 
 export default function CartPage() {
-  const { items, removeFromCart, updateQuantity, totalItems, totalPrice } = useCart();
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+  const { items, removeFromCart, updateQuantity, totalItems, clearCart } = useCart();
   const [applyingCoupon, setApplyingCoupon] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [showCouponSuccess, setShowCouponSuccess] = useState(false);
   
-  // Calculate shipping cost - free if total is above 500
-  const shippingCost = totalPrice > 500 ? 0 : 40;
-  const totalAmount = totalPrice + shippingCost;
+  // Calculate order summary values directly from cart items
+  const orderSummary = useMemo(() => {
+    // Calculate subtotal from items
+    const calculatedSubtotal = items.reduce((total, item) => {
+      return total + (item.product.price * item.quantity);
+    }, 0);
+    
+    // Calculate shipping - free if subtotal is above 500
+    const calculatedShipping = calculatedSubtotal > 500 ? 0 : 40;
+    
+    // Calculate tax (5% of subtotal)
+    const calculatedTax = Math.round(calculatedSubtotal * 0.05);
+    
+    // Calculate discount if coupon is applied
+    const calculatedDiscount = applyingCoupon ? Math.round(calculatedSubtotal * 0.1) : 0;
+    
+    // Calculate total
+    const calculatedTotal = calculatedSubtotal + calculatedShipping + calculatedTax - calculatedDiscount;
+    
+    // Calculate item count
+    const calculatedItemCount = items.reduce((count, item) => count + item.quantity, 0);
+    
+    return {
+      subtotal: calculatedSubtotal,
+      shippingCost: calculatedShipping,
+      tax: calculatedTax,
+      discount: calculatedDiscount,
+      total: calculatedTotal,
+      itemCount: calculatedItemCount
+    };
+  }, [items, applyingCoupon]);
   
   // Format price as Indian Rupees
   const formatPrice = (val: number) => {
@@ -92,7 +124,7 @@ export default function CartPage() {
       <div className="mb-6 sm:mb-8 md:mb-10">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight text-center sm:text-left">Shopping Cart</h1>
         <p className="text-gray-600 dark:text-gray-400 text-center sm:text-left">
-          You have {totalItems} {totalItems === 1 ? 'item' : 'items'} in your cart
+          You have {orderSummary.itemCount} {orderSummary.itemCount === 1 ? 'item' : 'items'} in your cart
         </p>
       </div>
       
@@ -191,17 +223,41 @@ export default function CartPage() {
                     </div>
                     
                     <div className="text-right">
-                      <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                        ₹{formatPrice(item.product.price * item.quantity)}
-                      </div>
-                      {item.product.originalPrice && (
-                        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through">
-                          ₹{formatPrice(item.product.originalPrice * item.quantity)}
+                      {item.selectedColor ? (
+                        // Show variant pricing
+                        <div>
+                          <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                            ₹{formatPrice(item.product.price * item.quantity)}
+                          </div>
+                          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                            {item.quantity} × ₹{formatPrice(item.product.price)}
+                          </div>
                         </div>
-                      )}
-                      {item.product.originalPrice && (
-                        <div className="text-xs font-medium text-[#d44506] dark:text-[#ed875a] mt-0.5">
-                          {Math.round(((item.product.originalPrice - item.product.price) / item.product.originalPrice) * 100)}% off
+                      ) : (
+                        // Show product pricing with potential discount
+                        <div>
+                          {item.product.discountPercentage ? (
+                            <>
+                              <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                                ₹{formatPrice(item.product.price * item.quantity)}
+                              </div>
+                              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through">
+                                ₹{formatPrice(item.product.originalPrice * item.quantity)}
+                              </div>
+                              <div className="text-xs font-medium text-[#d44506] dark:text-[#ed875a] mt-0.5">
+                                {item.product.discountPercentage}% off • {item.quantity} × ₹{formatPrice(item.product.price)}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                                ₹{formatPrice(item.product.price * item.quantity)}
+                              </div>
+                              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                {item.quantity} × ₹{formatPrice(item.product.price)}
+                              </div>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
@@ -221,7 +277,7 @@ export default function CartPage() {
             
             <button 
               className="text-gray-700 dark:text-gray-300 hover:text-[#d44506] dark:hover:text-[#ed875a] font-medium flex items-center w-full sm:w-auto justify-center sm:justify-start"
-              onClick={() => items.forEach(item => removeFromCart(item.product.id))}
+              onClick={() => clearCart()}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -292,17 +348,23 @@ export default function CartPage() {
             {/* Price breakdown */}
             <div className="space-y-3 sm:space-y-4 border-b border-gray-200 dark:border-gray-700 pb-5 sm:pb-6 mb-5 sm:mb-6">
               <div className="flex justify-between">
-                <span className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Subtotal</span>
-                <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium">₹{formatPrice(totalPrice)}</span>
+                <span className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Subtotal ({orderSummary.itemCount} items)</span>
+                <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium">₹{formatPrice(orderSummary.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Shipping</span>
                 <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium">
-                  {shippingCost === 0 ? (
+                  {orderSummary.shippingCost === 0 ? (
                     <span className="text-[#d44506] dark:text-[#ed875a]">Free</span>
                   ) : (
-                    `₹${formatPrice(shippingCost)}`
+                    `₹${formatPrice(orderSummary.shippingCost)}`
                   )}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Tax (5%)</span>
+                <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium">
+                  ₹{formatPrice(orderSummary.tax)}
                 </span>
               </div>
               {applyingCoupon && (
@@ -313,39 +375,40 @@ export default function CartPage() {
                     </svg>
                     Discount (WELCOME10)
                   </span>
-                  <span className="text-sm sm:text-base">-₹{formatPrice(Math.round(totalPrice * 0.1))}</span>
+                  <span className="text-sm sm:text-base">-₹{formatPrice(orderSummary.discount)}</span>
                 </div>
               )}
-              
-              {/* Tax info */}
-              <div className="flex justify-between text-xs sm:text-sm">
-                <span className="text-gray-500 dark:text-gray-400">Taxes</span>
-                <span className="text-gray-500 dark:text-gray-400">Included</span>
-              </div>
             </div>
             
             {/* Total */}
             <div className="flex justify-between items-center mb-6 sm:mb-8">
               <span className="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-200">Total</span>
               <motion.span 
-                key={applyingCoupon ? 'discounted' : 'regular'}
+                key={`${orderSummary.total}-${applyingCoupon}`}
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
                 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white"
               >
-                ₹{formatPrice(applyingCoupon ? totalAmount - Math.round(totalPrice * 0.1) : totalAmount)}
+                ₹{formatPrice(orderSummary.total)}
               </motion.span>
             </div>
             
             {/* Checkout button */}
-            <Link href="/checkout" className="block w-full">
-              <button className="w-full bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white py-3 sm:py-3.5 px-4 sm:px-6 font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center rounded-md text-sm sm:text-base">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                Proceed to Checkout
-              </button>
-            </Link>
+            <button 
+              onClick={() => {
+                if (isAuthenticated) {
+                  router.push('/checkout');
+                } else {
+                  router.push('/login?returnUrl=/checkout');
+                }
+              }}
+              className="w-full bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white py-3 sm:py-3.5 px-4 sm:px-6 font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center rounded-md text-sm sm:text-base"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              Proceed to Checkout
+            </button>
             
             {/* Payment methods */}
             <div className="mt-5 sm:mt-6 flex items-center justify-center space-x-1">

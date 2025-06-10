@@ -2,11 +2,10 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } f
 import { API_BASE_URL, ENDPOINTS } from './endpoints';
 import { handleApiError, logApiError } from './error-handler';
 
-// Token storage keys - using localStorage for persistence
-const AUTH_TOKEN_KEY = 'auth_token';
-const REFRESH_TOKEN_KEY = 'refresh_token';
-const USER_ID_KEY = 'user_id';
-const TOKEN_EXPIRY_KEY = 'token_expiry';
+// Token storage - using memory only for security
+let accessToken: string | null = null;
+let userId: string | null = null;
+let tokenExpiry: number | null = null;
 
 // Create custom event for authentication state changes
 export const AUTH_EVENTS = {
@@ -16,33 +15,19 @@ export const AUTH_EVENTS = {
   AUTH_ERROR: 'auth:error'
 };
 
-// Load tokens from localStorage on initialization (client-side only)
-let accessToken: string | null = null;
-let refreshToken: string | null = null;
-let userId: string | null = null;
-let tokenExpiry: number | null = null;
-
-// Initialize tokens from localStorage if available
-if (typeof window !== 'undefined') {
-  try {
-    accessToken = localStorage.getItem(AUTH_TOKEN_KEY);
-    refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-    userId = localStorage.getItem(USER_ID_KEY);
-    
-    const expiryStr = localStorage.getItem(TOKEN_EXPIRY_KEY);
-    tokenExpiry = expiryStr ? parseInt(expiryStr, 10) : null;
-    
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Loaded auth state:', {
-        hasAccessToken: !!accessToken,
-        hasRefreshToken: !!refreshToken,
-        hasUserId: !!userId,
-        tokenExpiry: tokenExpiry ? new Date(tokenExpiry).toISOString() : null
-      });
+// Get CSRF token from cookies
+function getCsrfToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  
+  // Parse cookies to find the CSRF token
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'XSRF-TOKEN') {
+      return decodeURIComponent(value);
     }
-  } catch (e) {
-    console.error('Error loading auth state from local storage:', e);
   }
+  return null;
 }
 
 // Create the axios instance
@@ -53,6 +38,8 @@ export const axiosClient: AxiosInstance = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
+  // Important: Allow cookies to be sent with requests
+  withCredentials: true,
 });
 
 // Refresh token promise to prevent multiple refreshes
@@ -106,32 +93,26 @@ async function refreshAuthToken(): Promise<string> {
   // Create a new refresh promise
   refreshPromise = new Promise<string>(async (resolve, reject) => {
     try {
-      if (!userId || !refreshToken) {
-        throw new Error('Missing userId or refreshToken');
+      if (!userId) {
+        throw new Error('Missing userId for token refresh');
       }
       
+      // Make the request with withCredentials to send the HTTP-only refresh cookie
       const response = await axios.post(
         `${API_BASE_URL}${ENDPOINTS.AUTH.REFRESH}`,
-        {
-          userId,
-          refreshToken
-        },
+        { userId },
         {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-          }
+          },
+          withCredentials: true, // Important: Send cookies with the request
         }
       );
       
       // Extract new token and update storage
       const data = response.data.data;
       const newAccessToken = data.accessToken;
-      
-      // If the response includes a new refresh token, update it
-      if (data.refreshToken) {
-        setRefreshToken(data.refreshToken);
-      }
       
       // Update the access token
       setAuthToken(newAccessToken);
@@ -153,17 +134,20 @@ async function refreshAuthToken(): Promise<string> {
     } catch (error) {
       console.error('Token refresh failed:', error);
       
-      // Clear tokens on refresh failure
-      clearAllTokens();
+      // Clear tokens on refresh failure with skipEvent=true to prevent loops
+      clearAllTokens(true);
       
       // Dispatch logout event
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent(AUTH_EVENTS.LOGOUT));
-        
-        // Also dispatch auth error event with details
-        window.dispatchEvent(new CustomEvent(AUTH_EVENTS.AUTH_ERROR, {
-          detail: { message: 'Session expired. Please log in again.' }
-        }));
+        // Use setTimeout to break the synchronous call chain
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent(AUTH_EVENTS.LOGOUT));
+          
+          // Also dispatch auth error event with details
+          window.dispatchEvent(new CustomEvent(AUTH_EVENTS.AUTH_ERROR, {
+            detail: { message: 'Session expired. Please log in again.' }
+          }));
+        }, 0);
       }
       
       reject(error);
@@ -183,7 +167,6 @@ axiosClient.interceptors.request.use(
     const isAuthEndpoint = config.url && [
       ENDPOINTS.AUTH.LOGIN,
       ENDPOINTS.AUTH.REGISTER,
-      ENDPOINTS.AUTH.REFRESH,
     ].includes(config.url);
     
     // If we have a token and it's not an auth endpoint, check if token needs refresh
@@ -204,10 +187,43 @@ axiosClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
     
+    // Add CSRF token for non-GET requests except for auth endpoints
+    if (config.method !== 'get' && config.headers) {
+      // These endpoints are exempt from CSRF protection on the server
+      const csrfExemptEndpoints = [
+        ENDPOINTS.AUTH.LOGIN,
+        ENDPOINTS.AUTH.REGISTER,
+        ENDPOINTS.AUTH.REFRESH,
+        ENDPOINTS.AUTH.LOGOUT,
+        ENDPOINTS.CART.MERGE // Make sure merge endpoint is in the exempt list
+      ];
+      
+      // Check if the current URL is exempt
+      const isExemptFromCsrf = csrfExemptEndpoints.some(endpoint => 
+        config.url?.includes(endpoint)
+      );
+      
+      // Only add CSRF token for non-exempt endpoints
+      if (!isExemptFromCsrf) {
+        const csrfToken = getCsrfToken();
+        if (csrfToken) {
+          config.headers['X-CSRF-TOKEN'] = csrfToken;
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('Added CSRF token to request:', config.url);
+          }
+        } else {
+          console.warn('No CSRF token available for protected request:', config.url);
+        }
+      } else {
+        console.log('Skipping CSRF token for exempt endpoint:', config.url);
+      }
+    }
+    
     // Log request for debugging in development
     if (process.env.NODE_ENV !== 'production') {
       console.log(`${config.method?.toUpperCase()} ${config.url}`, {
-        hasToken: !!accessToken
+        hasToken: !!accessToken,
+        hasCsrfToken: config.method !== 'get' ? !!config.headers['X-CSRF-TOKEN'] : 'not required'
       });
     }
     
@@ -227,7 +243,7 @@ axiosClient.interceptors.response.use(
       error.response?.status === 401 &&
       !originalRequest._retry &&
       originalRequest.url !== ENDPOINTS.AUTH.REFRESH &&
-      refreshToken && userId
+      userId
     ) {
       originalRequest._retry = true;
       
@@ -260,101 +276,38 @@ axiosClient.interceptors.response.use(
 export const setAuthToken = (token: string) => {
   accessToken = token;
   
-  // Store in localStorage for persistence
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.setItem(AUTH_TOKEN_KEY, token);
-      
-      // Also extract and save expiry time from token
-      const decodedToken = decodeJwtToken(token);
-      if (decodedToken.exp) {
-        setTokenExpiry(decodedToken.exp * 1000); // Convert seconds to milliseconds
-      }
-    } catch (e) {
-      console.error('Error storing auth token:', e);
-    }
-  }
-};
-
-export const setRefreshToken = (token: string) => {
-  refreshToken = token;
-  
-  // Store in localStorage for persistence
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.setItem(REFRESH_TOKEN_KEY, token);
-    } catch (e) {
-      console.error('Error storing refresh token:', e);
-    }
+  // Extract and save expiry time from token
+  const decodedToken = decodeJwtToken(token);
+  if (decodedToken.exp) {
+    setTokenExpiry(decodedToken.exp * 1000); // Convert seconds to milliseconds
   }
 };
 
 export const setUserId = (id: string) => {
   userId = id;
-  
-  // Store in localStorage for persistence
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.setItem(USER_ID_KEY, id);
-    } catch (e) {
-      console.error('Error storing user ID:', e);
-    }
-  }
 };
 
 export const setTokenExpiry = (expiryTimestamp: number) => {
   tokenExpiry = expiryTimestamp;
-  
-  // Store in localStorage for persistence
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.setItem(TOKEN_EXPIRY_KEY, expiryTimestamp.toString());
-    } catch (e) {
-      console.error('Error storing token expiry:', e);
-    }
-  }
 };
 
 export const clearAuthToken = () => {
   accessToken = null;
   tokenExpiry = null;
-  
-  // Remove from localStorage
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-      localStorage.removeItem(TOKEN_EXPIRY_KEY);
-    } catch (e) {
-      console.error('Error removing auth token:', e);
-    }
-  }
 };
 
-export const clearAllTokens = () => {
+export const clearAllTokens = (skipEvent: boolean = false) => {
   // Clear all variables in memory
   accessToken = null;
-  refreshToken = null;
   userId = null;
   tokenExpiry = null;
   isRefreshing = false;
   refreshPromise = null;
   refreshSubscribers = [];
   
-  // Remove from localStorage
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
-      localStorage.removeItem(USER_ID_KEY);
-      localStorage.removeItem(TOKEN_EXPIRY_KEY);
-      
-      // Log that tokens were cleared (in development)
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('All auth tokens cleared');
-      }
-    } catch (e) {
-      console.error('Error removing tokens:', e);
-    }
+  // Log that tokens were cleared (in development)
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('All auth tokens cleared');
   }
 };
 

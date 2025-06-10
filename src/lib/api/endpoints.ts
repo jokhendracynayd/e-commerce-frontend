@@ -15,11 +15,12 @@ export const ENDPOINTS = {
   USERS: {
     BASE: '/users',
     DETAIL: (id: string) => `/users/${id}`,
-    ADDRESSES: '/users/addresses',
-    ADDRESS_DETAIL: (id: string) => `/users/addresses/${id}`,
-    ADD_ADDRESS: '/users/addresses',
-    UPDATE_ADDRESS: (id: string) => `/users/addresses/${id}`,
-    DELETE_ADDRESS: (id: string) => `/users/addresses/${id}`,
+    ADDRESSES: '/users/me/addresses',
+    ADDRESS_DETAIL: (id: string) => `/users/me/addresses/${id}`,
+    ADD_ADDRESS: '/users/me/addresses',
+    UPDATE_ADDRESS: (id: string) => `/users/me/addresses/${id}`,
+    DELETE_ADDRESS: (id: string) => `/users/me/addresses/${id}`,
+    SET_DEFAULT_ADDRESS: (id: string) => `/users/me/addresses/${id}/default`,
   },
   
   PRODUCTS: {
@@ -58,6 +59,7 @@ export const ENDPOINTS = {
     UPDATE_ITEM: (itemId: string) => `/carts/items/${itemId}`,
     REMOVE_ITEM: (itemId: string) => `/carts/items/${itemId}`,
     CLEAR: '/carts/clear',
+    MERGE: '/carts/merge-anonymous',
   },
   
   ORDERS: {

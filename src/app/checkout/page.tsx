@@ -5,6 +5,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
+import AddressList from '@/components/address/AddressList';
+import { Address } from '@/types/address';
+import PaymentSection from '@/components/checkout/payment/PaymentSection';
+import CheckoutForm from '@/components/checkout/CheckoutForm';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -15,6 +19,121 @@ export default function CheckoutPage() {
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Address selection state
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>();
+  const [showManualAddressForm, setShowManualAddressForm] = useState(false);
+  
+  // Billing address state
+  const [useSameAddressForBilling, setUseSameAddressForBilling] = useState(true);
+  const [selectedBillingAddressId, setSelectedBillingAddressId] = useState<string | undefined>();
+  const [selectedBillingAddress, setSelectedBillingAddress] = useState<Address | null>(null);
+  const [showBillingManualForm, setShowBillingManualForm] = useState(false);
+  const [billingFullName, setBillingFullName] = useState('');
+  const [billingPhoneNumber, setBillingPhoneNumber] = useState('');
+  const [billingPincode, setBillingPincode] = useState('');
+  const [billingAddress, setBillingAddress] = useState('');
+  
+  // Payment details state
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+  const [nameOnCard, setNameOnCard] = useState('');
+  const [saveCard, setSaveCard] = useState(false);
+  const [upiId, setUpiId] = useState('');
+  const [upiApp, setUpiApp] = useState('');
+  const [deliveryInstructions, setDeliveryInstructions] = useState('');
+  const [timeSlot, setTimeSlot] = useState('anytime');
+  const [paymentData, setPaymentData] = useState<Record<string, string>>({});
+  
+  // Handle address selection
+  const handleAddressSelect = (address: Address) => {
+    setSelectedAddress(address);
+    setSelectedAddressId(address.id);
+    
+    // Update the form fields from the selected address
+    setFullName(address.name);
+    setPhoneNumber(address.mobileNumber);
+    setPincode(address.zipCode);
+    const formattedAddress = `${address.street}, ${address.locality}, ${address.city}, ${address.state}${address.landmark ? ', Landmark: ' + address.landmark : ''}`;
+    setDeliveryAddress(formattedAddress);
+
+    // If using same address for billing, update billing fields too
+    if (useSameAddressForBilling) {
+      handleBillingAddressSelect(address);
+    }
+  };
+
+  // Handle billing address selection
+  const handleBillingAddressSelect = (address: Address) => {
+    setSelectedBillingAddress(address);
+    setSelectedBillingAddressId(address.id);
+    
+    // Update billing form fields
+    setBillingFullName(address.name);
+    setBillingPhoneNumber(address.mobileNumber);
+    setBillingPincode(address.zipCode);
+    const formattedAddress = `${address.street}, ${address.locality}, ${address.city}, ${address.state}${address.landmark ? ', Landmark: ' + address.landmark : ''}`;
+    setBillingAddress(formattedAddress);
+  };
+  
+  // Handle address added
+  const handleAddressAdded = (address: Address) => {
+    // Select the newly added address
+    handleAddressSelect(address);
+  };
+
+  // Toggle manual address form
+  const handleToggleManualForm = () => {
+    setShowManualAddressForm(!showManualAddressForm);
+    if (selectedAddressId) {
+      // Clear selected address if switching to manual form
+      setSelectedAddressId(undefined);
+      setSelectedAddress(null);
+    }
+  };
+
+  // Toggle billing manual form
+  const handleToggleBillingManualForm = () => {
+    setShowBillingManualForm(!showBillingManualForm);
+    if (selectedBillingAddressId) {
+      setSelectedBillingAddressId(undefined);
+      setSelectedBillingAddress(null);
+    }
+  };
+
+  // Handle same address for billing toggle
+  const handleSameAddressToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const useShippingAsBilling = e.target.checked;
+    setUseSameAddressForBilling(useShippingAsBilling);
+    
+    // If checked, copy shipping address to billing address
+    if (useShippingAsBilling && selectedAddress) {
+      handleBillingAddressSelect(selectedAddress);
+    }
+  };
+  
+  // Handle payment method and data change
+  const handlePaymentDataChange = (methodId: string, data: Record<string, string>) => {
+    setPaymentMethod(methodId);
+    setPaymentData(data);
+    
+    // Update the individual payment form states based on the method
+    if (methodId === 'card' && data) {
+      data.cardNumber && setCardNumber(data.cardNumber);
+      data.cardExpiry && setCardExpiry(data.cardExpiry);
+      data.cardCvv && setCardCvv(data.cardCvv);
+      data.nameOnCard && setNameOnCard(data.nameOnCard);
+      data.saveCard && setSaveCard(data.saveCard === 'true');
+    } else if (methodId === 'upi' && data) {
+      data.upiId && setUpiId(data.upiId);
+      data.upiApp && setUpiApp(data.upiApp);
+    } else if (methodId === 'cod' && data) {
+      data.deliveryInstructions && setDeliveryInstructions(data.deliveryInstructions);
+      data.timeSlot && setTimeSlot(data.timeSlot);
+    }
+  };
   
   // Redirect to home if no items in cart
   useEffect(() => {
@@ -40,9 +159,34 @@ export default function CheckoutPage() {
     return val.toLocaleString('en-IN');
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     setIsProcessing(true);
+    
+    // Gather billing address information for the order
+    const orderData = {
+      shippingAddress: {
+        fullName,
+        phoneNumber,
+        pincode,
+        address: deliveryAddress,
+      },
+      billingAddress: useSameAddressForBilling 
+        ? {
+            fullName,
+            phoneNumber,
+            pincode,
+            address: deliveryAddress,
+          }
+        : {
+            fullName: billingFullName,
+            phoneNumber: billingPhoneNumber,
+            pincode: billingPincode,
+            address: billingAddress,
+          },
+      paymentMethod,
+      paymentDetails: paymentData,
+      // other order details
+    };
     
     // Simulate order processing
     setTimeout(() => {
@@ -186,236 +330,266 @@ export default function CheckoutPage() {
           
           {/* Delivery Address */}
           <div className="bg-white dark:bg-gray-800 shadow-[0_5px_30px_-15px_rgba(237,135,90,0.15)] p-5 sm:p-6 border border-gray-100 dark:border-gray-700 rounded-lg">
-            <div className="flex items-center mb-4 sm:mb-5">
-              <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-[#ed875a]/10 to-[#ed8c61]/10 text-[#ed875a] mr-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
+            <div className="flex items-center justify-between mb-4 sm:mb-5">
+              <div className="flex items-center">
+                <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-[#ed875a]/10 to-[#ed8c61]/10 text-[#ed875a] mr-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Delivery Address</h2>
               </div>
-              <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Delivery Address</h2>
+              
+              {/* Toggle between saved addresses and manual input */}
+              <div>
+                <button 
+                  onClick={handleToggleManualForm}
+                  className="text-sm text-[#ed875a] dark:text-[#ed8c61] hover:text-[#d44506] flex items-center"
+                >
+                  {showManualAddressForm ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                      Use saved address
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      Enter manually
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-              <div className="group">
-                <label htmlFor="fullName" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full Name*</label>
-                <input
-                  type="text"
-                  id="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
-                  placeholder="Enter your full name"
-                  required
+            {/* Show either saved addresses or manual input form */}
+            {showManualAddressForm ? (
+              // Manual address input (original form)
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                <div className="group">
+                  <label htmlFor="fullName" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full Name*</label>
+                  <input
+                    type="text"
+                    id="fullName"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
+                    placeholder="Enter your full name"
+                    required
+                  />
+                </div>
+                <div className="group">
+                  <label htmlFor="phoneNumber" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Phone Number*</label>
+                  <input
+                    type="tel"
+                    id="phoneNumber"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
+                    placeholder="Enter your phone number"
+                    required
+                  />
+                </div>
+                <div className="group">
+                  <label htmlFor="pincode" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Pincode*</label>
+                  <input
+                    type="text"
+                    id="pincode"
+                    value={pincode}
+                    onChange={(e) => setPincode(e.target.value)}
+                    maxLength={6}
+                    className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
+                    placeholder="Enter pincode"
+                    required
+                  />
+                </div>
+                <div className="md:col-span-2 group">
+                  <label htmlFor="address" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Address*</label>
+                  <textarea
+                    id="address"
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    rows={4}
+                    className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
+                    placeholder="Enter your complete address"
+                    required
+                  />
+                </div>
+              </div>
+            ) : (
+              // Address list component
+              <div className="address-list-checkout w-full">
+                <style jsx global>{`
+                  /* Make address cards take full width in checkout only */
+                  .address-list-checkout .grid {
+                    grid-template-columns: 1fr !important;
+                  }
+                  .address-list-checkout button {
+                    width: 100%;
+                  }
+                `}</style>
+                <AddressList
+                  onSelectAddress={handleAddressSelect}
+                  selectedAddressId={selectedAddressId}
+                  showSelectionMode={true}
+                  showAddNewButton={true}
+                  emptyStateMessage="Please add a delivery address to continue"
+                  header={
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                      Select a delivery address or add a new one.
+                    </p>
+                  }
                 />
               </div>
-              <div className="group">
-                <label htmlFor="phoneNumber" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Phone Number*</label>
-                <input
-                  type="tel"
-                  id="phoneNumber"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
-                  placeholder="Enter your phone number"
-                  required
-                />
-              </div>
-              <div className="group">
-                <label htmlFor="pincode" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Pincode*</label>
-                <input
-                  type="text"
-                  id="pincode"
-                  value={pincode}
-                  onChange={(e) => setPincode(e.target.value)}
-                  maxLength={6}
-                  className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
-                  placeholder="Enter pincode"
-                  required
-                />
-              </div>
-              <div className="md:col-span-2 group">
-                <label htmlFor="address" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Address*</label>
-                <textarea
-                  id="address"
-                  value={deliveryAddress}
-                  onChange={(e) => setDeliveryAddress(e.target.value)}
-                  rows={4}
-                  className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
-                  placeholder="Enter your complete address"
-                  required
-                />
-              </div>
-            </div>
+            )}
           </div>
           
-          {/* Payment Methods */}
+          {/* Billing Address */}
           <div className="bg-white dark:bg-gray-800 shadow-[0_5px_30px_-15px_rgba(237,135,90,0.15)] p-5 sm:p-6 border border-gray-100 dark:border-gray-700 rounded-lg">
             <div className="flex items-center mb-4 sm:mb-5">
               <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-r from-[#ed875a]/10 to-[#ed8c61]/10 text-[#ed875a] mr-3">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
               </div>
-              <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Payment Method</h2>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Billing Address</h2>
             </div>
             
-            <div className="space-y-3">
-              <div className="relative">
-                <input
-                  type="radio"
-                  id="card"
-                  name="paymentMethod"
-                  value="card"
-                  checked={paymentMethod === 'card'}
-                  onChange={() => setPaymentMethod('card')}
-                  className="peer absolute opacity-0 h-0 w-0"
+            {/* Use same as delivery address option */}
+            <div className="mb-6">
+              <label className="flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={useSameAddressForBilling}
+                  onChange={handleSameAddressToggle}
+                  className="h-4 w-4 text-[#ed875a] focus:ring-[#ed875a] border-gray-300 rounded dark:border-gray-600"
                 />
-                <label htmlFor="card" className={`flex items-center p-3 sm:p-4 border ${paymentMethod === 'card' ? 'border-[#ed875a] dark:border-[#ed8c61] bg-[#ed875a]/5 dark:bg-[#ed8c61]/5' : 'border-gray-200 dark:border-gray-700'} rounded-md cursor-pointer transition-all duration-200 hover:border-[#ed875a]/50 dark:hover:border-[#ed8c61]/50`}>
-                  <div className={`flex items-center justify-center h-5 w-5 rounded-full border ${paymentMethod === 'card' ? 'border-[#ed875a] bg-[#ed875a]/20' : 'border-gray-300 dark:border-gray-600'} mr-3`}>
-                    <div className={`h-2.5 w-2.5 rounded-full bg-[#ed875a] ${paymentMethod === 'card' ? 'opacity-100' : 'opacity-0'} transition-opacity`}></div>
-                  </div>
-                  <div className="flex-1">
-                    <span className="text-sm font-medium text-gray-800 dark:text-white">Credit/Debit Card</span>
-                    <div className="flex items-center mt-1">
-                      <div className="flex space-x-1.5">
-                        <div className="w-8 h-5 bg-gray-100 dark:bg-gray-700 rounded"></div>
-                        <div className="w-8 h-5 bg-gray-100 dark:bg-gray-700 rounded"></div>
-                        <div className="w-8 h-5 bg-gray-100 dark:bg-gray-700 rounded"></div>
-                      </div>
-                    </div>
-                  </div>
-                </label>
-              </div>
-              
-              <div className="relative">
-                <input
-                  type="radio"
-                  id="upi"
-                  name="paymentMethod"
-                  value="upi"
-                  checked={paymentMethod === 'upi'}
-                  onChange={() => setPaymentMethod('upi')}
-                  className="peer absolute opacity-0 h-0 w-0"
-                />
-                <label htmlFor="upi" className={`flex items-center p-3 sm:p-4 border ${paymentMethod === 'upi' ? 'border-[#ed875a] dark:border-[#ed8c61] bg-[#ed875a]/5 dark:bg-[#ed8c61]/5' : 'border-gray-200 dark:border-gray-700'} rounded-md cursor-pointer transition-all duration-200 hover:border-[#ed875a]/50 dark:hover:border-[#ed8c61]/50`}>
-                  <div className={`flex items-center justify-center h-5 w-5 rounded-full border ${paymentMethod === 'upi' ? 'border-[#ed875a] bg-[#ed875a]/20' : 'border-gray-300 dark:border-gray-600'} mr-3`}>
-                    <div className={`h-2.5 w-2.5 rounded-full bg-[#ed875a] ${paymentMethod === 'upi' ? 'opacity-100' : 'opacity-0'} transition-opacity`}></div>
-                  </div>
-                  <span className="text-sm font-medium text-gray-800 dark:text-white">UPI</span>
-                </label>
-              </div>
-              
-              <div className="relative">
-                <input
-                  type="radio"
-                  id="cod"
-                  name="paymentMethod"
-                  value="cod"
-                  checked={paymentMethod === 'cod'}
-                  onChange={() => setPaymentMethod('cod')}
-                  className="peer absolute opacity-0 h-0 w-0"
-                />
-                <label htmlFor="cod" className={`flex items-center p-3 sm:p-4 border ${paymentMethod === 'cod' ? 'border-[#ed875a] dark:border-[#ed8c61] bg-[#ed875a]/5 dark:bg-[#ed8c61]/5' : 'border-gray-200 dark:border-gray-700'} rounded-md cursor-pointer transition-all duration-200 hover:border-[#ed875a]/50 dark:hover:border-[#ed8c61]/50`}>
-                  <div className={`flex items-center justify-center h-5 w-5 rounded-full border ${paymentMethod === 'cod' ? 'border-[#ed875a] bg-[#ed875a]/20' : 'border-gray-300 dark:border-gray-600'} mr-3`}>
-                    <div className={`h-2.5 w-2.5 rounded-full bg-[#ed875a] ${paymentMethod === 'cod' ? 'opacity-100' : 'opacity-0'} transition-opacity`}></div>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-800 dark:text-white">Cash on Delivery</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Pay when your order arrives</span>
-                  </div>
-                </label>
-              </div>
+                <span className="ml-2 text-sm sm:text-base text-gray-700 dark:text-gray-300">
+                  Use same address for billing
+                </span>
+              </label>
             </div>
             
-            {paymentMethod === 'card' && (
-              <div className="mt-5 space-y-4 border-t border-gray-200 dark:border-gray-700 pt-5 animate-fadeIn">
-                <div className="group">
-                  <label htmlFor="cardNumber" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                    Card Number*
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      id="cardNumber"
-                      className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 pr-10 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
-                      placeholder="XXXX XXXX XXXX XXXX"
-                      maxLength={19}
-                    />
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex gap-4">
-                  <div className="flex-1 group">
-                    <label htmlFor="expiry" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                      Expiry Date*
-                    </label>
-                    <input
-                      type="text"
-                      id="expiry"
-                      className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
-                      placeholder="MM/YY"
-                      maxLength={5}
-                    />
-                  </div>
-                  
-                  <div className="flex-1 group">
-                    <label htmlFor="cvv" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                      <div className="flex items-center">
-                        <span>CVV*</span>
-                        <span className="ml-1 text-gray-400 cursor-help" title="3-digit security code on the back of your card">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            {/* Show billing address options if not using same address */}
+            {!useSameAddressForBilling && (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <button 
+                      onClick={handleToggleBillingManualForm}
+                      className="text-sm text-[#ed875a] dark:text-[#ed8c61] hover:text-[#d44506] flex items-center"
+                    >
+                      {showBillingManualForm ? (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
-                        </span>
-                      </div>
-                    </label>
-                    <input
-                      type="password"
-                      id="cvv"
-                      className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
-                      placeholder="XXX"
-                      maxLength={3}
-                    />
+                          Use saved address
+                        </>
+                      ) : (
+                        <>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          Enter manually
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Your card details are encrypted and secure. We don't store your full card information.</p>
-              </div>
-            )}
-            
-            {paymentMethod === 'upi' && (
-              <div className="mt-5 space-y-4 border-t border-gray-200 dark:border-gray-700 pt-5 animate-fadeIn">
-                <div className="group">
-                  <label htmlFor="upiId" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                    UPI ID*
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      id="upiId"
-                      className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 pl-10 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
-                      placeholder="yourname@upi"
-                    />
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+
+                {showBillingManualForm ? (
+                  // Manual billing address input form
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+                    <div className="group">
+                      <label htmlFor="billingFullName" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Full Name*</label>
+                      <input
+                        type="text"
+                        id="billingFullName"
+                        value={billingFullName}
+                        onChange={(e) => setBillingFullName(e.target.value)}
+                        className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
+                        placeholder="Enter your full name"
+                        required={!useSameAddressForBilling}
+                      />
+                    </div>
+                    <div className="group">
+                      <label htmlFor="billingPhoneNumber" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Phone Number*</label>
+                      <input
+                        type="tel"
+                        id="billingPhoneNumber"
+                        value={billingPhoneNumber}
+                        onChange={(e) => setBillingPhoneNumber(e.target.value)}
+                        className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
+                        placeholder="Enter your phone number"
+                        required={!useSameAddressForBilling}
+                      />
+                    </div>
+                    <div className="group">
+                      <label htmlFor="billingPincode" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Pincode*</label>
+                      <input
+                        type="text"
+                        id="billingPincode"
+                        value={billingPincode}
+                        onChange={(e) => setBillingPincode(e.target.value)}
+                        maxLength={6}
+                        className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
+                        placeholder="Enter pincode"
+                        required={!useSameAddressForBilling}
+                      />
+                    </div>
+                    <div className="md:col-span-2 group">
+                      <label htmlFor="billingAddress" className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Address*</label>
+                      <textarea
+                        id="billingAddress"
+                        value={billingAddress}
+                        onChange={(e) => setBillingAddress(e.target.value)}
+                        rows={4}
+                        className="w-full border border-gray-300 dark:border-gray-600 py-2 sm:py-2.5 px-3 text-sm text-gray-700 dark:text-gray-200 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
+                        placeholder="Enter your complete address"
+                        required={!useSameAddressForBilling}
+                      />
                     </div>
                   </div>
-                </div>
-                <div className="flex flex-wrap gap-2 pt-2">
-                  <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded">GooglePay</span>
-                  <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded">PhonePe</span>
-                  <span className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium px-2 py-1 rounded">Paytm</span>
-                </div>
-              </div>
+                ) : (
+                  // Billing address list component
+                  <div className="address-list-checkout w-full">
+                    <style jsx global>{`
+                      /* Make address cards take full width in checkout only */
+                      .address-list-checkout .grid {
+                        grid-template-columns: 1fr !important;
+                      }
+                      .address-list-checkout button {
+                        width: 100%;
+                      }
+                    `}</style>
+                    <AddressList
+                      onSelectAddress={handleBillingAddressSelect}
+                      selectedAddressId={selectedBillingAddressId}
+                      showSelectionMode={true}
+                      showAddNewButton={true}
+                      emptyStateMessage="Please add a billing address"
+                      header={
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                          Select a billing address or add a new one.
+                        </p>
+                      }
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
+          
+          {/* Payment Methods */}
+          <PaymentSection 
+            onPaymentDataChange={handlePaymentDataChange}
+            initialMethod={paymentMethod}
+          />
         </div>
         
         {/* Order summary */}
@@ -483,29 +657,12 @@ export default function CheckoutPage() {
               </div>
             </div>
             
-            {/* Place order button */}
-            <button 
-              className="w-full bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white py-3 px-6 font-medium transition-all duration-300 hover:shadow-lg hover:shadow-[#ed875a]/20 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:shadow-none flex items-center justify-center rounded-md transform hover:-translate-y-0.5 active:translate-y-0"
-              onClick={handleSubmit}
-              disabled={isProcessing || !fullName || !phoneNumber || !deliveryAddress || !pincode}
-            >
-              {isProcessing ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Processing...
-                </>
-              ) : (
-                <>
-                  Place Order
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </>
-              )}
-            </button>
+            {/* Place order button using CheckoutForm component */}
+            <CheckoutForm 
+              onSubmitOrder={handleSubmit}
+              isFormValid={!!fullName && !!phoneNumber && !!deliveryAddress && !!pincode}
+              isProcessing={isProcessing}
+            />
             
             {/* Security and terms */}
             <div className="mt-5">
