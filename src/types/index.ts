@@ -96,4 +96,7 @@ export * from './product';
 export * from './categories';
 export * from './auth';
 export * from './user';
-export * from './cart'; 
+export * from './cart';
+export * from './payment';
+export * from './order';
+export * from './address'; 

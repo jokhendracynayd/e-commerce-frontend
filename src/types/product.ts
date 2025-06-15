@@ -111,6 +111,9 @@ export interface ApiProductListResponse {
   page: number;
   limit: number;
   totalPages: number;
+  // Additional properties for backend API compatibility
+  data?: ApiProduct[];
+  total?: number;
 }
 
 // Original types already in the file

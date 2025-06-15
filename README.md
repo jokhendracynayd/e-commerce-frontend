@@ -20,6 +20,30 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Search Functionality
+
+The application includes a robust search system that allows users to find products quickly and efficiently:
+
+### Features
+
+- **Auto-suggestions**: As users type, the search bar displays relevant product suggestions in real-time
+- **Debounced search**: Optimizes API calls to reduce server load and improve performance
+- **Keyboard navigation**: Users can navigate through search results using arrow keys
+- **Filtering options**: The search results page includes filters for categories, brands, price ranges, and more
+- **Sorting**: Products can be sorted by popularity, price, rating, or newest
+- **Pagination**: Handles large result sets with efficient pagination
+- **Mobile-responsive**: Fully functional on both desktop and mobile devices
+
+### Implementation
+
+The search functionality consists of:
+
+- `SearchBar.tsx`: A reusable component for the main search input with auto-suggestions
+- `ProductSearch.tsx`: The main search results page component with filtering and sorting
+- `/app/search/page.tsx`: The Next.js page that renders the search results
+
+The search integrates with the backend API via the `productsApi.searchProducts()` method.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

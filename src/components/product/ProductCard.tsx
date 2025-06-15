@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import WishlistButton from './WishlistButton';
+import ProductAvailabilityBadge from './ProductAvailabilityBadge';
+import ProductAvailabilityIndicator from './ProductAvailabilityIndicator';
 
 export type ProductCardProps = {
   id: string;
@@ -27,6 +30,7 @@ export type ProductCardProps = {
 };
 
 export function ProductCard({ 
+  id,
   title, 
   image, 
   price, 
@@ -34,17 +38,12 @@ export function ProductCard({
   originalPrice, 
   link, 
   badge,
-  rating,
-  reviewCount,
   isAssured = false,
   deliveryInfo,
   hasFreeDel = false,
   isNew = false,
   isBestSeller = false,
   currency = 'INR',
-  onAddToCart,
-  onAddToWishlist,
-  onQuickView
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   
@@ -60,7 +59,6 @@ export function ProductCard({
       discountPercentage = Math.min(Math.max(1, Math.round(calculatedDiscount)), 90);
     }
   }
-
 
   return (
     <div 
@@ -93,20 +91,22 @@ export function ProductCard({
           </div>
         </Link>
         
+        {/* Use the reusable ProductAvailabilityIndicator component */}
+        <ProductAvailabilityIndicator 
+          productId={id}
+          viewMode="grid"
+          showCentered={true}
+        />
+        
         {/* Quick action buttons */}
         <div className={`absolute right-1 top-1 sm:right-2 sm:top-2 flex flex-col gap-1 sm:gap-1.5 transition-all duration-300 transform ${isHovered ? 'translate-x-0 opacity-100' : 'translate-x-10 opacity-0'}`}>
-          <button 
-            onClick={(e) => {
-              e.preventDefault();
-              if (onAddToWishlist) onAddToWishlist();
-            }} 
-            className="w-6 h-6 xs:w-7 xs:h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center transition-colors hover:bg-primary/10 hover:cursor-pointer"
-            aria-label="Add to wishlist"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-          </button>
+          {/* WishlistButton integration */}
+          <WishlistButton 
+            productId={id}
+            size="sm"
+            variant="icon"
+            className="shadow-sm"
+          />
         </div>
         
         {/* Badges */}
@@ -160,6 +160,9 @@ export function ProductCard({
             {title}
           </h3>
         </Link>
+        
+        {/* Real-time inventory status */}
+        <ProductAvailabilityBadge productId={id} />
         
         {/* Rating - Only show if rating is available and greater than 0 */}
         {/* 

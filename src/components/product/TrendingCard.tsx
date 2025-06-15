@@ -5,6 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Product as ApiProduct } from '@/types/product';
 import { generateMeeshoStyleUrl } from '@/utils/url-utils';
+import { useCart } from '@/context/CartContext';
+import { toast } from 'react-hot-toast';
+import WishlistButton from './WishlistButton';
 
 // Extended Product type for frontend display
 type TrendingProduct = ApiProduct & {
@@ -36,11 +39,50 @@ const TrendingCard: React.FC<TrendingCardProps> = ({
     badge
   } = product;
 
+  const { addToCart, isLoading } = useCart();
+
   // Use the provided imageSrc or fall back to the first product image
   const imageSrc = product.imageSrc || (images && images.length > 0 ? images[0].imageUrl : '/placeholder-product.jpg');
   
   // Generate SEO-friendly URL using our URL utility function
   const productUrl = generateMeeshoStyleUrl(slug, id);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation to product page
+    e.stopPropagation(); // Stop event bubbling
+
+    try {
+      // Convert the ApiProduct to ProductDetail for cart context
+      const productDetail = {
+        id,
+        title,
+        slug,
+        price: discountPrice || price,
+        originalPrice: price,
+        brand: product.brand?.name || '',
+        description: product.description || '',
+        rating: averageRating,
+        reviewCount,
+        inStock: (product.stockQuantity || 0) > 0,
+        stockCount: product.stockQuantity || 0,
+        isAssured: false,
+        images: images ? images.map(img => img.imageUrl) : [imageSrc],
+        specificationGroups: [],
+        highlights: product.highlights || [],
+        hasFreeDel: false,
+        sellerName: '',
+        reviews: []
+      };
+
+      // Add the product to cart with a quantity of 1
+      addToCart(productDetail, 1);
+      
+      // Toast notification is handled by CartContext
+    } catch (error) {
+      console.error('Failed to add product to cart:', error);
+      toast.error('Failed to add product to cart');
+    }
+  };
 
   return (
     <div 
@@ -63,12 +105,22 @@ const TrendingCard: React.FC<TrendingCardProps> = ({
             {badge}
           </span>
         )}
+        <div className="absolute top-3 right-3 z-10">
+          <WishlistButton 
+            productId={id}
+            size="sm"
+            variant="icon"
+            className="shadow-sm"
+          />
+        </div>
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
           <button 
-            className="bg-white text-gray-900 py-3 px-6 m-4 font-medium text-sm tracking-wide transition-all duration-300 transform translate-y-4 group-hover:translate-y-0 shadow-lg hover:shadow-xl rounded-sm hover:bg-[#ed8c61] hover:text-white"
+            className={`bg-white text-gray-900 py-3 px-6 m-4 font-medium text-sm tracking-wide transition-all duration-300 transform translate-y-4 group-hover:translate-y-0 shadow-lg hover:shadow-xl rounded-sm hover:bg-[#ed8c61] hover:text-white ${isLoading ? 'opacity-70 cursor-wait' : ''}`}
             style={{ letterSpacing: '0.05em' }}
+            onClick={handleAddToCart}
+            disabled={isLoading}
           >
-            Add to Cart
+            {isLoading ? 'Adding...' : 'Add to Cart'}
           </button>
         </div>
       </div>
@@ -106,11 +158,6 @@ const TrendingCard: React.FC<TrendingCardProps> = ({
               </span>
             )}
           </div>
-          <button className="text-gray-400 hover:text-[#ed875a] transition-colors duration-300 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-          </button>
         </div>
       </div>
     </div>

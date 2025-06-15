@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ProductDetail, ColorVariant } from '@/types/product';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import WishlistButton from '@/components/product/WishlistButton';
+import { ProductAvailability, VariantAvailability } from '@/lib/api/inventory-api';
+import { useProductAvailability } from '@/hooks/useProductAvailability';
 
 interface ProductInfoProps {
   product: ProductDetail;
@@ -22,6 +25,30 @@ export function ProductInfo({ product }: ProductInfoProps) {
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [cartSuccess, setCartSuccess] = useState(false);
+  const [inventoryStatus, setInventoryStatus] = useState<ProductAvailability | VariantAvailability | null>(null);
+  
+  // Use the batch availability hook
+  const { 
+    productAvailability, 
+    variantAvailability,
+    isProductAvailable,
+    isVariantAvailable,
+    getProductStockStatus,
+    getVariantStockStatus
+  } = useProductAvailability({
+    productIds: [product.id],
+    variantIds: selectedColorVariant ? [selectedColorVariant.id] : [],
+    refreshInterval: 60000
+  });
+  
+  // Update inventory status whenever availability data changes
+  useEffect(() => {
+    if (selectedColorVariant && variantAvailability[selectedColorVariant.id]) {
+      setInventoryStatus(variantAvailability[selectedColorVariant.id]);
+    } else if (productAvailability[product.id]) {
+      setInventoryStatus(productAvailability[product.id]);
+    }
+  }, [productAvailability, variantAvailability, product.id, selectedColorVariant]);
   
   // Calculate discount percentage if not provided
   const discountPercentage = product.discountPercentage || (
@@ -63,8 +90,21 @@ export function ProductInfo({ product }: ProductInfoProps) {
   // Handle Buy Now
   const handleBuyNow = () => {
     addToCart(product, quantity, selectedColorVariant);
-    router.push('/checkout');
+    
+    // Check if user is logged in
+    if (user) {
+      // If logged in, proceed directly to checkout
+      router.push('/checkout');
+    } else {
+      // If not logged in, redirect to login page with return URL
+      router.push(`/login?returnUrl=${encodeURIComponent('/checkout')}`);
+    }
   };
+  
+  // Check if the product or selected variant is out of stock
+  const isOutOfStock = selectedColorVariant 
+    ? !isVariantAvailable(selectedColorVariant.id)
+    : !isProductAvailable(product.id);
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -231,6 +271,39 @@ export function ProductInfo({ product }: ProductInfoProps) {
         </div>
       </div>
       
+      {/* After the delivery info section, add inventory status */}
+      <div className="flex items-center mt-2 sm:mt-3">
+        {/* Render inventory status based on current data */}
+        {inventoryStatus && (
+          <div className="inventory-status">
+            {inventoryStatus.stockStatus === 'IN_STOCK' && (
+              <span className="text-green-600 dark:text-green-400 flex items-center text-xs sm:text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                In Stock
+              </span>
+            )}
+            {inventoryStatus.stockStatus === 'LOW_STOCK' && (
+              <span className="text-yellow-600 dark:text-yellow-400 flex items-center text-xs sm:text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Only {inventoryStatus.availableQuantity} left
+              </span>
+            )}
+            {inventoryStatus.stockStatus === 'OUT_OF_STOCK' && (
+              <span className="text-red-600 dark:text-red-400 flex items-center text-xs sm:text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Out of Stock
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+      
       {/* Quantity selector */}
       <div className="space-y-2 sm:space-y-3">
         <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Quantity</p>
@@ -260,47 +333,69 @@ export function ProductInfo({ product }: ProductInfoProps) {
       </div>
       
       {/* Action buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 pt-4 sm:pt-6">
-        <button 
-          onClick={handleAddToCart} 
-          disabled={addingToCart}
-          className={`w-full relative h-10 sm:h-12 flex items-center justify-center text-sm sm:text-base font-medium transition-all ${
-            cartSuccess 
-              ? 'bg-green-600 text-white' 
-              : 'bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-lg text-white'
-          }`}
+      <div className="flex flex-wrap gap-2 sm:gap-3 mt-4 sm:mt-6">
+        <button
+          onClick={handleAddToCart}
+          disabled={addingToCart || isOutOfStock}
+          className={`flex-1 min-w-24 h-10 sm:h-12 rounded-md font-medium text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2 ${
+            addingToCart || isOutOfStock
+              ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+              : 'bg-gradient-to-r from-[#d44506] to-[#ed875a] hover:shadow-md text-white'
+          } transition-all`}
         >
-          {addingToCart ? (
-            <div className="flex items-center justify-center">
-              <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-              Adding...
-            </div>
-          ) : cartSuccess ? (
-            <div className="flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Added to cart
-            </div>
-          ) : (
-            <div className="flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              Add to Cart
-            </div>
-          )}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4 sm:h-5 sm:w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+            />
+          </svg>
+          {addingToCart ? 'Adding...' : isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
         </button>
         
-        <button 
+        <button
           onClick={handleBuyNow}
-          className="w-full h-10 sm:h-12 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 text-sm sm:text-base font-medium transition-all flex items-center justify-center"
+          disabled={isOutOfStock}
+          className={`flex-1 min-w-24 h-10 sm:h-12 rounded-md font-medium text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2 ${
+            isOutOfStock
+              ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+              : 'bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-md text-white'
+          } transition-all`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4 sm:h-5 sm:w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
           Buy Now
         </button>
+      </div>
+      
+      {/* Wishlist button */}
+      <div className="pt-2">
+        <WishlistButton 
+          productId={product.id}
+          variant="button"
+          withText={true}
+          size="md"
+          className="w-full h-10 sm:h-12"
+        />
       </div>
       
       {/* Exchange offer */}

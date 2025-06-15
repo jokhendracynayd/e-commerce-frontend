@@ -2,7 +2,10 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import WishlistButton from './WishlistButton';
+import ProductAvailabilityBadge from './ProductAvailabilityBadge';
+import ProductAvailabilityIndicator from './ProductAvailabilityIndicator';
 
 export type ColorVariant = {
   id: string;
@@ -137,53 +140,27 @@ export function ProductListingCard({
     >
       {/* Wishlist button - moved outside to fix position */}
       {viewMode === 'list' && !isMobileFilterOpen && (
-        <button 
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsWishlisted(!isWishlisted);
-          }}
-          className="absolute top-1 right-1 z-10 p-1.5 bg-white/90 dark:bg-gray-800/90 transition-all transform hover:scale-105 rounded-full"
-          aria-label="Add to wishlist"
-        >
-          <svg 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill={isWishlisted ? "currentColor" : "none"}
-            stroke="currentColor" 
-            strokeWidth={isWishlisted ? "0" : "2"}
-            className={isWishlisted ? "text-[#ed875a]" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"}
-          >
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </svg>
-        </button>
+        <div className="absolute top-1 right-1 z-10">
+          <WishlistButton
+            productId={id}
+            size="sm"
+            variant="icon"
+            className="shadow-sm"
+          />
+        </div>
       )}
       
       <div className={`relative ${viewMode === 'list' ? 'flex-shrink-0' : ''}`}>
         {/* Wishlist button - keep only for grid view */}
         {viewMode !== 'list' && (
-          <button 
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsWishlisted(!isWishlisted);
-            }}
-            className="absolute top-3 right-3 z-10 p-2 bg-white/90 dark:bg-gray-800/90 transition-all transform hover:scale-105 rounded-full"
-            aria-label="Add to wishlist"
-          >
-            <svg 
-              width="18" 
-              height="18" 
-              viewBox="0 0 24 24" 
-              fill={isWishlisted ? "currentColor" : "none"}
-              stroke="currentColor" 
-              strokeWidth={isWishlisted ? "0" : "2"}
-              className={isWishlisted ? "text-[#ed875a]" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"}
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          </button>
+          <div className="absolute top-3 right-3 z-10">
+            <WishlistButton
+              productId={id}
+              size="sm"
+              variant="icon"
+              className="shadow-sm"
+            />
+          </div>
         )}
         
         <Link href={link} className={viewMode === 'list' ? 'flex' : 'block'}>
@@ -205,6 +182,13 @@ export function ProductListingCard({
                 priority={true}
               />
             </div>
+            
+            {/* Use the reusable ProductAvailabilityIndicator component */}
+            <ProductAvailabilityIndicator 
+              productId={id}
+              viewMode={viewMode}
+              showCentered={true}
+            />
             
             {/* Badges */}
             <div className="absolute top-0 left-0 flex flex-col items-start">
@@ -248,6 +232,9 @@ export function ProductListingCard({
                   {subtitle}
                 </p>
               )}
+              
+              {/* Stock availability badge */}
+              <ProductAvailabilityBadge productId={id} />
               
               {/* Price and discount */}
               <div className="flex items-center flex-wrap mt-1">
@@ -380,6 +367,9 @@ export function ProductListingCard({
                   {subtitle}
                 </p>
               )}
+              
+              {/* Stock availability badge */}
+              <ProductAvailabilityBadge productId={id} />
               
               {/* Assured badge */}
               {isAssured && (

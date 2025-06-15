@@ -242,7 +242,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Login function
   const login = async (email: string, password: string, rememberMe: boolean = false): Promise<boolean> => {
     try {
-      const response = await authApi.login({ email, password });
+      const response = await authApi.login({ email, password, rememberMe });
       
       // Upon successful login, authApi will store tokens and dispatch login event
       // which our useEffect will catch to update the state

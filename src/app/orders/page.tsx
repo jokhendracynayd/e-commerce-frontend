@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
+import { ordersApi, OrderFilterParams } from '@/lib/api/orders-api';
+import { OrderResponse, OrderStatus, PaymentStatus, PaginatedOrdersResponse } from '@/types/order';
+import { toast } from 'react-hot-toast';
 
-// Type definitions
-type StatusFilter = 'onTheWay' | 'delivered' | 'cancelled' | 'returned';
+// Type definitions for filtering
+type StatusFilter = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'RETURNED';
 type TimeFilter = 'last30Days' | 'year2024' | 'year2023' | 'year2022' | 'year2021' | 'older';
 
 type StatusFilters = {
@@ -98,14 +101,26 @@ const mockOrders = [
 ];
 
 export default function OrdersPage() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading: authLoading } = useAuth();
   const router = useRouter();
-  const [filteredOrders, setFilteredOrders] = useState(mockOrders);
+  const [orders, setOrders] = useState<OrderResponse[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<OrderResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [paginationData, setPaginationData] = useState({
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
   const [statusFilters, setStatusFilters] = useState<StatusFilters>({
-    onTheWay: false,
-    delivered: false,
-    cancelled: false,
-    returned: false,
+    PENDING: false,
+    PROCESSING: false,
+    SHIPPED: false,
+    DELIVERED: false,
+    CANCELLED: false,
+    RETURNED: false,
   });
   const [timeFilters, setTimeFilters] = useState<TimeFilters>({
     last30Days: false,
@@ -119,12 +134,40 @@ export default function OrdersPage() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [appliedFilterCount, setAppliedFilterCount] = useState(0);
   
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login?returnUrl=/orders');
+  // Fetch orders from API using useCallback to memoize the function
+  const fetchOrders = useCallback(async (params: OrderFilterParams = {}) => {
+    try {
+      setIsLoading(true);
+      const response = await ordersApi.getMyOrders(params);
+      setOrders(response.data);
+      setFilteredOrders(response.data);
+      setPaginationData({
+        total: response.total,
+        page: response.page,
+        limit: response.limit,
+        totalPages: response.totalPages,
+        hasNextPage: response.hasNextPage,
+        hasPreviousPage: response.hasPreviousPage
+      });
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+      toast.error('Failed to load your orders. Please try again.');
+      setOrders([]);
+      setFilteredOrders([]);
+    } finally {
+      setIsLoading(false);
     }
-  }, [isAuthenticated, router]);
+  }, []);
+  
+  // Redirect to login if not authenticated, but only after auth state has loaded
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login?returnUrl=/orders');
+    } else if (!authLoading && isAuthenticated) {
+      // Fetch orders when component mounts, user is authenticated, and auth state has loaded
+      fetchOrders();
+    }
+  }, [isAuthenticated, authLoading, router, fetchOrders]);
 
   // Count applied filters
   useEffect(() => {
@@ -136,16 +179,20 @@ export default function OrdersPage() {
 
   // Filter orders based on selected filters
   useEffect(() => {
-    let filtered = [...mockOrders];
+    if (orders.length === 0) return;
+    
+    let filtered = [...orders];
     
     // Apply status filters
-    if (statusFilters.onTheWay || statusFilters.delivered || statusFilters.cancelled || statusFilters.returned) {
+    if (statusFilters.PENDING || statusFilters.PROCESSING || statusFilters.SHIPPED || statusFilters.DELIVERED || statusFilters.CANCELLED || statusFilters.RETURNED) {
       filtered = filtered.filter(order => {
         return (
-          (statusFilters.onTheWay && order.status === 'On the way') ||
-          (statusFilters.delivered && order.status === 'Delivered') ||
-          (statusFilters.cancelled && order.status === 'Cancelled') ||
-          (statusFilters.returned && order.status === 'Returned')
+          (statusFilters.PENDING && order.status === OrderStatus.PENDING) ||
+          (statusFilters.PROCESSING && order.status === OrderStatus.PROCESSING) ||
+          (statusFilters.SHIPPED && order.status === OrderStatus.SHIPPED) ||
+          (statusFilters.DELIVERED && order.status === OrderStatus.DELIVERED) ||
+          (statusFilters.CANCELLED && order.status === OrderStatus.CANCELLED) ||
+          (statusFilters.RETURNED && order.status === OrderStatus.RETURNED)
         );
       });
     }
@@ -156,7 +203,7 @@ export default function OrdersPage() {
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       
       filtered = filtered.filter(order => {
-        const orderDate = new Date(order.date);
+        const orderDate = new Date(order.placedAt);
         const year = orderDate.getFullYear();
         
         return (
@@ -174,13 +221,19 @@ export default function OrdersPage() {
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(order => 
-        order.product.name.toLowerCase().includes(query) ||
-        order.id.toLowerCase().includes(query)
+        order.items.some(item => item.product.title.toLowerCase().includes(query)) ||
+        order.orderNumber.toLowerCase().includes(query)
       );
     }
     
     setFilteredOrders(filtered);
-  }, [statusFilters, timeFilters, searchQuery]);
+  }, [orders, statusFilters, timeFilters, searchQuery]);
+
+  // Handle search submit
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Client-side filtering already handled in useEffect
+  };
 
   const handleStatusFilterChange = (filter: StatusFilter) => {
     setStatusFilters(prev => ({
@@ -198,10 +251,12 @@ export default function OrdersPage() {
   
   const clearAllFilters = () => {
     setStatusFilters({
-      onTheWay: false,
-      delivered: false,
-      cancelled: false,
-      returned: false,
+      PENDING: false,
+      PROCESSING: false,
+      SHIPPED: false,
+      DELIVERED: false,
+      CANCELLED: false,
+      RETURNED: false,
     });
     setTimeFilters({
       last30Days: false,
@@ -214,18 +269,157 @@ export default function OrdersPage() {
     setSearchQuery('');
   };
   
-  // Show loading state while checking authentication
-  if (!isAuthenticated || !user) {
+  // Show loading state while checking authentication or loading orders
+  if (!isAuthenticated || !user || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f1ed]/50 dark:bg-gray-900">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-[0_8px_30px_-4px_rgba(237,135,90,0.15)] p-8 border border-gray-100 dark:border-gray-700 max-w-md w-full">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-[#ed875a]/10 dark:bg-[#ed875a]/20 rounded w-1/2 mx-auto"></div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto"></div>
-            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
-            <div className="flex justify-center space-x-2">
-              <div className="h-10 bg-[#ed875a]/10 dark:bg-[#ed875a]/20 rounded w-1/3"></div>
-              <div className="h-10 bg-[#ed875a]/20 dark:bg-[#ed875a]/30 rounded w-1/3"></div>
+      <div className="min-h-screen bg-[#f5f1ed]/50 dark:bg-gray-900">
+        <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10 max-w-7xl">
+          {/* Breadcrumbs skeleton */}
+          <div className="flex items-center space-x-2 mb-4 sm:mb-6">
+            <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded w-12 animate-pulse"></div>
+            <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded w-2 animate-pulse delay-75"></div>
+            <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse delay-100"></div>
+            <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded w-2 animate-pulse delay-75"></div>
+            <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse delay-150"></div>
+          </div>
+          
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Mobile Filter Toggle skeleton */}
+            <div className="lg:hidden flex items-center justify-between mb-4">
+              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"></div>
+              <div className="h-10 bg-white dark:bg-gray-800 rounded-lg shadow-sm w-28 animate-pulse"></div>
+            </div>
+            
+            {/* Filters sidebar skeleton */}
+            <div className="hidden lg:block w-full lg:w-72 lg:flex-shrink-0">
+              <div className="sticky top-4 bg-white dark:bg-gray-800 rounded-lg shadow-[0_8px_30px_-4px_rgba(237,135,90,0.15)] p-5 sm:p-6 border border-gray-100 dark:border-gray-700">
+                {/* Filter header */}
+                <div className="flex items-center justify-between pb-4 mb-4 border-b border-gray-100 dark:border-gray-700">
+                  <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse"></div>
+                  <div className="h-4 bg-[#ed875a]/10 dark:bg-[#ed875a]/20 rounded w-16 animate-pulse delay-300"></div>
+                </div>
+                
+                {/* Order Status Filters skeleton */}
+                <div className="space-y-6">
+                  <div className="filter-section">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center">
+                        <div className="w-5 h-5 mr-2 rounded-full bg-[#ed875a]/10 dark:bg-[#ed875a]/20 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"></div>
+                      </div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-16 animate-pulse delay-200"></div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {[...Array(6)].map((_, i) => (
+                        <div key={`status-${i}`} className="flex items-center">
+                          <div className={`w-5 h-5 mr-3 border-2 rounded bg-gray-200 dark:bg-gray-700 animate-pulse delay-${i * 100}`}></div>
+                          <div className={`h-4 bg-gray-200 dark:bg-gray-700 rounded w-${16 + i * 2} animate-pulse delay-${i * 100}`}></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="h-px bg-gray-100 dark:bg-gray-700"></div>
+                  
+                  {/* Time Filters skeleton */}
+                  <div className="filter-section">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center">
+                        <div className="w-5 h-5 mr-2 rounded-full bg-[#ed875a]/10 dark:bg-[#ed875a]/20 animate-pulse"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse"></div>
+                      </div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-full w-16 animate-pulse delay-200"></div>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {[...Array(6)].map((_, i) => (
+                        <div key={`time-${i}`} className="flex items-center">
+                          <div className={`w-5 h-5 mr-3 border-2 rounded bg-gray-200 dark:bg-gray-700 animate-pulse delay-${i * 75}`}></div>
+                          <div className={`h-4 bg-gray-200 dark:bg-gray-700 rounded w-${16 + i * 2} animate-pulse delay-${i * 75}`}></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Orders content skeleton */}
+            <div className="flex-1">
+              {/* Title for desktop */}
+              <div className="hidden lg:block mb-6">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-40 animate-pulse"></div>
+              </div>
+              
+              {/* Search bar skeleton */}
+              <div className="flex mb-6 rounded-lg overflow-hidden shadow-sm">
+                <div className="relative flex-1 h-12 bg-white dark:bg-gray-800 animate-pulse">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <div className="w-5 h-5 rounded-full bg-gray-300 dark:bg-gray-600 animate-pulse"></div>
+                  </div>
+                </div>
+                <div className="w-24 bg-gradient-to-r from-[#ed875a]/40 to-[#ed8c61]/40 dark:from-[#ed875a]/30 dark:to-[#ed8c61]/30 animate-pulse"></div>
+              </div>
+              
+              {/* Order count summary skeleton */}
+              <div className="mb-4 flex justify-between items-center">
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-40 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse delay-150"></div>
+              </div>
+              
+              {/* Order items skeleton */}
+              <div className="space-y-4 sm:space-y-5">
+                {[...Array(3)].map((_, i) => (
+                  <div 
+                    key={`order-${i}`} 
+                    className={`bg-white dark:bg-gray-800 rounded-lg shadow-[0_5px_20px_-4px_rgba(237,135,90,0.1)] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 border border-gray-100 dark:border-gray-700 animate-pulse delay-${i * 150}`}
+                  >
+                    {/* Product image skeleton */}
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 relative">
+                      <div className="w-full h-full bg-gray-200 dark:bg-gray-700 rounded-md"></div>
+                      <div className="absolute top-0 right-0 p-1 m-1 w-14 h-5 bg-[#ed875a]/20 dark:bg-[#ed875a]/30 rounded"></div>
+                    </div>
+                    
+                    {/* Order details skeleton */}
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
+                        {/* Left side info skeleton */}
+                        <div className="mb-2 sm:mb-0">
+                          <div className="flex items-center space-x-2 mb-1.5">
+                            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2"></div>
+                            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-36 animate-pulse delay-100"></div>
+                          </div>
+                          <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-md w-full max-w-md mb-1"></div>
+                          <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded-md w-3/4 max-w-sm animate-pulse delay-75"></div>
+                          <div className="mt-1 flex space-x-2">
+                            <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded-full w-16 animate-pulse delay-150"></div>
+                          </div>
+                        </div>
+
+                        {/* Right side info skeleton */}
+                        <div className="flex flex-col items-start sm:items-end mt-2 sm:mt-0">
+                          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-20 animate-pulse"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28 mt-1 animate-pulse delay-200"></div>
+                        </div>
+                      </div>
+                      
+                      {/* Details and actions row skeleton */}
+                      <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-28 mb-2 sm:mb-0 animate-pulse"></div>
+                        
+                        {/* Action buttons skeleton */}
+                        <div className="flex space-x-2">
+                          <div className="h-7 bg-[#ed875a]/10 dark:bg-[#ed875a]/20 rounded-md w-16 animate-pulse delay-100"></div>
+                          <div className="h-7 border border-gray-200 dark:border-gray-600 rounded-md w-16 animate-pulse delay-200"></div>
+                          <div className="h-7 border border-gray-200 dark:border-gray-600 rounded-md w-20 animate-pulse delay-300"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -233,6 +427,54 @@ export default function OrdersPage() {
     );
   }
   
+  // Function to get status display text
+  const getStatusDisplayText = (status: OrderStatus): string => {
+    switch (status) {
+      case OrderStatus.PENDING: return 'Pending';
+      case OrderStatus.PROCESSING: return 'Processing';
+      case OrderStatus.SHIPPED: return 'Shipped';
+      case OrderStatus.DELIVERED: return 'Delivered';
+      case OrderStatus.CANCELLED: return 'Cancelled';
+      case OrderStatus.RETURNED: return 'Returned';
+      case OrderStatus.REFUNDED: return 'Refunded';
+      case OrderStatus.ON_HOLD: return 'On Hold';
+      case OrderStatus.COMPLETED: return 'Completed';
+      case OrderStatus.FAILED: return 'Failed';
+      default: return status;
+    }
+  };
+
+  // Function to get status color class
+  const getStatusColorClass = (status: OrderStatus): string => {
+    switch (status) {
+      case OrderStatus.DELIVERED:
+      case OrderStatus.COMPLETED:
+        return 'bg-[#4caf50] text-white';
+      case OrderStatus.CANCELLED:
+      case OrderStatus.FAILED:
+        return 'bg-[#d44506] text-white';
+      case OrderStatus.RETURNED:
+      case OrderStatus.REFUNDED:
+        return 'bg-[#f44336] text-white';
+      case OrderStatus.PENDING:
+      case OrderStatus.PROCESSING:
+      case OrderStatus.SHIPPED:
+      case OrderStatus.ON_HOLD:
+      default:
+        return 'bg-[#ed875a] text-white';
+    }
+  };
+
+  // Function to determine if order can be reviewed
+  const canReviewOrder = (order: OrderResponse): boolean => {
+    return order.status === OrderStatus.DELIVERED || order.status === OrderStatus.COMPLETED;
+  };
+
+  // Function to format price as Indian Rupees
+  const formatPrice = (price: number): string => {
+    return price.toLocaleString('en-IN');
+  };
+
   return (
     <div className="min-h-screen bg-[#f5f1ed]/50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10 max-w-7xl">
@@ -299,28 +541,40 @@ export default function OrdersPage() {
                   
                   <div className="space-y-3">
                     <CheckboxOption 
-                      id="filter-on-the-way"
-                      label="On the way" 
-                      checked={statusFilters.onTheWay}
-                      onChange={() => handleStatusFilterChange('onTheWay')}
+                      id="filter-pending"
+                      label="Pending" 
+                      checked={statusFilters.PENDING}
+                      onChange={() => handleStatusFilterChange('PENDING')}
+                    />
+                    <CheckboxOption 
+                      id="filter-processing"
+                      label="Processing" 
+                      checked={statusFilters.PROCESSING}
+                      onChange={() => handleStatusFilterChange('PROCESSING')}
+                    />
+                    <CheckboxOption 
+                      id="filter-shipped"
+                      label="Shipped" 
+                      checked={statusFilters.SHIPPED}
+                      onChange={() => handleStatusFilterChange('SHIPPED')}
                     />
                     <CheckboxOption 
                       id="filter-delivered"
                       label="Delivered" 
-                      checked={statusFilters.delivered}
-                      onChange={() => handleStatusFilterChange('delivered')}
+                      checked={statusFilters.DELIVERED}
+                      onChange={() => handleStatusFilterChange('DELIVERED')}
                     />
                     <CheckboxOption
                       id="filter-cancelled" 
                       label="Cancelled" 
-                      checked={statusFilters.cancelled}
-                      onChange={() => handleStatusFilterChange('cancelled')}
+                      checked={statusFilters.CANCELLED}
+                      onChange={() => handleStatusFilterChange('CANCELLED')}
                     />
                     <CheckboxOption 
                       id="filter-returned"
                       label="Returned" 
-                      checked={statusFilters.returned}
-                      onChange={() => handleStatusFilterChange('returned')}
+                      checked={statusFilters.RETURNED}
+                      onChange={() => handleStatusFilterChange('RETURNED')}
                     />
                   </div>
                 </div>
@@ -408,7 +662,7 @@ export default function OrdersPage() {
             </div>
             
             {/* Search bar */}
-            <div className="flex mb-6 rounded-lg overflow-hidden shadow-sm">
+            <form onSubmit={handleSearch} className="flex mb-6 rounded-lg overflow-hidden shadow-sm">
               <div className="relative flex-1">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -423,16 +677,19 @@ export default function OrdersPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <button className="bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white px-5 sm:px-6 flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-[#ed875a]/20">
+              <button 
+                type="submit"
+                className="bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white px-5 sm:px-6 flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-[#ed875a]/20"
+              >
                 Search
               </button>
-            </div>
+            </form>
             
             {/* Order count summary */}
             <div className="mb-4 flex justify-between items-center">
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 Showing {filteredOrders.length} {filteredOrders.length === 1 ? 'order' : 'orders'}
-                {appliedFilterCount > 0 && ` (filtered from ${mockOrders.length})`}
+                {appliedFilterCount > 0 && ` (filtered from ${orders.length})`}
               </div>
               <div className="flex space-x-2">
                 {appliedFilterCount > 0 && (
@@ -456,30 +713,26 @@ export default function OrdersPage() {
                     key={order.id} 
                     className="bg-white dark:bg-gray-800 rounded-lg shadow-[0_5px_20px_-4px_rgba(237,135,90,0.1)] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 border border-gray-100 dark:border-gray-700 hover:shadow-[0_8px_25px_-5px_rgba(237,135,90,0.15)] transition-shadow duration-300"
                   >
-                    {/* Product image with status indicator overlay */}
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 relative">
-                      <div className="relative w-full h-full rounded-md overflow-hidden border border-gray-200 dark:border-gray-600">
-                        <Image 
-                          src={order.product.image} 
-                          alt={order.product.name}
-                          width={96}
-                          height={96}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = "https://picsum.photos/200";
-                          }}
-                        />
+                    {/* Take the first item as the main product to display */}
+                    {order.items.length > 0 && (
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 relative">
+                        <div className="relative w-full h-full rounded-md overflow-hidden border border-gray-200 dark:border-gray-600">
+                          <Image 
+                            src={order.items[0].product.imageUrl || "https://picsum.photos/200"} 
+                            alt={order.items[0].product.title}
+                            width={96}
+                            height={96}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = "https://picsum.photos/200";
+                            }}
+                          />
+                        </div>
+                        <div className={`absolute top-0 right-0 p-1 m-1 text-xs font-medium rounded ${getStatusColorClass(order.status)}`}>
+                          {getStatusDisplayText(order.status)}
+                        </div>
                       </div>
-                      <div className={`absolute top-0 right-0 p-1 m-1 text-xs font-medium rounded ${
-                        order.status === 'Delivered' 
-                          ? 'bg-[#4caf50] text-white' 
-                          : order.status === 'Cancelled' 
-                            ? 'bg-[#d44506] text-white' 
-                            : 'bg-[#ed875a] text-white'
-                      }`}>
-                        {order.status}
-                      </div>
-                    </div>
+                    )}
                     
                     {/* Order details */}
                     <div className="flex-1">
@@ -487,20 +740,20 @@ export default function OrdersPage() {
                         {/* Left side info */}
                         <div className="mb-2 sm:mb-0">
                           <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-1.5">
-                            <span className="font-medium">{order.id}</span>
+                            <span className="font-medium">{order.orderNumber}</span>
                             <span className="mx-2 text-gray-300 dark:text-gray-600">|</span>
-                            <span>Ordered on: {new Date(order.date).toLocaleDateString()}</span>
+                            <span>Ordered on: {new Date(order.placedAt).toLocaleDateString()}</span>
                           </div>
-                          <h3 className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium line-clamp-2">{order.product.name}</h3>
+                          <h3 className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium line-clamp-2">
+                            {order.items.length > 0 
+                              ? order.items[0].product.title 
+                              : 'Order ' + order.orderNumber}
+                            {order.items.length > 1 && ` +${order.items.length - 1} more item${order.items.length - 1 > 1 ? 's' : ''}`}
+                          </h3>
                           <div className="mt-1 text-xs text-gray-600 dark:text-gray-400 flex flex-wrap gap-2">
-                            {order.product.color && (
+                            {order.items.length > 0 && order.items[0].variant && (
                               <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
-                                Color: {order.product.color}
-                              </span>
-                            )}
-                            {order.product.size && (
-                              <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
-                                Size: {order.product.size}
+                                {order.items[0].variant.variantName}
                               </span>
                             )}
                           </div>
@@ -509,10 +762,10 @@ export default function OrdersPage() {
                         {/* Right side info */}
                         <div className="flex flex-col items-start sm:items-end mt-2 sm:mt-0">
                           <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                            ₹{order.price}
+                            ₹{formatPrice(order.total)}
                           </div>
                           <div className="sm:text-right text-xs text-gray-600 dark:text-gray-400 mt-1">
-                            {order.status} on {order.statusDate}
+                            {getStatusDisplayText(order.status)} on {new Date(order.updatedAt).toLocaleDateString()}
                           </div>
                         </div>
                       </div>
@@ -521,12 +774,16 @@ export default function OrdersPage() {
                       <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:justify-between sm:items-center">
                         {/* Status details */}
                         <div className="text-xs text-gray-600 dark:text-gray-400 mb-2 sm:mb-0">
-                          {order.details ? order.details : '\u00A0'}
+                          {order.paymentStatus === PaymentStatus.PAID 
+                            ? 'Payment completed' 
+                            : order.paymentStatus === PaymentStatus.PENDING 
+                              ? 'Payment pending' 
+                              : order.paymentStatus}
                         </div>
                         
                         {/* Action buttons */}
                         <div className="flex flex-wrap gap-2">
-                          {order.canReview && (
+                          {canReviewOrder(order) && (
                             <button className="text-xs font-medium flex items-center justify-center px-3 py-1.5 bg-[#ed875a]/10 dark:bg-[#ed875a]/20 text-[#d44506] dark:text-[#ed875a] rounded-md transition-colors hover:bg-[#ed875a]/20 dark:hover:bg-[#ed875a]/30">
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -534,13 +791,16 @@ export default function OrdersPage() {
                               Review
                             </button>
                           )}
-                          <button className="text-xs font-medium flex items-center justify-center px-3 py-1.5 border border-[#ed875a]/20 dark:border-[#ed875a]/30 text-gray-700 dark:text-gray-300 rounded-md transition-colors hover:bg-[#ed875a]/5 dark:hover:bg-[#ed875a]/10">
+                          <Link 
+                            href={`/orders/${order.id}`}
+                            className="text-xs font-medium flex items-center justify-center px-3 py-1.5 border border-[#ed875a]/20 dark:border-[#ed875a]/30 text-gray-700 dark:text-gray-300 rounded-md transition-colors hover:bg-[#ed875a]/5 dark:hover:bg-[#ed875a]/10"
+                          >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                             Details
-                          </button>
+                          </Link>
                           <button className="text-xs font-medium flex items-center justify-center px-3 py-1.5 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
@@ -590,7 +850,6 @@ export default function OrdersPage() {
     </div>
   );
 } 
-
 // Custom checkbox component for better styling
 function CheckboxOption({ id, label, checked, onChange }: { 
   id: string;

@@ -1,20 +1,64 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
+import { useProductAvailability } from '@/hooks/useProductAvailability';
 
 export default function CartPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
-  const { items, removeFromCart, updateQuantity, totalItems, clearCart } = useCart();
+  const { items, removeFromCart, updateQuantity, clearCart } = useCart();
   const [applyingCoupon, setApplyingCoupon] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [showCouponSuccess, setShowCouponSuccess] = useState(false);
+  const [unavailableItems, setUnavailableItems] = useState<Set<string>>(new Set());
+  
+  // Extract product and variant IDs from cart items
+  const productIds = useMemo(() => items.map(item => item.product.id), [items]);
+  const variantIds = useMemo(() => 
+    items
+      .filter(item => item.selectedColor?.id)
+      .map(item => item.selectedColor!.id), 
+    [items]
+  );
+  
+  // Use the batch availability hook to check all items at once
+  const { 
+    productAvailability, 
+    variantAvailability,
+    loading: checkingAvailability
+  } = useProductAvailability({
+    productIds,
+    variantIds,
+    refreshInterval: 30000 // 30 seconds
+  });
+  
+  // Update unavailable items whenever availability data changes
+  useEffect(() => {
+    if (checkingAvailability) return;
+    
+    const newUnavailableItems = new Set<string>();
+    
+    // Check each cart item against availability data
+    items.forEach(item => {
+      if (!productIds.includes(item.product.id)) return;
+      
+      const isAvailable = item.selectedColor?.id 
+        ? variantAvailability[item.selectedColor.id]?.availableQuantity >= item.quantity
+        : productAvailability[item.product.id]?.availableQuantity >= item.quantity;
+      
+      if (!isAvailable) {
+        newUnavailableItems.add(item.product.id);
+      }
+    });
+    
+    setUnavailableItems(newUnavailableItems);
+  }, [items, productAvailability, variantAvailability, checkingAvailability, productIds]);
   
   // Calculate order summary values directly from cart items
   const orderSummary = useMemo(() => {
@@ -74,6 +118,48 @@ export default function CartPage() {
     const options: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
     return deliveryDate.toLocaleDateString('en-IN', options);
   };
+
+  // Replace the individual CartItemAvailability components with a simpler version
+  // that uses the already fetched availability data
+  const renderItemAvailability = (productId: string, quantity: number, variantId?: string) => {
+    if (checkingAvailability) {
+      return <span className="text-xs text-gray-500 dark:text-gray-400">Checking...</span>;
+    }
+    
+    const availability = variantId 
+      ? variantAvailability[variantId]
+      : productAvailability[productId];
+    
+    if (!availability) return null;
+    
+    const isAvailable = availability.stockStatus !== 'OUT_OF_STOCK' && 
+                        availability.availableQuantity >= quantity;
+    
+    if (!isAvailable) {
+      return (
+        <div className="text-red-600 dark:text-red-400 text-xs flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          {availability.stockStatus === 'OUT_OF_STOCK' 
+            ? 'Out of stock' 
+            : `Only ${availability.availableQuantity} available`}
+        </div>
+      );
+    }
+    
+    return (
+      <div className="text-green-600 dark:text-green-400 text-xs flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+        In stock
+      </div>
+    );
+  };
+
+  // Check if checkout should be disabled
+  const isCheckoutDisabled = unavailableItems.size > 0;
 
   if (items.length === 0) {
     return (
@@ -177,13 +263,12 @@ export default function CartPage() {
                         </div>
                       )}
                       
-                      <div className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-                        <span className="flex items-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 text-[#ed875a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          In stock
-                        </span>
+                      <div className="mt-1.5 sm:mt-2">
+                        {renderItemAvailability(
+                          item.product.id,
+                          item.quantity,
+                          item.selectedColor?.id
+                        )}
                       </div>
                     </div>
                     <button 
@@ -402,12 +487,14 @@ export default function CartPage() {
                   router.push('/login?returnUrl=/checkout');
                 }
               }}
-              className="w-full bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white py-3 sm:py-3.5 px-4 sm:px-6 font-medium transition-all duration-300 hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center rounded-md text-sm sm:text-base"
+              disabled={isCheckoutDisabled}
+              className={`w-full py-3 sm:py-4 px-6 sm:px-8 rounded-md ${
+                isCheckoutDisabled
+                  ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white hover:shadow-lg'
+              } font-medium text-sm sm:text-base transition-all`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              Proceed to Checkout
+              {isCheckoutDisabled ? 'Some items are unavailable' : 'Proceed to Checkout'}
             </button>
             
             {/* Payment methods */}
@@ -445,6 +532,14 @@ export default function CartPage() {
               </svg>
               Secure checkout with 256-bit SSL encryption
             </div>
+
+            {/* Warning message */}
+            {isCheckoutDisabled && (
+              <div className="mt-3 text-xs sm:text-sm text-red-600 dark:text-red-400 text-center">
+                Some items in your cart are unavailable or out of stock.
+                Please remove them to continue with checkout.
+              </div>
+            )}
           </div>
         </div>
       </div>

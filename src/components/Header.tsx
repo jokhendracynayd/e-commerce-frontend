@@ -8,6 +8,7 @@ import { CartIcon } from './cart/CartIcon';
 import { useAuth } from '@/context/AuthContext';
 import { categoriesApi } from '@/lib/api';
 import { CategoryNode } from '@/types/categories';
+import { SearchBar } from './search/SearchBar';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -403,24 +404,12 @@ export function Header() {
 
           {/* Search bar - hidden on mobile, visible on desktop */}
           <div className={`hidden md:flex items-center transition-all duration-300 ${isSearchExpanded ? 'flex-grow mx-4 lg:mx-8' : 'w-36 sm:w-40 lg:w-48 xl:w-64 mx-3 lg:mx-4'}`}>
-            <div className="relative w-full">
-              <input 
-                ref={searchInputRef}
-                type="text" 
-                placeholder="Search products..." 
-                className="w-full py-1.5 lg:py-2 px-3 lg:px-4 pr-8 lg:pr-10 rounded-full bg-gray-100 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200 border border-transparent focus:border-primary dark:focus:border-primary-light focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-primary-light transition-all"
-                onFocus={expandSearch}
-                onBlur={collapseSearch}
-              />
-              <button 
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary-light transition-colors" 
-                aria-label="Search"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 lg:h-5 lg:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </div>
+            <SearchBar 
+              onFocus={expandSearch}
+              onBlur={collapseSearch}
+              placeholder="Search products..."
+              fullWidth
+            />
           </div>
 
           {/* Right section - User and Cart */}
@@ -438,7 +427,7 @@ export function Header() {
             
             {/* Wishlist */}
             <Link 
-              href="/wishlist" 
+              href={isAuthenticated ? "/profile?section=wishlist" : "/login?returnUrl=/profile?section=wishlist"} 
               className="hidden sm:flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative"
               aria-label="Wishlist"
             >
@@ -513,7 +502,7 @@ export function Header() {
                       </Link>
                       
                       <Link 
-                        href="/wishlist" 
+                        href="/profile?section=wishlist" 
                         className="flex items-center px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -556,19 +545,12 @@ export function Header() {
         {/* Mobile search - only visible when menu is open */}
         {isMenuOpen && (
           <div className="mt-3 md:hidden">
-            <div className="relative w-full">
-              <input 
-                type="text" 
-                placeholder="Search products..." 
-                className="w-full py-2 sm:py-3 px-3 sm:px-4 pr-8 sm:pr-10 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-primary-light"
-                autoFocus
-              />
-              <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" aria-label="Search">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
-            </div>
+            <SearchBar 
+              placeholder="Search products..." 
+              autoFocus={true}
+              fullWidth={true}
+              isMobile={true}
+            />
           </div>
         )}
       </div>
@@ -683,7 +665,7 @@ export function Header() {
                   </Link>
                   
                   <Link 
-                    href="/wishlist" 
+                    href="/profile?section=wishlist" 
                     className="flex items-center text-xs sm:text-sm text-gray-700 dark:text-gray-200 py-1.5 sm:py-2 hover:text-primary dark:hover:text-primary-light transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >

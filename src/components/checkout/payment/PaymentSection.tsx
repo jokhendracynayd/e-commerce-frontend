@@ -61,6 +61,20 @@ const PaymentSection = ({
   // Handle payment method change
   const handlePaymentMethodChange = (methodId: string) => {
     setSelectedMethodId(methodId);
+    
+    // Immediately trigger the parent with the current payment data and new method
+    // This ensures the payment method is updated in the parent component
+    console.log(`Payment method selected in PaymentSection: ${methodId}`);
+    onPaymentDataChange(methodId, paymentData);
+    
+    // For COD, send default data immediately to ensure it's properly set
+    if (methodId === 'cod') {
+      const codDefaultData = {
+        deliveryInstructions: '',
+        timeSlot: 'anytime'
+      };
+      handleFormDataChange(codDefaultData);
+    }
   };
 
   // Handle form data change
@@ -83,6 +97,11 @@ const PaymentSection = ({
         return null;
     }
   };
+
+  // Ensure the parent is updated with the initial method on component mount
+  useEffect(() => {
+    onPaymentDataChange(selectedMethodId, paymentData);
+  }, []);
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-[0_5px_30px_-15px_rgba(237,135,90,0.15)] p-5 sm:p-6 border border-gray-100 dark:border-gray-700 rounded-lg">

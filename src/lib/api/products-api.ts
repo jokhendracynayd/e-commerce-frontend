@@ -58,7 +58,26 @@ export const productsApi = {
         ENDPOINTS.PRODUCTS.BASE,
         { params }
       );
-      return response.data;
+      
+      console.log('API response raw:', response.data);
+      
+      // Handle different response structures
+      const responseData = response.data;
+      
+      // If the response contains a data property with the actual products
+      if (responseData && responseData.data) {
+        console.log('Using data property for products');
+        responseData.products = responseData.data;
+      }
+      
+      // If the response uses total instead of totalCount
+      if (responseData && responseData.total && responseData.totalCount === undefined) {
+        responseData.totalCount = responseData.total;
+      }
+      
+      console.log('API response processed:', responseData);
+      
+      return responseData;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -236,6 +255,17 @@ export const productsApi = {
         ENDPOINTS.PRODUCTS.SEARCH,
         { params: { q: query, limit } }
       );
+      
+      // Handle the nested data structure from the backend
+      if (response.data && response.data.data) {
+        return response.data.data;
+      }
+      
+      // Check for data.products structure
+      if (response.data && response.data.products) {
+        return response.data.products;
+      }
+      
       return response.data;
     } catch (error) {
       throw handleApiError(error);

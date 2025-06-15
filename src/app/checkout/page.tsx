@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { useCart } from '@/context/CartContext';
 import AddressList from '@/components/address/AddressList';
 import { Address } from '@/types/address';
 import PaymentSection from '@/components/checkout/payment/PaymentSection';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
+import { CreateOrderRequest } from '@/types';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -116,6 +118,7 @@ export default function CheckoutPage() {
   
   // Handle payment method and data change
   const handlePaymentDataChange = (methodId: string, data: Record<string, string>) => {
+    console.log(`Payment method changed to: ${methodId}`);
     setPaymentMethod(methodId);
     setPaymentData(data);
     
@@ -159,41 +162,193 @@ export default function CheckoutPage() {
     return val.toLocaleString('en-IN');
   };
   
-  const handleSubmit = () => {
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [paymentStarted, setPaymentStarted] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
     setIsProcessing(true);
+    setPaymentError(null);
     
-    // Gather billing address information for the order
-    const orderData = {
-      shippingAddress: {
-        fullName,
-        phoneNumber,
-        pincode,
-        address: deliveryAddress,
-      },
-      billingAddress: useSameAddressForBilling 
-        ? {
-            fullName,
-            phoneNumber,
-            pincode,
-            address: deliveryAddress,
+    try {
+      // 1. Prepare order data from form state
+      const orderItems = items.map(item => ({
+        productId: item.product.id,
+        variantId: item.selectedColor?.id,
+        quantity: item.quantity
+      }));
+      
+      // 2. Prepare shipping & billing addresses - Properly formatted for backend
+      // Parse address and extract components properly
+      const parseAddress = (addressString: string) => {
+        const lines = addressString.split('\n');
+        const addressParts = {
+          street: lines[0] || '',
+          city: '',
+          state: '',
+          landmark: ''
+        };
+        
+        // Try to extract city, state, and landmark from the address
+        if (lines.length > 1) {
+          const secondLine = lines[1] || '';
+          
+          // Extract landmark if present
+          if (addressString.includes('Landmark:')) {
+            const landmarkPart = addressString.split('Landmark:')[1]?.trim();
+            if (landmarkPart) {
+              addressParts.landmark = landmarkPart;
+            }
           }
+          
+          // Look for city and state pattern (City, State)
+          const cityStateMatch = secondLine.match(/([^,]+),\s*([^,]+)/);
+          if (cityStateMatch) {
+            addressParts.city = cityStateMatch[1]?.trim() || '';
+            addressParts.state = cityStateMatch[2]?.trim() || '';
+          } else {
+            // Try to extract known city/state names
+            ['Bhopal', 'Delhi', 'Mumbai', 'Kolkata', 'Chennai'].forEach(city => {
+              if (addressString.includes(city)) {
+                addressParts.city = city;
+              }
+            });
+            
+            ['Madhya Pradesh', 'Maharashtra', 'Delhi', 'West Bengal', 'Tamil Nadu'].forEach(state => {
+              if (addressString.includes(state)) {
+                addressParts.state = state;
+              }
+            });
+          }
+        }
+        
+        return addressParts;
+      };
+      
+      const shippingAddressParts = parseAddress(deliveryAddress);
+      const billingAddressParts = useSameAddressForBilling 
+        ? shippingAddressParts
+        : parseAddress(billingAddress);
+      
+      const shippingAddressData = {
+        name: fullName,
+        mobileNumber: phoneNumber,
+        zipCode: pincode,
+        street: shippingAddressParts.street,
+        city: shippingAddressParts.city,
+        state: shippingAddressParts.state,
+        country: 'India', // Default country
+        landmark: shippingAddressParts.landmark,
+      };
+      
+      const billingAddressData = useSameAddressForBilling 
+        ? shippingAddressData
         : {
-            fullName: billingFullName,
-            phoneNumber: billingPhoneNumber,
-            pincode: billingPincode,
-            address: billingAddress,
-          },
-      paymentMethod,
-      paymentDetails: paymentData,
-      // other order details
-    };
-    
-    // Simulate order processing
-    setTimeout(() => {
+            name: billingFullName,
+            mobileNumber: billingPhoneNumber,
+            zipCode: billingPincode,
+            street: billingAddressParts.street,
+            city: billingAddressParts.city,
+            state: billingAddressParts.state,
+            country: 'India', // Default country
+            landmark: billingAddressParts.landmark,
+          };
+      
+      // For proper validation, ensure required fields are not empty
+      const ensureRequiredFields = (address: any) => {
+        // If city is empty, use a fallback
+        if (!address.city) {
+          address.city = 'Unknown';
+        }
+        
+        // If state is empty, use a fallback
+        if (!address.state) {
+          address.state = 'Unknown';
+        }
+        
+        return address;
+      };
+      
+      // Log the actual payment method value before submission
+      console.log('Selected payment method:', paymentMethod);
+
+      // 3. Create order request
+      const orderData = {
+        items: orderItems,
+        shippingAddress: ensureRequiredFields(shippingAddressData),
+        billingAddress: ensureRequiredFields(billingAddressData),
+        paymentMethod: paymentMethod.toLowerCase(), // Ensure lowercase to match backend expectations
+      };
+      
+      console.log('Submitting order data:', orderData);
+      
+      // 4. Import and call createOrder from orderService with the authenticated endpoint
+      const { createUserOrder } = await import('@/services/orderService');
+      const response = await createUserOrder(orderData);
+      
+      console.log('Order created successfully:', response);
+      
+      // Extract order information from the API response
+      // The API response structure is { statusCode, message, data: { id, orderNumber, ... } }
+      const orderInfo = response.data || response;
+      const orderId = orderInfo.id;
+      const orderNumber = orderInfo.orderNumber;
+      
+      console.log(`Order created with ID: ${orderId}, Number: ${orderNumber}`);
+      
+      // 5. Store order ID for payment processing
+      setOrderId(orderId);
+      
+      // 6. Handle different payment methods correctly
+      if (paymentMethod.toLowerCase() === 'cod') {
+        console.log('COD payment selected, redirecting to success page');
+        
+        if (!orderId) {
+          console.error("No order ID found in response:", response);
+          throw new Error("Order created but ID not found in response");
+        }
+
+        // Force a small timeout to ensure state updates complete
+        setTimeout(() => {
+          try {
+            const successUrl = `/order-success?orderId=${orderId}&orderNumber=${orderNumber}`;
+            console.log('Redirecting to:', successUrl);
+            window.location.href = successUrl; // Use direct navigation instead of router.push
+          } catch (error) {
+            console.error('Navigation error:', error);
+            // Fallback if navigation fails
+            router.push(`/order-success?orderId=${orderId}`);
+          }
+        }, 300);
+      } else {
+        // For other payment methods, show payment UI
+        console.log('Showing payment UI for online payment');
+        setPaymentStarted(true);
+      }
+    } catch (error) {
+      console.error('Error during checkout:', error);
+      setPaymentError(error instanceof Error ? error.message : 'An error occurred during checkout.');
       setIsProcessing(false);
-      // Redirect to a thank you page or show success message
-      router.push('/order-success');
-    }, 2000);
+    }
+  };
+  
+  // Handle payment completion
+  const handlePaymentComplete = (success: boolean, data: any) => {
+    setIsProcessing(false);
+    
+    if (success) {
+      // Redirect to success page with order info
+      router.push(`/order-success?orderId=${data.orderId}&paymentId=${data.paymentId}`);
+    } else {
+      setPaymentError('Payment failed. Please try again.');
+    }
+  };
+  
+  // Handle payment error
+  const handlePaymentError = (error: Error) => {
+    setIsProcessing(false);
+    setPaymentStarted(false);
+    setPaymentError(error.message || 'Payment processing failed.');
   };
   
   if (items.length === 0) {
@@ -658,11 +813,45 @@ export default function CheckoutPage() {
             </div>
             
             {/* Place order button using CheckoutForm component */}
-            <CheckoutForm 
-              onSubmitOrder={handleSubmit}
-              isFormValid={!!fullName && !!phoneNumber && !!deliveryAddress && !!pincode}
-              isProcessing={isProcessing}
-            />
+            {paymentError && (
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-md">
+                <p className="text-sm text-red-600 dark:text-red-400">{paymentError}</p>
+              </div>
+            )}
+            
+            {/* Only show checkout form if payment hasn't started */}
+            {!paymentStarted ? (
+              <CheckoutForm 
+                onSubmitOrder={handleSubmit}
+                isFormValid={!!fullName && !!phoneNumber && !!deliveryAddress && !!pincode}
+                isProcessing={isProcessing}
+              />
+            ) : (
+              /* Show payment processor once order is created and payment is started */
+              orderId && (
+                <div className="py-4">
+                  {/* Dynamic import of PaymentProcessor to avoid server-side import errors */}
+                  {(() => {
+                    const PaymentProcessor = dynamic(() => 
+                      import('@/components/checkout/payment/PaymentProcessor'), 
+                      { ssr: false }
+                    );
+                    
+                    return (
+                      <PaymentProcessor
+                        orderId={orderId}
+                        amount={totalAmount}
+                        paymentMethod={paymentMethod}
+                        paymentData={paymentData}
+                        onPaymentComplete={handlePaymentComplete}
+                        onPaymentError={handlePaymentError}
+                        customerEmail={undefined} // Replace with user's email when authentication is enabled
+                      />
+                    );
+                  })()}
+                </div>
+              )
+            )}
             
             {/* Security and terms */}
             <div className="mt-5">

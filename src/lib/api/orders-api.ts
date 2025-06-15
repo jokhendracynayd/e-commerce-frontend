@@ -2,11 +2,16 @@ import { AxiosResponse } from 'axios';
 import axiosClient from './axios-client';
 import { ENDPOINTS } from './endpoints';
 import { handleApiError } from './error-handler';
-import { CartItem } from './cart-api';
+import { 
+  OrderStatus, 
+  PaymentStatus, 
+  OrderResponse, 
+  PaginatedOrdersResponse,
+  ApiResponse,
+  CreateOrderRequest
+} from '@/types/order';
 
 // Order-related types
-export type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'RETURNED' | 'REFUNDED';
-export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
 export type PaymentMethod = 'CREDIT_CARD' | 'PAYPAL' | 'STRIPE' | 'CASH_ON_DELIVERY' | 'BANK_TRANSFER';
 
 export interface Address {
@@ -60,18 +65,6 @@ export interface Order {
   updatedAt: string;
 }
 
-export interface CreateOrderRequest {
-  userId?: string;
-  items?: CartItem[];
-  shippingAddressId?: string;
-  shippingAddress?: Address;
-  billingAddressId?: string;
-  billingAddress?: Address;
-  paymentMethod: PaymentMethod;
-  notes?: string;
-  couponCode?: string;
-}
-
 export interface OrderFilterParams {
   page?: number;
   limit?: number;
@@ -79,44 +72,28 @@ export interface OrderFilterParams {
   startDate?: string;
   endDate?: string;
   search?: string;
-  userId?: string;
 }
 
-export interface OrderListResponse {
-  orders: Order[];
-  totalCount: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+// Define tracking event interface
+interface TrackingEvent {
+  status: OrderStatus;
+  timestamp: string;
+  location?: string;
+  description: string;
 }
 
 // Orders API functions
 export const ordersApi = {
   /**
-   * Get a paginated list of all orders (for admins)
-   */
-  getAllOrders: async (params: OrderFilterParams = {}): Promise<OrderListResponse> => {
-    try {
-      const response: AxiosResponse = await axiosClient.get(
-        ENDPOINTS.ORDERS.BASE,
-        { params }
-      );
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
-  },
-  
-  /**
    * Get the current user's orders
    */
-  getMyOrders: async (params: OrderFilterParams = {}): Promise<OrderListResponse> => {
+  getMyOrders: async (params: OrderFilterParams = {}): Promise<PaginatedOrdersResponse> => {
     try {
-      const response: AxiosResponse = await axiosClient.get(
+      const response: AxiosResponse<ApiResponse<PaginatedOrdersResponse>> = await axiosClient.get(
         ENDPOINTS.ORDERS.MY_ORDERS,
         { params }
       );
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -125,12 +102,26 @@ export const ordersApi = {
   /**
    * Get a single order by ID
    */
-  getOrderById: async (id: string): Promise<Order> => {
+  getOrderById: async (id: string): Promise<OrderResponse> => {
     try {
-      const response: AxiosResponse = await axiosClient.get(
+      const response: AxiosResponse<ApiResponse<OrderResponse>> = await axiosClient.get(
         ENDPOINTS.ORDERS.DETAIL(id)
       );
-      return response.data;
+      return response.data.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+  
+  /**
+   * Get order by order number
+   */
+  getOrderByNumber: async (orderNumber: string): Promise<OrderResponse> => {
+    try {
+      const response: AxiosResponse<ApiResponse<OrderResponse>> = await axiosClient.get(
+        ENDPOINTS.ORDERS.BY_NUMBER(orderNumber)
+      );
+      return response.data.data;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -139,13 +130,13 @@ export const ordersApi = {
   /**
    * Create a new order
    */
-  createOrder: async (data: CreateOrderRequest): Promise<Order> => {
+  createOrder: async (data: CreateOrderRequest): Promise<OrderResponse> => {
     try {
-      const response: AxiosResponse = await axiosClient.post(
+      const response: AxiosResponse<ApiResponse<OrderResponse>> = await axiosClient.post(
         ENDPOINTS.ORDERS.CREATE,
         data
       );
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -154,27 +145,13 @@ export const ordersApi = {
   /**
    * Create a new order for the authenticated user
    */
-  createUserOrder: async (data: CreateOrderRequest): Promise<Order> => {
+  createUserOrder: async (data: CreateOrderRequest): Promise<OrderResponse> => {
     try {
-      const response: AxiosResponse = await axiosClient.post(
+      const response: AxiosResponse<ApiResponse<OrderResponse>> = await axiosClient.post(
         ENDPOINTS.ORDERS.CREATE_USER_ORDER,
         data
       );
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
-  },
-  
-  /**
-   * Cancel an order
-   */
-  cancelOrder: async (id: string): Promise<Order> => {
-    try {
-      const response: AxiosResponse = await axiosClient.post(
-        ENDPOINTS.ORDERS.CANCEL(id)
-      );
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -183,12 +160,12 @@ export const ordersApi = {
   /**
    * Cancel a user's own order
    */
-  cancelMyOrder: async (id: string): Promise<Order> => {
+  cancelMyOrder: async (id: string): Promise<OrderResponse> => {
     try {
-      const response: AxiosResponse = await axiosClient.post(
+      const response: AxiosResponse<ApiResponse<OrderResponse>> = await axiosClient.post(
         ENDPOINTS.ORDERS.CANCEL_MY_ORDER(id)
       );
-      return response.data;
+      return response.data.data;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -198,51 +175,46 @@ export const ordersApi = {
    * Track an order
    */
   trackOrder: async (orderNumber: string): Promise<{
-    order: Order;
-    trackingEvents: Array<{
-      status: OrderStatus;
-      timestamp: string;
-      location?: string;
-      description: string;
-    }>;
+    order: OrderResponse;
+    trackingEvents: TrackingEvent[];
   }> => {
     try {
-      const order = await ordersApi.getOrderById(orderNumber);
+      const order = await ordersApi.getOrderByNumber(orderNumber);
       
       // Note: This is a mock implementation.
       // In a real implementation, you would make an API call to a tracking endpoint
       // that would return actual tracking information.
-      const trackingEvents = [
+      const trackingEvents: TrackingEvent[] = [
         {
-          status: 'PENDING' as OrderStatus,
-          timestamp: order.createdAt,
+          status: OrderStatus.PENDING,
+          timestamp: order.placedAt,
           description: 'Order placed'
         }
       ];
       
-      if (order.status !== 'PENDING') {
+      if (order.status !== OrderStatus.PENDING) {
         trackingEvents.push({
-          status: 'PROCESSING' as OrderStatus,
-          timestamp: new Date(new Date(order.createdAt).getTime() + 24 * 60 * 60 * 1000).toISOString(),
+          status: OrderStatus.PROCESSING,
+          timestamp: new Date(new Date(order.placedAt).getTime() + 24 * 60 * 60 * 1000).toISOString(),
           description: 'Order confirmed and processing'
         });
       }
       
-      if (['SHIPPED', 'DELIVERED'].includes(order.status)) {
+      if ([OrderStatus.SHIPPED, OrderStatus.DELIVERED].includes(order.status)) {
         trackingEvents.push({
-          status: 'SHIPPED' as OrderStatus,
-          timestamp: new Date(new Date(order.createdAt).getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+          status: OrderStatus.SHIPPED,
+          timestamp: new Date(new Date(order.placedAt).getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
           description: 'Order shipped',
-          // location: 'Distribution Center'
+          location: 'Distribution Center'
         });
       }
       
-      if (order.status === 'DELIVERED') {
+      if (order.status === OrderStatus.DELIVERED) {
         trackingEvents.push({
-          status: 'DELIVERED' as OrderStatus,
-          timestamp: new Date(new Date(order.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          status: OrderStatus.DELIVERED,
+          timestamp: new Date(new Date(order.placedAt).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           description: 'Order delivered',
-          // location: order.shippingAddress.city
+          location: order.shippingAddress.city
         });
       }
       

@@ -25,6 +25,24 @@ export default function LoginPage() {
   const returnUrl = searchParams?.get('returnUrl') || '/';
   const { login } = useAuth();
 
+  // Handle returning to profile with section=wishlist
+  useEffect(() => {
+    // If user is redirected from wishlist link and successfully logs in,
+    // we'll make sure to load their wishlist data
+    const handleBeforeUnload = () => {
+      if (isSuccess && returnUrl.includes('profile') && returnUrl.includes('section=wishlist')) {
+        // Store a flag in session storage to indicate we should load wishlist data
+        sessionStorage.setItem('load_wishlist_after_login', 'true');
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isSuccess, returnUrl]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({

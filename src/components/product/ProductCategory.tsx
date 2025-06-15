@@ -23,7 +23,7 @@ export function ProductCategory({ title, products, viewAllLink }: ProductCategor
       // Show left arrow if scrolled to the right
       setShowLeftArrow(container.scrollLeft > 20);
       
-      // Show right arrow if there's more content to scroll
+      // Show right arrow if athere's more content to scroll
       // We use a small buffer (20px) to handle precision issues
       setShowRightArrow(container.scrollLeft + container.clientWidth < container.scrollWidth - 20);
     }

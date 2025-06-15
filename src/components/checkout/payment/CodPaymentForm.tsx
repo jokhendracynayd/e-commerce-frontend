@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PaymentFormField } from '@/types/payment';
 
 interface CodPaymentFormProps {
@@ -13,6 +13,16 @@ const CodPaymentForm = ({ onDataChange, fields = [] }: CodPaymentFormProps) => {
   const [timeSlot, setTimeSlot] = useState('anytime');
   const TIME_SLOTS = ['anytime', 'morning', 'afternoon', 'evening'];
 
+  // Set initial data on component mount
+  useEffect(() => {
+    // Ensure we send initial data and include payment method identifier
+    onDataChange({
+      deliveryInstructions,
+      timeSlot,
+      method_id: 'cod' // Explicitly identify this as COD method
+    });
+  }, []);
+
   // Handle delivery instructions change
   const handleInstructionsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -21,7 +31,8 @@ const CodPaymentForm = ({ onDataChange, fields = [] }: CodPaymentFormProps) => {
     // Update parent component
     onDataChange({
       deliveryInstructions: value,
-      timeSlot
+      timeSlot,
+      method_id: 'cod' // Explicitly identify this as COD method
     });
   };
 
@@ -32,7 +43,8 @@ const CodPaymentForm = ({ onDataChange, fields = [] }: CodPaymentFormProps) => {
     // Update parent component
     onDataChange({
       deliveryInstructions,
-      timeSlot: slot
+      timeSlot: slot,
+      method_id: 'cod' // Explicitly identify this as COD method
     });
   };
 

@@ -2,7 +2,10 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
-import { Product } from '@/types/product';
+import { useRouter } from 'next/navigation';
+import { Product, ProductDetail } from '@/types/product';
+import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface DealTimer {
   hours: string;
@@ -20,7 +23,41 @@ const DealOfTheDay: React.FC<DealOfTheDayProps> = React.memo(({
   dealProduct,
   className = ""
 }) => {
+  const router = useRouter();
+  const { addToCart } = useCart();
+  const { user } = useAuth();
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [cartSuccess, setCartSuccess] = useState(false);
   const [timeLeft, setTimeLeft] = useState<DealTimer>({ hours: '10', minutes: '24', seconds: '36' });
+  
+  // Map dealProduct (type Product/ApiProduct) to ProductDetail format required by addToCart
+  const mappedProductDetail = useMemo((): ProductDetail | null => {
+    if (!dealProduct) return null;
+    
+    return {
+      id: dealProduct.id,
+      slug: dealProduct.slug,
+      title: dealProduct.title || dealProduct.name || '',
+      brand: dealProduct.brand?.name || '',
+      description: dealProduct.description || '',
+      price: dealProduct.discountPrice || dealProduct.price,
+      originalPrice: dealProduct.originalPrice || dealProduct.price,
+      discountPercentage: dealProduct.discount || 0,
+      rating: dealProduct.averageRating || 0,
+      reviewCount: dealProduct.reviewCount || 0,
+      inStock: dealProduct.stockQuantity > 0,
+      stockCount: dealProduct.stockQuantity,
+      isAssured: false,
+      images: dealProduct.images?.map(img => img.imageUrl) || 
+              (dealProduct.imageSrc ? [dealProduct.imageSrc] : []),
+      highlights: dealProduct.highlights || [],
+      specificationGroups: [],
+      hasFreeDel: false,
+      sellerName: '',
+      reviews: []
+    };
+  }, [dealProduct]);
+  
   // Get product data with proper fallbacks to avoid rendering errors
   const productData = useMemo(() => {
     if (!dealProduct) return null;
@@ -101,6 +138,40 @@ const DealOfTheDay: React.FC<DealOfTheDayProps> = React.memo(({
     return () => clearInterval(timer);
   }, [endTimeMs]); // Only recreate timer when endTimeMs changes
   
+  // Handle Add to Cart
+  const handleAddToCart = () => {
+    if (!dealProduct || !mappedProductDetail) return;
+    setAddingToCart(true);
+    
+    // Add to cart with a slight delay to show animation
+    setTimeout(() => {
+      addToCart(mappedProductDetail, 1); // Add quantity of 1
+      setAddingToCart(false);
+      setCartSuccess(true);
+      
+      // Reset success message after 2 seconds
+      setTimeout(() => {
+        setCartSuccess(false);
+      }, 2000);
+    }, 500);
+  };
+  
+  // Handle Buy Now
+  const handleBuyNow = () => {
+    if (!dealProduct || !mappedProductDetail) return;
+    
+    addToCart(mappedProductDetail, 1); // Add quantity of 1
+    
+    // Check if user is logged in
+    if (user) {
+      // If logged in, proceed directly to checkout
+      router.push('/checkout');
+    } else {
+      // If not logged in, redirect to login page with return URL
+      router.push(`/login?returnUrl=${encodeURIComponent('/checkout')}`);
+    }
+  };
+
   if (!dealProduct || !productData) {
     return null;
   }
@@ -191,14 +262,37 @@ const DealOfTheDay: React.FC<DealOfTheDayProps> = React.memo(({
                 </ul>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                <button className="bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-md text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 rounded-sm transition-all duration-300 hover:translate-y-[1px]">
+                <button 
+                  onClick={handleBuyNow}
+                  className="bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-md text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 rounded-sm transition-all duration-300 hover:translate-y-[1px]"
+                >
                   Buy Now
                 </button>
-                <button className="bg-white dark:bg-gray-700 border border-[#ed875a] text-[#ed875a] dark:text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 hover:bg-[#ed875a]/5 transition-all duration-300 rounded-sm flex items-center justify-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                  </svg>
-                  Add to Cart
+                <button 
+                  onClick={handleAddToCart}
+                  disabled={addingToCart}
+                  className="bg-white dark:bg-gray-700 border border-[#ed875a] text-[#ed875a] dark:text-white font-medium py-2.5 sm:py-3 px-4 sm:px-6 hover:bg-[#ed875a]/5 transition-all duration-300 rounded-sm flex items-center justify-center gap-2"
+                >
+                  {addingToCart ? (
+                    <div className="flex items-center justify-center">
+                      <div className="h-4 w-4 border-2 border-[#ed875a] border-t-transparent rounded-full animate-spin mr-1" />
+                      Adding...
+                    </div>
+                  ) : cartSuccess ? (
+                    <div className="flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Added
+                    </div>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      Add to Cart
+                    </>
+                  )}
                 </button>
               </div>
               <div className="mt-4 sm:mt-5 flex items-center text-xs text-gray-500 dark:text-gray-400">

@@ -1,5 +1,5 @@
 // API base URL from environment variables
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://13.200.199.67:3001/api/v1';
 
 // Centralized endpoint definitions for the e-commerce frontend API
 export const ENDPOINTS = {
@@ -66,6 +66,7 @@ export const ENDPOINTS = {
     BASE: '/orders',
     MY_ORDERS: '/orders/my-orders',
     DETAIL: (id: string) => `/orders/${id}`,
+    BY_NUMBER: (orderNumber: string) => `/orders/by-number/${orderNumber}`,
     CREATE: '/orders',
     CREATE_USER_ORDER: '/orders/user-order',
     CANCEL: (id: string) => `/orders/${id}/cancel`,
@@ -92,5 +93,24 @@ export const ENDPOINTS = {
       FLASH: '/deals/types/FLASH/products',
       DEAL_OF_DAY: '/deals/types/DEAL_OF_DAY/products',
     }
+  },
+  
+  PAYMENTS: {
+    CREATE_INTENT: '/payments/create-intent',
+    VERIFY: '/payments/verify',
+    STATUS: (paymentId: string) => `/payments/${paymentId}/status`,
+    REFUND: (paymentId: string) => `/payments/${paymentId}/refund`,
+    UPI: {
+      GENERATE: '/payments/upi/generate',
+      STATUS: (transactionId: string) => `/payments/upi/status/${transactionId}`,
+      VERIFY: '/payments/upi/verify',
+      QR: '/payments/upi/qr-code',
+    },
+  },
+
+  INVENTORY: {
+    PRODUCT_AVAILABILITY: (productId: string) => `/inventory/availability/product/${productId}`,
+    VARIANT_AVAILABILITY: (variantId: string) => `/inventory/availability/variant/${variantId}`,
+    BATCH_AVAILABILITY: '/inventory/availability/batch',
   },
 }; 

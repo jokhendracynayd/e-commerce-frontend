@@ -188,11 +188,7 @@ export function Footer() {
         <div className="container mx-auto px-4 py-5 sm:py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-              <img src="https://cdn.jsdelivr.net/gh/greghub/payment-svg-icons/svg/visa.svg" alt="Visa" className="h-8 w-auto bg-white dark:bg-gray-800 p-1 rounded shadow-sm" />
-              <img src="https://cdn.jsdelivr.net/gh/greghub/payment-svg-icons/svg/mastercard.svg" alt="Mastercard" className="h-8 w-auto bg-white dark:bg-gray-800 p-1 rounded shadow-sm" />
-              <img src="https://cdn.jsdelivr.net/gh/greghub/payment-svg-icons/svg/amex.svg" alt="American Express" className="h-8 w-auto bg-white dark:bg-gray-800 p-1 rounded shadow-sm" />
-              <img src="https://cdn.jsdelivr.net/gh/greghub/payment-svg-icons/svg/paypal.svg" alt="PayPal" className="h-8 w-auto bg-white dark:bg-gray-800 p-1 rounded shadow-sm" />
-              <img src="https://cdn.jsdelivr.net/gh/greghub/payment-svg-icons/svg/apple-pay.svg" alt="Apple Pay" className="h-8 w-auto bg-white dark:bg-gray-800 p-1 rounded shadow-sm" />
+              <p>Developed by <a href="https://cynayd.com" target="_blank" className="text-gray-600 dark:text-gray-400 hover:text-[#ed8c61] dark:hover:text-[#ed8c61] transition-colors">CYNAYD</a></p>
             </div>
             
             <div className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm text-center md:text-right">

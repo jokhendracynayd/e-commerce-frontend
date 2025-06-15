@@ -56,7 +56,7 @@ export const TrendingProducts: React.FC<TrendingProductsProps> = ({
               <span className="absolute -bottom-1 left-0 w-1/3 h-1 bg-gradient-to-r from-[#ed875a] to-[#ed8c61]"></span>
             </span>
           </h2>
-          <Link 
+          {/* <Link 
             href={viewAllLink} 
             className="group text-[#ed8c61] hover:text-[#d44506] flex items-center text-sm font-medium transition-all duration-300"
           >
@@ -64,7 +64,7 @@ export const TrendingProducts: React.FC<TrendingProductsProps> = ({
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-1 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-          </Link>
+          </Link> */}
         </motion.div>
         
         <motion.div 
