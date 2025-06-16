@@ -10,13 +10,27 @@ import {
 const availabilityCache = {
   products: new Map<string, { data: ProductAvailability, timestamp: number }>(),
   variants: new Map<string, { data: VariantAvailability, timestamp: number }>(),
-  // Cache expiration time in milliseconds (10 seconds)
-  expirationTime: 10000
+  // Cache expiration time in milliseconds (increased from 10 seconds to 5 minutes)
+  expirationTime: 5 * 60 * 1000
+};
+
+  // In-flight requests tracking to prevent duplicate API calls
+const inFlightRequests = {
+  products: new Map<string, Promise<ProductAvailability>>(),
+  variants: new Map<string, Promise<VariantAvailability>>(),
+  batch: new Map<string, Promise<void>>()
 };
 
 // Check if cached data is still valid
 const isCacheValid = (timestamp: number): boolean => {
   return Date.now() - timestamp < availabilityCache.expirationTime;
+};
+
+// Generate a cache key for batch requests
+const generateBatchCacheKey = (request: BatchAvailabilityRequest): string => {
+  const productIds = request.productIds?.sort().join(',') || '';
+  const variantIds = request.variantIds?.sort().join(',') || '';
+  return `${productIds}|${variantIds}`;
 };
 
 /**
@@ -36,16 +50,35 @@ export const inventoryService = {
       return cachedProduct.data;
     }
     
-    // Cache miss - fetch from API
-    const data = await inventoryApi.getProductAvailability(productId);
+    // Check if there's already an in-flight request for this product
+    if (inFlightRequests.products.has(productId)) {
+      return inFlightRequests.products.get(productId)!;
+    }
     
-    // Update cache
-    availabilityCache.products.set(productId, {
-      data,
-      timestamp: Date.now()
-    });
+    // Create a new request and track it
+    const request = async () => {
+      try {
+        // Cache miss - fetch from API
+        const data = await inventoryApi.getProductAvailability(productId);
+        
+        // Update cache
+        availabilityCache.products.set(productId, {
+          data,
+          timestamp: Date.now()
+        });
+        
+        return data;
+      } finally {
+        // Remove from in-flight requests when done
+        inFlightRequests.products.delete(productId);
+      }
+    };
     
-    return data;
+    // Store the promise in the in-flight requests map
+    const promise = request();
+    inFlightRequests.products.set(productId, promise);
+    
+    return promise;
   },
 
   /**
@@ -60,16 +93,35 @@ export const inventoryService = {
       return cachedVariant.data;
     }
     
-    // Cache miss - fetch from API
-    const data = await inventoryApi.getVariantAvailability(variantId);
+    // Check if there's already an in-flight request for this variant
+    if (inFlightRequests.variants.has(variantId)) {
+      return inFlightRequests.variants.get(variantId)!;
+    }
     
-    // Update cache
-    availabilityCache.variants.set(variantId, {
-      data,
-      timestamp: Date.now()
-    });
+    // Create a new request and track it
+    const request = async () => {
+      try {
+        // Cache miss - fetch from API
+        const data = await inventoryApi.getVariantAvailability(variantId);
+        
+        // Update cache
+        availabilityCache.variants.set(variantId, {
+          data,
+          timestamp: Date.now()
+        });
+        
+        return data;
+      } finally {
+        // Remove from in-flight requests when done
+        inFlightRequests.variants.delete(variantId);
+      }
+    };
     
-    return data;
+    // Store the promise in the in-flight requests map
+    const promise = request();
+    inFlightRequests.variants.set(variantId, promise);
+    
+    return promise;
   },
 
   /**
@@ -133,29 +185,54 @@ export const inventoryService = {
       variantIds: variantsToFetch.length > 0 ? variantsToFetch : undefined
     };
     
-    // Only make API call if there's something to fetch
-    let apiResponse: BatchAvailabilityResponse | null = null;
-    if (productsToFetch.length > 0 || variantsToFetch.length > 0) {
-      apiResponse = await inventoryApi.getBatchAvailability(fetchRequest);
+    // Generate a cache key for this batch request
+    const batchKey = generateBatchCacheKey(fetchRequest);
+    
+    // Check if there's already an in-flight request for this batch
+    if (inFlightRequests.batch.has(batchKey)) {
+      // Wait for the existing request to complete
+      await inFlightRequests.batch.get(batchKey);
+    } else if (productsToFetch.length > 0 || variantsToFetch.length > 0) {
+      // Create a new request and track it
+      const request = async () => {
+        try {
+          // Only make API call if there's something to fetch
+          if (productsToFetch.length > 0 || variantsToFetch.length > 0) {
+            const apiResponse = await inventoryApi.getBatchAvailability(fetchRequest);
+            
+            // Update cache with new data
+            const now = Date.now();
+            
+            if (apiResponse.products) {
+              apiResponse.products.forEach((product: ProductAvailability) => {
+                availabilityCache.products.set(product.productId, {
+                  data: product,
+                  timestamp: now
+                });
+              });
+            }
+            
+            if (apiResponse.variants) {
+              apiResponse.variants.forEach((variant: VariantAvailability) => {
+                availabilityCache.variants.set(variant.variantId, {
+                  data: variant,
+                  timestamp: now
+                });
+              });
+            }
+          }
+        } finally {
+          // Remove from in-flight requests when done
+          inFlightRequests.batch.delete(batchKey);
+        }
+      };
       
-      // Update cache with new data
-      if (apiResponse.products) {
-        apiResponse.products.forEach((product: ProductAvailability) => {
-          availabilityCache.products.set(product.productId, {
-            data: product,
-            timestamp: Date.now()
-          });
-        });
-      }
+      // Store the promise in the in-flight requests map
+      const promise = request();
+      inFlightRequests.batch.set(batchKey, promise);
       
-      if (apiResponse.variants) {
-        apiResponse.variants.forEach((variant: VariantAvailability) => {
-          availabilityCache.variants.set(variant.variantId, {
-            data: variant,
-            timestamp: Date.now()
-          });
-        });
-      }
+      // Wait for the request to complete
+      await promise;
     }
     
     // Combine fetched data with cached data for complete response
@@ -179,6 +256,46 @@ export const inventoryService = {
     }
     
     return result;
+  },
+
+  /**
+   * Prefetch availability data for products and variants
+   * Useful for preloading data that will likely be needed soon
+   * @param productIds - Array of product IDs to prefetch
+   * @param variantIds - Array of variant IDs to prefetch
+   */
+  prefetchAvailability: async (productIds: string[] = [], variantIds: string[] = []): Promise<void> => {
+    // Skip if nothing to prefetch
+    if (productIds.length === 0 && variantIds.length === 0) {
+      return;
+    }
+    
+    // Filter out IDs that are already in the cache and still valid
+    const productsToFetch = productIds.filter(id => {
+      const cached = availabilityCache.products.get(id);
+      return !cached || !isCacheValid(cached.timestamp);
+    });
+    
+    const variantsToFetch = variantIds.filter(id => {
+      const cached = availabilityCache.variants.get(id);
+      return !cached || !isCacheValid(cached.timestamp);
+    });
+    
+    // Skip if everything is already cached
+    if (productsToFetch.length === 0 && variantsToFetch.length === 0) {
+      return;
+    }
+    
+    // Use batch availability to efficiently prefetch data
+    try {
+      await inventoryService.getBatchAvailability({
+        productIds: productsToFetch.length > 0 ? productsToFetch : undefined,
+        variantIds: variantsToFetch.length > 0 ? variantsToFetch : undefined
+      });
+    } catch (error) {
+      // Silently handle prefetch errors - they shouldn't affect the UI
+      console.warn('Error prefetching availability data:', error);
+    }
   },
 
   /**

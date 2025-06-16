@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { inventoryApi, ProductAvailability, VariantAvailability } from '@/lib/api/inventory-api';
+import { ProductAvailability, VariantAvailability } from '@/lib/api/inventory-api';
+import { inventoryService } from '@/services/inventoryService';
 
 interface InventoryStatusProps {
   productId?: string;
@@ -36,9 +37,9 @@ export default function InventoryStatus({
       let data: ProductAvailability | VariantAvailability;
       
       if (variantId) {
-        data = await inventoryApi.getVariantAvailability(variantId);
+        data = await inventoryService.getVariantAvailability(variantId);
       } else if (productId) {
-        data = await inventoryApi.getProductAvailability(productId);
+        data = await inventoryService.getProductAvailability(productId);
       } else {
         throw new Error('Either productId or variantId must be provided');
       }

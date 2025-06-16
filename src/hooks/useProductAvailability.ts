@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { inventoryApi, ProductAvailability, VariantAvailability } from '@/lib/api/inventory-api';
+import { ProductAvailability, VariantAvailability } from '@/lib/api/inventory-api';
+import { inventoryService } from '@/services/inventoryService';
 
 interface UseProductAvailabilityProps {
   productIds?: string[];
@@ -58,6 +59,15 @@ export function useProductAvailability({
     return variantIds;
   }, [variantIds]);
 
+  // Prefetch data when IDs change
+  useEffect(() => {
+    // Prefetch data in the background without blocking UI
+    if (memoizedProductIds.length > 0 || memoizedVariantIds.length > 0) {
+      inventoryService.prefetchAvailability(memoizedProductIds, memoizedVariantIds)
+        .catch(err => console.warn('Prefetch error:', err));
+    }
+  }, [memoizedProductIds, memoizedVariantIds]);
+
   // Memoize the fetch function to prevent recreating it on each render
   const fetchAvailability = useCallback(async () => {
     // Skip if there are no IDs to check
@@ -70,7 +80,7 @@ export function useProductAvailability({
       setLoading(true);
       setError(null);
 
-      const response = await inventoryApi.getBatchAvailability({
+      const response = await inventoryService.getBatchAvailability({
         productIds: memoizedProductIds.length > 0 ? memoizedProductIds : undefined,
         variantIds: memoizedVariantIds.length > 0 ? memoizedVariantIds : undefined
       });

@@ -196,7 +196,8 @@ export async function searchProducts(query: string): Promise<Product[]> {
     
     // Simple search implementation on mock data
     const searchResults = trendingProductsData.filter(product => 
-      product.name.toLowerCase().includes(query.toLowerCase())
+      product.name?.toLowerCase().includes(query.toLowerCase()) || 
+      product.title?.toLowerCase().includes(query.toLowerCase())
     );
     return searchResults;
     

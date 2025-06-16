@@ -290,7 +290,7 @@ export default function CheckoutPage() {
       
       // Extract order information from the API response
       // The API response structure is { statusCode, message, data: { id, orderNumber, ... } }
-      const orderInfo = response.data || response;
+      const orderInfo = ('data' in response) ? (response.data as any) : response;
       const orderId = orderInfo.id;
       const orderNumber = orderInfo.orderNumber;
       

@@ -8,6 +8,7 @@ import { DealOfTheDay } from "@/components/product/DealOfTheDay";
 import { getCategoryGroups } from "@/services/categoryService";
 import { getTrendingProducts, getDealOfTheDay } from "@/services/productService";
 
+// Use proper server component data fetching
 export default async function Home() {
   // Fetch category groups from the service
   const categoryGroups = await getCategoryGroups();
