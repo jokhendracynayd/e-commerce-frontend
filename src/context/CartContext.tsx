@@ -53,10 +53,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     
     const itemCount = items.reduce((total, item) => total + item.quantity, 0);
     const priceTotal = items.reduce((total, item) => {
-      // Ensure price is a valid number
-      const price = typeof item.product.price === 'number' && !isNaN(item.product.price) 
-        ? item.product.price 
-        : 0;
+      // First check if item has a discount price
+      let price;
+      if (item.product.discountPrice !== undefined && item.product.discountPrice !== null) {
+        price = typeof item.product.discountPrice === 'number' && !isNaN(item.product.discountPrice)
+          ? item.product.discountPrice
+          : 0;
+      } else {
+        // If no discount price, use regular price
+        price = typeof item.product.price === 'number' && !isNaN(item.product.price) 
+          ? item.product.price 
+          : 0;
+      }
       return total + (price * item.quantity);
     }, 0);
     
@@ -232,6 +240,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           title: item.product.title || 'Product Name',
           slug: item.product.slug || `product-${item.product.id}`,
           price: parseFloat(item.product.price?.toString() || '0'),
+          discountPrice: item.product.discountPrice ? parseFloat(item.product.discountPrice.toString()) : undefined,
           // Fill required fields with sensible defaults if not available from API
           brand: '',
           description: '',
@@ -247,10 +256,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
           hasFreeDel: false,
           sellerName: '',
           reviews: [],
+          currency: item.product.currency || 'INR',
         };
         
         // Handle discounted price if available
         if (item.product.discountPrice) {
+          productDetail.discountPrice = parseFloat(item.product.discountPrice.toString());
           productDetail.discountPercentage = Math.round(
             ((parseFloat(item.product.price.toString()) - parseFloat(item.product.discountPrice.toString())) / 
               parseFloat(item.product.price.toString())) * 100

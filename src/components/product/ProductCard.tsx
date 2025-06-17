@@ -61,12 +61,8 @@ export function ProductCard({
   }
 
   return (
-    <div 
-      className="group w-full min-w-[120px] xs:min-w-[150px] sm:min-w-[190px] md:min-w-[220px] lg:min-w-[250px] max-w-[280px] bg-white dark:bg-gray-800 overflow-hidden hover:-translate-y-1 transition-all duration-300 relative hover:z-10 rounded-lg"
-      style={{ 
-        width: '100%', 
-        transition: 'all 0.3s ease'
-      }}
+    <div
+      className="group w-[120px] xs:w-[150px] sm:w-[210px] md:w-[240px] lg:w-[280px] bg-white dark:bg-gray-800 overflow-hidden hover:-translate-y-1 transition-all duration-300 relative hover:z-10 rounded-lg"
       onMouseOver={(e) => {
         e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(59, 130, 246, 0.2), 0 8px 10px -6px rgba(59, 130, 246, 0.1)';
         setIsHovered(true);

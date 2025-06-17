@@ -11,6 +11,7 @@ import { Address } from '@/types/address';
 import PaymentSection from '@/components/checkout/payment/PaymentSection';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import { CreateOrderRequest } from '@/types';
+import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -157,10 +158,8 @@ export default function CheckoutPage() {
   const shippingCost = totalPrice > 500 ? 0 : 40;
   const totalAmount = totalPrice + shippingCost;
   
-  // Format price as Indian Rupees
-  const formatPrice = (val: number) => {
-    return val.toLocaleString('en-IN');
-  };
+  // Use shared currency formatting utilities
+  const currency = 'INR';
   
   const [orderId, setOrderId] = useState<string | null>(null);
   const [paymentStarted, setPaymentStarted] = useState(false);
@@ -464,11 +463,23 @@ export default function CheckoutPage() {
                     </div>
                     <div className="mt-2 sm:mt-0 text-right">
                       <span className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
-                        ₹{formatPrice(item.product.price * item.quantity)}
+                        {getCurrencySymbol(item.product.currency || currency)}
+                        {formatCurrency(
+                          (item.product.discountPrice !== undefined && item.product.discountPrice !== null) 
+                            ? item.product.discountPrice * item.quantity 
+                            : item.product.price * item.quantity, 
+                          item.product.currency || currency
+                        )}
                       </span>
-                      {item.product.originalPrice && (
+                      {(item.product.originalPrice || (item.product.price && item.product.discountPrice !== undefined && item.product.discountPrice !== null)) && (
                         <div className="text-xs text-gray-500 dark:text-gray-400 line-through">
-                          ₹{formatPrice(item.product.originalPrice * item.quantity)}
+                          {getCurrencySymbol(item.product.currency || currency)}
+                          {formatCurrency(
+                            item.product.originalPrice 
+                              ? item.product.originalPrice * item.quantity
+                              : item.product.price * item.quantity, 
+                            item.product.currency || currency
+                          )}
                         </div>
                       )}
                     </div>
@@ -757,7 +768,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between">
                 <span className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Subtotal</span>
                 <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium">
-                  ₹{formatPrice(totalPrice)}
+                  {getCurrencySymbol(currency)}{formatCurrency(totalPrice, currency)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -766,7 +777,7 @@ export default function CheckoutPage() {
                   {shippingCost === 0 ? (
                     <span className="text-[#d44506] dark:text-[#ed875a]">Free</span>
                   ) : (
-                    `₹${formatPrice(shippingCost)}`
+                    `${getCurrencySymbol(currency)}${formatCurrency(shippingCost, currency)}`
                   )}
                 </span>
               </div>
@@ -775,7 +786,7 @@ export default function CheckoutPage() {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span>Free shipping applied on orders above ₹500</span>
+                  <span>Free shipping applied on orders above {getCurrencySymbol(currency)}500</span>
                 </div>
               )}
             </div>
@@ -785,7 +796,7 @@ export default function CheckoutPage() {
               <span className="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-200">Total</span>
               <div className="text-right">
                 <span className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
-                  ₹{formatPrice(totalAmount)}
+                  {getCurrencySymbol(currency)}{formatCurrency(totalAmount, currency)}
                 </span>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   Inclusive of all taxes

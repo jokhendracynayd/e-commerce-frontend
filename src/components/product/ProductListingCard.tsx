@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import WishlistButton from './WishlistButton';
 import ProductAvailabilityBadge from './ProductAvailabilityBadge';
 import ProductAvailabilityIndicator from './ProductAvailabilityIndicator';
+import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 
 export type ColorVariant = {
   id: string;
@@ -109,11 +110,6 @@ export function ProductListingCard({
       discountPercentage = Math.min(Math.max(1, Math.round(calculatedDiscount)), 90);
     }
   }
-
-  // Format price as Indian Rupees
-  const formatPrice = (val: number) => {
-    return val.toLocaleString('en-IN');
-  };
 
   // Determine badge background color based on badge content
   const getBadgeClass = () => {
@@ -240,19 +236,19 @@ export function ProductListingCard({
               <div className="flex items-center flex-wrap mt-1">
                 {price && (
                   <span className="font-bold text-gray-900 dark:text-white text-sm xs:text-base tracking-tight">
-                    ₹{formatPrice(price)}
+                    {getCurrencySymbol(currency)}{formatCurrency(price, currency)}
                   </span>
                 )}
                 
                 {originalPrice && (
                   <span className="text-[10px] xs:text-xs text-gray-500 line-through ml-2">
-                    ₹{formatPrice(originalPrice)}
+                    {getCurrencySymbol(currency)}{formatCurrency(originalPrice, currency)}
                   </span>
                 )}
                 
-                {(discount || discountPercentage) && (
-                  <span className="text-[10px] xs:text-xs font-bold text-[#ed875a] ml-2">
-                    {discount || `${discountPercentage}% off`}
+                {discountPercentage && (
+                  <span className="text-[10px] xs:text-xs font-medium text-[#d44506] dark:text-[#ed875a] ml-2">
+                    {discountPercentage}% off
                   </span>
                 )}
               </div>
@@ -387,19 +383,19 @@ export function ProductListingCard({
               <div className="flex items-center flex-wrap mt-1">
                 {price && (
                   <span className="font-bold text-gray-900 dark:text-white text-base tracking-tight">
-                    {currency === 'USD' ? '$' : '₹'}{formatPrice(price)}
+                    {getCurrencySymbol(currency)}{formatCurrency(price, currency)}
                   </span>
                 )}
                 
                 {originalPrice && (
                   <span className="text-xs text-gray-500 line-through ml-2">
-                    {currency === 'USD' ? '$' : '₹'}{formatPrice(originalPrice)}
+                    {getCurrencySymbol(currency)}{formatCurrency(originalPrice, currency)}
                   </span>
                 )}
                 
-                {(discount || discountPercentage) && (
-                  <span className="text-xs font-bold text-[#ed875a] ml-2">
-                    {discount || `${discountPercentage}% off`}
+                {discountPercentage && (
+                  <span className="text-xs font-bold text-[#d44506] dark:text-[#ed875a] ml-2">
+                    {discountPercentage}% off
                   </span>
                 )}
               </div>

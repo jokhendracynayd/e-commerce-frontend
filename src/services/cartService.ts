@@ -109,6 +109,8 @@ export async function getCart(): Promise<{
     
     const response = await withRetry(() => cartApi.getCart(cancelTokens.getCart!.token));
     
+
+    console.log(response,"🙌🙌🙌🙌🙌🙌🙌🙌🙌🙌🙌🙌🙌🙌🙌🙌🙌🙌🙌")
     // Transform API cart items to our component's expected format
     const cartItems = response.items.map((item) => {
       // Extract the basic product details from the API response

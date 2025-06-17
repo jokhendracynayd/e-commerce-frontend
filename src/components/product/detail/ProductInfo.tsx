@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import WishlistButton from '@/components/product/WishlistButton';
 import { ProductAvailability, VariantAvailability } from '@/lib/api/inventory-api';
 import { useProductAvailability } from '@/hooks/useProductAvailability';
+import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 
 interface ProductInfoProps {
   product: ProductDetail;
@@ -65,11 +66,6 @@ export function ProductInfo({ product }: ProductInfoProps) {
     if (quantity > 1) setQuantity(prev => prev - 1);
   };
   
-  // Format price as Indian Rupees
-  const formatPrice = (val: number) => {
-    return val.toLocaleString('en-IN');
-  };
-
   // Handle Add to Cart
   const handleAddToCart = () => {
     setAddingToCart(true);
@@ -93,8 +89,10 @@ export function ProductInfo({ product }: ProductInfoProps) {
     
     // Check if user is logged in
     if (user) {
-      // If logged in, proceed directly to checkout
-      router.push('/checkout');
+      // Make sure we redirect to checkout page, not home page
+      setTimeout(() => {
+        router.push('/checkout');
+      }, 100);
     } else {
       // If not logged in, redirect to login page with return URL
       router.push(`/login?returnUrl=${encodeURIComponent('/checkout')}`);
@@ -149,12 +147,12 @@ export function ProductInfo({ product }: ProductInfoProps) {
       <div className="space-y-1 sm:space-y-2">
         <div className="flex flex-wrap items-center gap-1 sm:gap-2">
           <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-            ₹{formatPrice(product.price)}
+            {getCurrencySymbol(product.currency || 'INR')}{formatCurrency(product.price, product.currency)}
           </span>
           
           {product.originalPrice && (
             <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through">
-              ₹{formatPrice(product.originalPrice)}
+              {getCurrencySymbol(product.currency || 'INR')}{formatCurrency(product.originalPrice, product.currency)}
             </span>
           )}
           

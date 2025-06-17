@@ -157,6 +157,7 @@ export type ProductDetail = {
   originalPrice: number;
   discount?: string;
   discountPercentage?: number;
+  discountPrice?: number;
   rating: number;
   reviewCount: number;
   inStock: boolean;
@@ -180,6 +181,7 @@ export type ProductDetail = {
   relatedProducts?: string[];
   faq?: { question: string; answer: string }[];
   categories?: { id: string; name: string; slug: string }[];
+  currency?: string;
 };
 
 /**

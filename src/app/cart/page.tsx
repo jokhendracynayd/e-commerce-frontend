@@ -8,6 +8,7 @@ import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
 import { useProductAvailability } from '@/hooks/useProductAvailability';
+import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 
 export default function CartPage() {
   const router = useRouter();
@@ -64,7 +65,9 @@ export default function CartPage() {
   const orderSummary = useMemo(() => {
     // Calculate subtotal from items
     const calculatedSubtotal = items.reduce((total, item) => {
-      return total + (item.product.price * item.quantity);
+      // Use discountPrice if available, otherwise use regular price
+      const itemPrice = item.product.discountPrice || item.product.price;
+      return total + (itemPrice * item.quantity);
     }, 0);
     
     // Calculate shipping - free if subtotal is above 500
@@ -82,19 +85,23 @@ export default function CartPage() {
     // Calculate item count
     const calculatedItemCount = items.reduce((count, item) => count + item.quantity, 0);
     
+    // Get default currency from the first item, or use INR as fallback
+    const defaultCurrency = items.length > 0 ? (items[0].product.currency || 'INR') : 'INR';
+    
     return {
       subtotal: calculatedSubtotal,
       shippingCost: calculatedShipping,
       tax: calculatedTax,
       discount: calculatedDiscount,
       total: calculatedTotal,
-      itemCount: calculatedItemCount
+      itemCount: calculatedItemCount,
+      defaultCurrency
     };
   }, [items, applyingCoupon]);
   
   // Format price as Indian Rupees
-  const formatPrice = (val: number) => {
-    return val.toLocaleString('en-IN');
+  const formatPrice = (val: number, currency = 'INR') => {
+    return formatCurrency(val, currency);
   };
 
   // Handle coupon application
@@ -310,38 +317,38 @@ export default function CartPage() {
                     <div className="text-right">
                       {item.selectedColor ? (
                         // Show variant pricing
-                        <div>
-                          <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                            ₹{formatPrice(item.product.price * item.quantity)}
+                                                  <div>
+                            <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                             {getCurrencySymbol(item.product.currency)}{formatPrice(item.product.price * item.quantity, item.product.currency)}
+                            </div>
+                            <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                             {item.quantity} × {getCurrencySymbol(item.product.currency)}{formatPrice(item.product.price, item.product.currency)}
+                            </div>
                           </div>
-                          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                            {item.quantity} × ₹{formatPrice(item.product.price)}
-                          </div>
-                        </div>
                       ) : (
                         // Show product pricing with potential discount
                         <div>
-                          {item.product.discountPercentage ? (
-                            <>
-                              <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                                ₹{formatPrice(item.product.price * item.quantity)}
-                              </div>
-                              <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through">
-                                ₹{formatPrice(item.product.originalPrice * item.quantity)}
-                              </div>
-                              <div className="text-xs font-medium text-[#d44506] dark:text-[#ed875a] mt-0.5">
-                                {item.product.discountPercentage}% off • {item.quantity} × ₹{formatPrice(item.product.price)}
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                                ₹{formatPrice(item.product.price * item.quantity)}
-                              </div>
-                              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                                {item.quantity} × ₹{formatPrice(item.product.price)}
-                              </div>
-                            </>
+                          {item.product.discountPrice ? (
+                                                          <>
+                                <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                                 {getCurrencySymbol(item.product.currency)}{formatPrice(item.product.discountPrice * item.quantity, item.product.currency)}
+                                </div>
+                                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 line-through">
+                                 {getCurrencySymbol(item.product.currency)}{formatPrice(item.product.price * item.quantity, item.product.currency)}
+                                </div>
+                                <div className="text-xs font-medium text-[#d44506] dark:text-[#ed875a] mt-0.5">
+                                 {Math.round(((item.product.price - item.product.discountPrice) / item.product.price) * 100)}% off • {item.quantity} × {getCurrencySymbol(item.product.currency)}{formatPrice(item.product.discountPrice, item.product.currency)}
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                                 {getCurrencySymbol(item.product.currency)}{formatPrice(item.product.price * item.quantity, item.product.currency)}
+                                </div>
+                                <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                                 {item.quantity} × {getCurrencySymbol(item.product.currency)}{formatPrice(item.product.price, item.product.currency)}
+                                </div>
+                              </>
                           )}
                         </div>
                       )}
@@ -434,7 +441,9 @@ export default function CartPage() {
             <div className="space-y-3 sm:space-y-4 border-b border-gray-200 dark:border-gray-700 pb-5 sm:pb-6 mb-5 sm:mb-6">
               <div className="flex justify-between">
                 <span className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Subtotal ({orderSummary.itemCount} items)</span>
-                <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium">₹{formatPrice(orderSummary.subtotal)}</span>
+                <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium">
+                  {getCurrencySymbol(orderSummary.defaultCurrency)}{formatPrice(orderSummary.subtotal, orderSummary.defaultCurrency)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Shipping</span>
@@ -442,25 +451,22 @@ export default function CartPage() {
                   {orderSummary.shippingCost === 0 ? (
                     <span className="text-[#d44506] dark:text-[#ed875a]">Free</span>
                   ) : (
-                    `₹${formatPrice(orderSummary.shippingCost)}`
+                    `${getCurrencySymbol(orderSummary.defaultCurrency)}${formatPrice(orderSummary.shippingCost, orderSummary.defaultCurrency)}`
                   )}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Tax (5%)</span>
                 <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium">
-                  ₹{formatPrice(orderSummary.tax)}
+                  {getCurrencySymbol(orderSummary.defaultCurrency)}{formatPrice(orderSummary.tax, orderSummary.defaultCurrency)}
                 </span>
               </div>
               {applyingCoupon && (
                 <div className="flex justify-between text-[#d44506] dark:text-[#ed875a]">
-                  <span className="flex items-center text-sm sm:text-base">
-                    <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
+                  <span className="text-sm sm:text-base">
                     Discount (WELCOME10)
                   </span>
-                  <span className="text-sm sm:text-base">-₹{formatPrice(orderSummary.discount)}</span>
+                  <span className="text-sm sm:text-base">-{getCurrencySymbol(orderSummary.defaultCurrency)}{formatPrice(orderSummary.discount, orderSummary.defaultCurrency)}</span>
                 </div>
               )}
             </div>
@@ -469,12 +475,11 @@ export default function CartPage() {
             <div className="flex justify-between items-center mb-6 sm:mb-8">
               <span className="text-base sm:text-lg font-bold text-gray-800 dark:text-gray-200">Total</span>
               <motion.span 
-                key={`${orderSummary.total}-${applyingCoupon}`}
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 0.3 }}
                 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white"
               >
-                ₹{formatPrice(orderSummary.total)}
+                {getCurrencySymbol(orderSummary.defaultCurrency)}{formatPrice(orderSummary.total, orderSummary.defaultCurrency)}
               </motion.span>
             </div>
             

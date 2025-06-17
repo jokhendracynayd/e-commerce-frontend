@@ -708,7 +708,7 @@ export default function CategoryPage() {
           {/* Sort and view controls */}
           <div className="mb-6 flex flex-col gap-4">
             {/* Sort options as horizontal tabs */}
-            <div className="flex items-center border-b border-gray-200 dark:border-gray-700 overflow-x-auto no-scrollbar">
+            <div className="flex items-center border-b border-gray-200 dark:border-gray-700 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mr-3 whitespace-nowrap">Sort By</div>
               {sortOptions.map((option) => (
                 <button
@@ -726,7 +726,7 @@ export default function CategoryPage() {
             </div>
             
             {/* View mode controls */}
-            <div className="flex items-center justify-end">
+            <div className="hidden md:flex items-center justify-end">
               <div className="flex items-center bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 p-1">
                 <button
                   onClick={() => setViewMode('grid')}

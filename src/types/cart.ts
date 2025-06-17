@@ -23,6 +23,7 @@ export interface ApiCartItem {
     price: number;
     discountPrice?: number | null;
     imageUrl: string | null;
+    currency?: string;
   };
   variant?: {
     id: string;

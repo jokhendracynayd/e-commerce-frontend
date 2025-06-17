@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ordersApi, OrderFilterParams } from '@/lib/api/orders-api';
 import { OrderResponse, OrderStatus, PaymentStatus, PaginatedOrdersResponse } from '@/types/order';
 import { toast } from 'react-hot-toast';
+import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 
 // Type definitions for filtering
 type StatusFilter = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'RETURNED';
@@ -470,9 +471,9 @@ export default function OrdersPage() {
     return order.status === OrderStatus.DELIVERED || order.status === OrderStatus.COMPLETED;
   };
 
-  // Function to format price as Indian Rupees
-  const formatPrice = (price: number): string => {
-    return price.toLocaleString('en-IN');
+  // Use our shared formatting utilities
+  const formatOrderPrice = (price: number, currency: string = 'INR'): string => {
+    return `${getCurrencySymbol(currency)}${formatCurrency(price, currency)}`;
   };
 
   return (
@@ -761,8 +762,10 @@ export default function OrdersPage() {
 
                         {/* Right side info */}
                         <div className="flex flex-col items-start sm:items-end mt-2 sm:mt-0">
-                          <div className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                            ₹{formatPrice(order.total)}
+                          <div className="text-right">
+                                                         <span className="font-bold text-gray-900 dark:text-white">
+                               {formatOrderPrice(order.total)}
+                             </span>
                           </div>
                           <div className="sm:text-right text-xs text-gray-600 dark:text-gray-400 mt-1">
                             {getStatusDisplayText(order.status)} on {new Date(order.updatedAt).toLocaleDateString()}
