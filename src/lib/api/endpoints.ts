@@ -1,6 +1,6 @@
 // API base URL from environment variables
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.allmart.fashion/api/v1';
-// export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+// export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.allmart.fashion/api/v1';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
 // Centralized endpoint definitions for the e-commerce frontend API
 export const ENDPOINTS = {
@@ -52,6 +52,26 @@ export const ENDPOINTS = {
     DETAIL: (id: string) => `/brands/${id}`,
     BY_SLUG: (slug: string) => `/brands/slug/${slug}`,
     PRODUCTS: (id: string) => `/brands/${id}/products`,
+  },
+
+  ANALYTICS: {
+    ACTIVITY: '/analytics/activity',
+    BATCH: '/analytics/batch', 
+    HISTORY: '/analytics/history',
+    ACTIVITIES: '/analytics/activities',
+    CONVERSION: '/analytics/conversion',
+  },
+
+  RECOMMENDATIONS: {
+    BASE: '/recommendations',
+    SIMILAR: (productId: string) => `/recommendations/similar/${productId}`,
+    FREQUENTLY_BOUGHT_TOGETHER: (productId: string) => `/recommendations/frequently-bought-together/${productId}`,
+    PERSONALIZED: '/recommendations/personalized',
+    TRENDING: '/recommendations/trending',
+    RECENTLY_VIEWED: '/recommendations/recently-viewed',
+    TOP_RATED: '/recommendations/top-rated',
+    BESTSELLERS: '/recommendations/bestsellers',
+    NEW_ARRIVALS: '/recommendations/new-arrivals',
   },
   
   CART: {

@@ -10,9 +10,11 @@ import { ImageGallery } from '@/components/product/detail/ImageGallery';
 import { ProductInfo } from '@/components/product/detail/ProductInfo';
 import { ProductDetails } from '@/components/product/detail/ProductDetails';
 import { RelatedProducts } from '@/components/product/detail/RelatedProducts';
+import { PageViewTracker } from '@/components/tracking/PageViewTracker';
 import { getCanonicalProductUrl } from '@/utils/url-utils';
 import { getProductBySlug } from '@/services/productService';
 import { productsApi } from '@/lib/api/products-api';
+import { useActivityTracking } from '@/hooks/useActivityTracking';
 
 // API response mapper - transforms API response to match UI's expected format
 const mapApiResponseToProductDetail = (apiData: any, fallbackData: ProductDetail): ProductDetail => {
@@ -83,6 +85,7 @@ const mapApiResponseToProductDetail = (apiData: any, fallbackData: ProductDetail
 export default function ProductPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const { trackProductView } = useActivityTracking();
   
   // The slug parameter here could be either:
   // 1. The actual product ID (from /:productName/p/:productId via rewrite)
@@ -128,6 +131,9 @@ export default function ProductPage() {
           // Map API data to our UI format, using fallback data for missing fields
           const mappedProductData = mapApiResponseToProductDetail(productApiData, fallbackUiData);
           setProduct(mappedProductData);
+          
+          // Track product view once we have the product data
+          trackProductView(mappedProductData.id, 'product_page');
           
           // Generate canonical URL for SEO
           const category = mappedProductData.categories?.[0]?.name;
@@ -182,6 +188,22 @@ export default function ProductPage() {
       <Head>
         {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
       </Head>
+      
+      {/* Page View Tracking */}
+      <PageViewTracker 
+        pageCategory="product"
+        metadata={{
+          productId: product.id,
+          productSlug: product.slug,
+          productTitle: product.title,
+          productBrand: product.brand,
+          productPrice: product.price,
+          productCategory: product.categories?.[0]?.name || 'uncategorized',
+          inStock: product.inStock,
+          hasDiscount: !!product.originalPrice && product.originalPrice > product.price,
+          source: searchParams.get('source') || 'direct'
+        }}
+      />
       
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-7xl">
         {/* Breadcrumbs */}

@@ -7,6 +7,7 @@ import { CartProvider } from '@/context/CartContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { AuthModalProvider } from '@/context/AuthModalContext';
 import { CategoryProvider } from '@/context/CategoryContext';
+import { ActivityTrackingProvider } from '@/context/ActivityTrackingContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Suspense } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -39,44 +40,46 @@ function RootLayoutClient({ children }: { children: React.ReactNode }) {
       <AuthModalProvider>
         <CartProvider>
           <CategoryProvider>
-            <Header />
-            <main className="flex-1 lg:px-4">
-              <Suspense fallback={<div>Loading...</div>}>
-                {children}
-              </Suspense>
-            </main>
-            <Footer />
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 3000,
-                style: {
-                  background: '#fff',
-                  color: '#333',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                  borderRadius: '8px',
-                  padding: '12px 16px',
-                },
-                success: {
-                  iconTheme: {
-                    primary: '#10B981',
-                    secondary: 'white',
-                  },
+            <ActivityTrackingProvider>
+              <Header />
+              <main className="flex-1 lg:px-4">
+                <Suspense fallback={<div>Loading...</div>}>
+                  {children}
+                </Suspense>
+              </main>
+              <Footer />
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 3000,
                   style: {
-                    border: '1px solid #10B981',
+                    background: '#fff',
+                    color: '#333',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    borderRadius: '8px',
+                    padding: '12px 16px',
                   },
-                },
-                error: {
-                  iconTheme: {
-                    primary: '#EF4444',
-                    secondary: 'white',
+                  success: {
+                    iconTheme: {
+                      primary: '#10B981',
+                      secondary: 'white',
+                    },
+                    style: {
+                      border: '1px solid #10B981',
+                    },
                   },
-                  style: {
-                    border: '1px solid #EF4444',
+                  error: {
+                    iconTheme: {
+                      primary: '#EF4444',
+                      secondary: 'white',
+                    },
+                    style: {
+                      border: '1px solid #EF4444',
+                    },
                   },
-                },
-              }}
-            />
+                }}
+              />
+            </ActivityTrackingProvider>
           </CategoryProvider>
         </CartProvider>
       </AuthModalProvider>

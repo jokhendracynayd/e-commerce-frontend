@@ -6,18 +6,60 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import AddressList from '@/components/address/AddressList';
 import { Address } from '@/types/address';
 import PaymentSection from '@/components/checkout/payment/PaymentSection';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
-import { CreateOrderRequest } from '@/types';
+import { CreateOrderRequest, OrderAddress } from '@/types';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
+
+// Helper function to convert Address to OrderAddress format expected by backend
+const convertToOrderAddress = (address: Address): OrderAddress => {
+  return {
+    name: address.name,
+    mobileNumber: address.mobileNumber,
+    street: address.street,
+    city: address.city,
+    state: address.state,
+    zipCode: address.zipCode,
+    country: address.country,
+    locality: address.locality,
+    landmark: address.landmark,
+  };
+};
+
+// Helper function to create OrderAddress from manual form inputs
+const createOrderAddressFromForm = (
+  name: string,
+  phone: string,
+  pincode: string,
+  addressText: string
+): OrderAddress => {
+  // Parse the address text to extract components
+  const lines = addressText.split('\n');
+  const street = lines[0] || addressText;
+  
+  // Default values that can be updated as needed
+  return {
+    name,
+    mobileNumber: phone,
+    street,
+    city: 'Not specified', // Will be updated by user if needed
+    state: 'Not specified', // Will be updated by user if needed
+    zipCode: pincode,
+    country: 'India',
+    locality: '',
+    landmark: '',
+  };
+};
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, totalPrice } = useCart();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [pincode, setPincode] = useState('');
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -139,20 +181,20 @@ export default function CheckoutPage() {
     }
   };
   
-  // Redirect to home if no items in cart
+  // Redirect to home if no items in cart or enforce authentication
   useEffect(() => {
     if (items.length === 0) {
       router.push('/');
+      return;
     }
 
-    // NOTE: Login requirement is disabled for testing purposes
-    // When you're ready to implement authentication, uncomment this block:
-    // 
-    // if (!isAuthenticated) {
-    //   router.push('/login?returnUrl=/checkout');
-    // }
+    // Enforce authentication - no guest checkout allowed
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login?returnUrl=/checkout');
+      return;
+    }
     
-  }, [items, router]);
+  }, [items, router, isAuthenticated, authLoading]);
   
   // Calculate shipping cost - free if total is above 500
   const shippingCost = totalPrice > 500 ? 0 : 40;
@@ -177,96 +219,78 @@ export default function CheckoutPage() {
         quantity: item.quantity
       }));
       
-      // 2. Prepare shipping & billing addresses - Properly formatted for backend
-      // Parse address and extract components properly
-      const parseAddress = (addressString: string) => {
-        const lines = addressString.split('\n');
-        const addressParts = {
-          street: lines[0] || '',
-          city: '',
-          state: '',
-          landmark: ''
-        };
-        
-        // Try to extract city, state, and landmark from the address
-        if (lines.length > 1) {
-          const secondLine = lines[1] || '';
-          
-          // Extract landmark if present
-          if (addressString.includes('Landmark:')) {
-            const landmarkPart = addressString.split('Landmark:')[1]?.trim();
-            if (landmarkPart) {
-              addressParts.landmark = landmarkPart;
-            }
-          }
-          
-          // Look for city and state pattern (City, State)
-          const cityStateMatch = secondLine.match(/([^,]+),\s*([^,]+)/);
-          if (cityStateMatch) {
-            addressParts.city = cityStateMatch[1]?.trim() || '';
-            addressParts.state = cityStateMatch[2]?.trim() || '';
-          } else {
-            // Try to extract known city/state names
-            ['Bhopal', 'Delhi', 'Mumbai', 'Kolkata', 'Chennai'].forEach(city => {
-              if (addressString.includes(city)) {
-                addressParts.city = city;
-              }
-            });
-            
-            ['Madhya Pradesh', 'Maharashtra', 'Delhi', 'West Bengal', 'Tamil Nadu'].forEach(state => {
-              if (addressString.includes(state)) {
-                addressParts.state = state;
-              }
-            });
-          }
+      // 2. Prepare shipping & billing addresses - Use selected addresses or form data
+      let shippingAddressData: OrderAddress;
+      let billingAddressData: OrderAddress;
+      
+      // Use selected address if available (from saved addresses)
+      if (selectedAddress) {
+        shippingAddressData = convertToOrderAddress(selectedAddress);
+        console.log('Using selected shipping address:', shippingAddressData);
+      } else {
+        // Validate required form fields
+        if (!fullName?.trim()) {
+          setPaymentError('Please enter your full name');
+          setIsProcessing(false);
+          return;
         }
         
-        return addressParts;
-      };
-      
-      const shippingAddressParts = parseAddress(deliveryAddress);
-      const billingAddressParts = useSameAddressForBilling 
-        ? shippingAddressParts
-        : parseAddress(billingAddress);
-      
-      const shippingAddressData = {
-        name: fullName,
-        mobileNumber: phoneNumber,
-        zipCode: pincode,
-        street: shippingAddressParts.street,
-        city: shippingAddressParts.city,
-        state: shippingAddressParts.state,
-        country: 'India', // Default country
-        landmark: shippingAddressParts.landmark,
-      };
-      
-      const billingAddressData = useSameAddressForBilling 
-        ? shippingAddressData
-        : {
-            name: billingFullName,
-            mobileNumber: billingPhoneNumber,
-            zipCode: billingPincode,
-            street: billingAddressParts.street,
-            city: billingAddressParts.city,
-            state: billingAddressParts.state,
-            country: 'India', // Default country
-            landmark: billingAddressParts.landmark,
-          };
-      
-      // For proper validation, ensure required fields are not empty
-      const ensureRequiredFields = (address: any) => {
-        // If city is empty, use a fallback
-        if (!address.city) {
-          address.city = 'Unknown';
+        if (!phoneNumber?.trim()) {
+          setPaymentError('Please enter your phone number');
+          setIsProcessing(false);
+          return;
         }
         
-        // If state is empty, use a fallback
-        if (!address.state) {
-          address.state = 'Unknown';
+        if (!pincode?.trim()) {
+          setPaymentError('Please enter your pincode');
+          setIsProcessing(false);
+          return;
         }
         
-        return address;
-      };
+        if (!deliveryAddress?.trim()) {
+          setPaymentError('Please enter your delivery address');
+          setIsProcessing(false);
+          return;
+        }
+        
+        // Create order address from form data
+        shippingAddressData = createOrderAddressFromForm(fullName, phoneNumber, pincode, deliveryAddress);
+        console.log('Created shipping address from form:', shippingAddressData);
+      }
+      
+      // Handle billing address
+      if (useSameAddressForBilling) {
+        billingAddressData = shippingAddressData;
+      } else if (selectedBillingAddress) {
+        billingAddressData = convertToOrderAddress(selectedBillingAddress);
+      } else {
+        // Validate billing form fields
+        if (!billingFullName?.trim()) {
+          setPaymentError('Please enter billing full name');
+          setIsProcessing(false);
+          return;
+        }
+        
+        if (!billingPhoneNumber?.trim()) {
+          setPaymentError('Please enter billing phone number');
+          setIsProcessing(false);
+          return;
+        }
+        
+        if (!billingPincode?.trim()) {
+          setPaymentError('Please enter billing pincode');
+          setIsProcessing(false);
+          return;
+        }
+        
+        if (!billingAddress?.trim()) {
+          setPaymentError('Please enter billing address');
+          setIsProcessing(false);
+          return;
+        }
+        
+        billingAddressData = createOrderAddressFromForm(billingFullName, billingPhoneNumber, billingPincode, billingAddress);
+      }
       
       // Log the actual payment method value before submission
       console.log('Selected payment method:', paymentMethod);
@@ -274,8 +298,8 @@ export default function CheckoutPage() {
       // 3. Create order request
       const orderData = {
         items: orderItems,
-        shippingAddress: ensureRequiredFields(shippingAddressData),
-        billingAddress: ensureRequiredFields(billingAddressData),
+        shippingAddress: shippingAddressData,
+        billingAddress: billingAddressData,
         paymentMethod: paymentMethod.toLowerCase(), // Ensure lowercase to match backend expectations
       };
       
@@ -326,8 +350,28 @@ export default function CheckoutPage() {
       }
     } catch (error) {
       console.error('Error during checkout:', error);
-      setPaymentError(error instanceof Error ? error.message : 'An error occurred during checkout.');
+      
+      // Better error handling with specific error types
+      let errorMessage = 'An error occurred during checkout.';
+      
+      if (error instanceof Error) {
+        // Handle specific error types
+        if (error.message.includes('authentication') || error.message.includes('unauthorized')) {
+          errorMessage = 'Please log in to complete your order.';
+          router.push('/login?returnUrl=/checkout');
+          return;
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message.includes('validation')) {
+          errorMessage = 'Please check your order details and try again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setPaymentError(errorMessage);
       setIsProcessing(false);
+      setPaymentStarted(false); // Reset payment state on error
     }
   };
   
@@ -350,6 +394,23 @@ export default function CheckoutPage() {
     setPaymentError(error.message || 'Payment processing failed.');
   };
   
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16 max-w-5xl">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ed875a]"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to login if not authenticated (no guest checkout)
+  if (!isAuthenticated) {
+    router.push('/login?returnUrl=/checkout');
+    return null;
+  }
+
   if (items.length === 0) {
     return (
       <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 md:py-16 max-w-5xl">
@@ -826,7 +887,20 @@ export default function CheckoutPage() {
             {/* Place order button using CheckoutForm component */}
             {paymentError && (
               <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-md">
-                <p className="text-sm text-red-600 dark:text-red-400">{paymentError}</p>
+                <div className="flex items-start">
+                  <svg className="h-5 w-5 text-red-400 mt-0.5 mr-3 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+                  </svg>
+                  <div className="flex-1">
+                    <p className="text-sm text-red-600 dark:text-red-400">{paymentError}</p>
+                    <button 
+                      onClick={() => setPaymentError(null)}
+                      className="mt-1 text-xs text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 underline"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
             

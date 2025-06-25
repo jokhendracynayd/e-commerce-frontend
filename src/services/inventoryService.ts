@@ -2,9 +2,9 @@ import {
   ProductAvailability, 
   VariantAvailability, 
   BatchAvailabilityRequest, 
-  BatchAvailabilityResponse,
-  inventoryApi
-} from '@/lib/api/inventory-api';
+  BatchAvailabilityResponse
+} from '@/types/inventory';
+import { inventoryApi } from '@/lib/api/inventory-api';
 
 // Cache for availability data to prevent repeated API calls
 const availabilityCache = {

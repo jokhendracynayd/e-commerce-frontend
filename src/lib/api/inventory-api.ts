@@ -2,32 +2,12 @@ import { AxiosResponse } from 'axios';
 import axiosClient from './axios-client';
 import { ENDPOINTS } from './endpoints';
 import { handleApiError } from './error-handler';
-
-// Types for inventory responses
-export interface ProductAvailability {
-  productId: string;
-  availableQuantity: number;
-  stockStatus: string; // "IN_STOCK", "LOW_STOCK", "OUT_OF_STOCK"
-  updatedAt: Date;
-}
-
-export interface VariantAvailability {
-  productId: string;
-  variantId: string;
-  availableQuantity: number;
-  stockStatus: string; // "IN_STOCK", "LOW_STOCK", "OUT_OF_STOCK"
-  updatedAt: Date;
-}
-
-export interface BatchAvailabilityRequest {
-  productIds?: string[];
-  variantIds?: string[];
-}
-
-export interface BatchAvailabilityResponse {
-  products: ProductAvailability[];
-  variants: VariantAvailability[];
-}
+import {
+  ProductAvailability,
+  VariantAvailability,
+  BatchAvailabilityRequest,
+  BatchAvailabilityResponse
+} from '@/types/inventory';
 
 // Inventory API functions
 export const inventoryApi = {

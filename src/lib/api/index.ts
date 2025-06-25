@@ -7,6 +7,12 @@ export * from './error-handler';
 // Export auth-related functions and types
 export * from './auth-api';
 
+// Export analytics-related functions and types
+export * from './analytics-api';
+
+// Export recommendations-related functions and types
+export * from './recommendations-api';
+
 // Export product-related functions and types
 export * from './products-api';
 
@@ -45,6 +51,8 @@ import ordersApi from './orders-api';
 import userApi from './user-api';
 import categoriesApi from './categories-api';
 import wishlistApi from './wishlist-api';
+import analyticsApi from './analytics-api';
+import recommendationsApi from './recommendations-api';
 
 const api = {
   auth: authApi,
@@ -54,6 +62,8 @@ const api = {
   user: userApi,
   categories: categoriesApi,
   wishlist: wishlistApi,
+  analytics: analyticsApi,
+  recommendations: recommendationsApi,
 };
 
 export default api; 

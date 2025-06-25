@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { ProductAvailability, VariantAvailability } from '@/lib/api/inventory-api';
+import { ProductAvailability, VariantAvailability } from '@/types/inventory';
 import { inventoryService } from '@/services/inventoryService';
 
 interface InventoryStatusProps {

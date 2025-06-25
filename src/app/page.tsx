@@ -5,6 +5,7 @@ import { CategoryNavigation } from "@/components/product/CategoryNavigation";
 import { CategoryGroups } from "@/components/product/CategoryGroups";
 import { TrendingProducts } from "@/components/product/TrendingProducts";
 import { DealOfTheDay } from "@/components/product/DealOfTheDay";
+import { PageViewTracker } from "@/components/tracking/PageViewTracker";
 import { getCategoryGroups } from "@/services/categoryService";
 import { getTrendingProducts, getDealOfTheDay } from "@/services/productService";
 
@@ -21,6 +22,16 @@ export default async function Home() {
   
   return (
     <div className="bg-gray-50 dark:bg-gray-900">
+      {/* Page View Tracking */}
+      <PageViewTracker 
+        pageCategory="home"
+        metadata={{
+          categoriesCount: categoryGroups.length,
+          trendingProductsCount: trendingProducts.length,
+          hasDealOfTheDay: !!dealOfTheDay
+        }}
+      />
+      
       {/* Category Navigation Section */}
       <CategoryNavigation />
 
