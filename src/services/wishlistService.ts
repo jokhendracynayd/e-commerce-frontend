@@ -328,6 +328,11 @@ export async function addToWishlist(
       // Invalidate cache after successful addition
       invalidateCache();
       
+      // Emit wishlist update event
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('wishlist:updated'));
+      }
+      
       return {
         success: true,
         error: null,
@@ -411,6 +416,11 @@ export async function removeFromWishlist(
       
       // Invalidate cache after successful removal
       invalidateCache();
+      
+      // Emit wishlist update event
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('wishlist:updated'));
+      }
       
       return {
         success: true,

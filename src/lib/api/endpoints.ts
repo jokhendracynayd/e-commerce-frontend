@@ -98,6 +98,7 @@ export const ENDPOINTS = {
     BASE: '/wishlist',
     ADD: '/wishlist/add',
     REMOVE: (productId: string) => `/wishlist/${productId}`,
+    CHECK: (productId: string) => `/wishlist/check/${productId}`,
   },
   
   COUPONS: {
