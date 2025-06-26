@@ -8,6 +8,8 @@ import { getListingProducts } from '@/services/productlist-data';
 import { useCategories } from '@/context/CategoryContext';
 import { CategoryNode } from '@/types/categories';
 import { CategoryBreadcrumb } from '@/components/product/CategoryBreadcrumb';
+import { PageViewTracker } from '@/components/tracking/PageViewTracker';
+import { useActivityTracking } from '@/hooks/useActivityTracking';
 
 type SortOption = {
   id: string;
@@ -27,6 +29,7 @@ const sortOptions: SortOption[] = [
 export default function CategoryPage() {
   const params = useParams();
   const categorySlug = typeof params.category === 'string' ? params.category : '';
+  const { trackCategoryView, trackFilterUse, trackSortUse } = useActivityTracking();
   
   // Get categories from context
   const { categoryTree, flatCategories, isLoading: categoriesLoading } = useCategories();
@@ -81,6 +84,9 @@ export default function CategoryPage() {
       
       if (category) {
         setCurrentCategory(category);
+        
+        // Track category view
+        trackCategoryView(category.id, category.name);
         
         // Find children of this category
         const children = flatCategories.filter(cat => cat.parentId === category.id);
@@ -215,6 +221,18 @@ export default function CategoryPage() {
   }, [filters, sortBy, products]); // Only re-run when filters, sortBy or products change
 
   const handleFilterChange = (newFilters: FilterState) => {
+    // Track filter usage
+    Object.entries(newFilters).forEach(([filterType, filterValue]) => {
+      if (Array.isArray(filterValue) && filterValue.length > 0) {
+        trackFilterUse(filterType, filterValue.join(','), filteredProducts.length);
+      } else if (Array.isArray(filterValue) && filterType === 'priceRange') {
+        const [min, max] = filterValue as number[];
+        if (min !== 0 || max !== 50000) {
+          trackFilterUse('price', `${min}-${max}`, filteredProducts.length);
+        }
+      }
+    });
+    
     setFilters(newFilters);
   };
 
@@ -381,6 +399,27 @@ export default function CategoryPage() {
   
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Page View Tracking */}
+      {currentCategory && (
+        <PageViewTracker 
+          pageCategory="category"
+          metadata={{
+            categoryId: currentCategory.id,
+            categoryName: currentCategory.name,
+            categorySlug: categorySlug,
+            parentCategoryId: currentCategory.parentId,
+            productsCount: products.length,
+            filteredProductsCount: filteredProducts.length,
+            currentPage,
+            sortBy,
+            activeFilters: Object.entries(filters).filter(([_, value]) => 
+              Array.isArray(value) ? value.length > 0 : false
+            ).map(([key, _]) => key),
+            viewMode
+          }}
+        />
+      )}
+      
       <div className="flex flex-col md:flex-row md:space-x-8">
         {/* Filter sidebar and category navigation */}
         <aside className={`
@@ -462,7 +501,11 @@ export default function CategoryPage() {
               {sortOptions.map((option) => (
                 <button
                   key={option.id}
-                  onClick={() => setSortBy(option.id)}
+                  onClick={() => {
+                    setSortBy(option.id);
+                    trackSortUse(option.id, option.name === 'Price -- Low to High' ? 'asc' : 
+                                           option.name === 'Price -- High to Low' ? 'desc' : undefined);
+                  }}
                   className={`text-sm font-medium whitespace-nowrap px-3 py-2 border-b-2 -mb-px transition-colors duration-200 ${
                     sortBy === option.id
                       ? 'text-blue-600 border-blue-600 dark:text-blue-400 dark:border-blue-400'

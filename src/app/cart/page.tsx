@@ -9,11 +9,14 @@ import { useAuth } from '@/context/AuthContext';
 import { motion } from 'framer-motion';
 import { useProductAvailability } from '@/hooks/useProductAvailability';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
+import { PageViewTracker } from '@/components/tracking/PageViewTracker';
+import { useActivityTracking } from '@/hooks/useActivityTracking';
 
 export default function CartPage() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const { items, removeFromCart, updateQuantity, clearCart } = useCart();
+  const { trackRemoveFromCart, trackCheckoutStart } = useActivityTracking();
   const [applyingCoupon, setApplyingCoupon] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [showCouponSuccess, setShowCouponSuccess] = useState(false);
@@ -214,6 +217,23 @@ export default function CartPage() {
   
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-12 max-w-7xl">
+      {/* Page View Tracking */}
+      <PageViewTracker 
+        pageCategory="checkout"
+        metadata={{
+          cartItemsCount: orderSummary.itemCount,
+          cartTotal: orderSummary.total,
+          currency: orderSummary.defaultCurrency,
+          subtotal: orderSummary.subtotal,
+          shippingCost: orderSummary.shippingCost,
+          taxAmount: orderSummary.tax,
+          discountAmount: orderSummary.discount,
+          hasCouponApplied: applyingCoupon,
+          unavailableItemsCount: unavailableItems.size,
+          canCheckout: !isCheckoutDisabled
+        }}
+      />
+      
       <div className="mb-6 sm:mb-8 md:mb-10">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2 tracking-tight text-center sm:text-left">Shopping Cart</h1>
         <p className="text-gray-600 dark:text-gray-400 text-center sm:text-left">
@@ -279,7 +299,10 @@ export default function CartPage() {
                       </div>
                     </div>
                     <button 
-                      onClick={() => removeFromCart(item.product.id)}
+                      onClick={() => {
+                        trackRemoveFromCart(item.product.id, item.quantity, item.selectedColor?.id);
+                        removeFromCart(item.product.id);
+                      }}
                       className="text-gray-400 hover:text-[#d44506] dark:text-gray-500 dark:hover:text-[#ed875a] transition-colors p-1 sm:p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                       aria-label="Remove item"
                     >
@@ -486,6 +509,9 @@ export default function CartPage() {
             {/* Checkout button */}
             <button 
               onClick={() => {
+                // Track checkout start
+                trackCheckoutStart(orderSummary.total, orderSummary.itemCount);
+                
                 if (isAuthenticated) {
                   router.push('/checkout');
                 } else {

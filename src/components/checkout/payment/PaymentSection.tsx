@@ -52,7 +52,7 @@ interface PaymentSectionProps {
 
 const PaymentSection = ({ 
   onPaymentDataChange, 
-  initialMethod = 'card',
+  initialMethod = 'cod',
   paymentMethods = DEFAULT_PAYMENT_METHODS
 }: PaymentSectionProps) => {
   const [selectedMethodId, setSelectedMethodId] = useState(initialMethod);

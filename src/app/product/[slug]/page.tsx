@@ -10,11 +10,15 @@ import { ImageGallery } from '@/components/product/detail/ImageGallery';
 import { ProductInfo } from '@/components/product/detail/ProductInfo';
 import { ProductDetails } from '@/components/product/detail/ProductDetails';
 import { RelatedProducts } from '@/components/product/detail/RelatedProducts';
+import { PageViewTracker } from '@/components/tracking/PageViewTracker';
 import { getCanonicalProductUrl } from '@/utils/url-utils';
 import { getProductBySlug } from '@/services/productService';
 import { productsApi } from '@/lib/api/products-api';
+import { useActivityTracking } from '@/hooks/useActivityTracking';
+import { UserActivityType } from '@/types/analytics';
 
 // API response mapper - transforms API response to match UI's expected format
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapApiResponseToProductDetail = (apiData: any, fallbackData: ProductDetail): ProductDetail => {
   if (!apiData) return fallbackData;
   
@@ -23,18 +27,18 @@ const mapApiResponseToProductDetail = (apiData: any, fallbackData: ProductDetail
   
   // Map API response to existing UI data structure
   return {
-    id: data.id || fallbackData.id,
-    slug: data.slug || fallbackData.slug,
-    title: data.title || fallbackData.title,
-    subtitle: data.shortDescription || fallbackData.subtitle,
-    brand: data.brand?.name || fallbackData.brand,
-    description: data.description || fallbackData.description,
-    price: data.discountPrice ? parseFloat(data.discountPrice) : parseFloat(data.price) || fallbackData.price,
-    originalPrice: data.discountPrice ? parseFloat(data.price) : fallbackData.originalPrice,
-    discount: data.discountPrice ? 
+    id: data?.id || fallbackData.id,
+    slug: data?.slug || fallbackData.slug,
+    title: data?.title || fallbackData.title,
+    subtitle: data?.shortDescription || fallbackData.subtitle,
+    brand: data?.brand?.name || fallbackData.brand,
+    description: data?.description || fallbackData.description,
+    price: data?.discountPrice ? parseFloat(data.discountPrice) : (data?.price ? parseFloat(data.price) : fallbackData.price),
+    originalPrice: data?.discountPrice ? (data?.price ? parseFloat(data.price) : fallbackData.originalPrice) : fallbackData.originalPrice,
+    discount: data?.discountPrice && data?.price ? 
       `${Math.round(((parseFloat(data.price) - parseFloat(data.discountPrice)) / parseFloat(data.price)) * 100)}% off` : 
       fallbackData.discount,
-    discountPercentage: data.discountPrice ? 
+    discountPercentage: data?.discountPrice && data?.price ? 
       Math.round(((parseFloat(data.price) - parseFloat(data.discountPrice)) / parseFloat(data.price)) * 100) : 
       fallbackData.discountPercentage,
     rating: data.averageRating || fallbackData.rating,
@@ -42,9 +46,12 @@ const mapApiResponseToProductDetail = (apiData: any, fallbackData: ProductDetail
     inStock: data.stockQuantity > 0 || fallbackData.inStock,
     stockCount: data.stockQuantity || fallbackData.stockCount,
     isAssured: fallbackData.isAssured, // Keep UI value
-    badges: data.tags?.map((tag: any) => tag.name) || fallbackData.badges,
-    images: data.images?.map((img: any) => img.imageUrl) || fallbackData.images,
-    colorVariants: data.variants?.map((variant: any, index: number) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    badges: data?.tags?.map((tag: any) => tag.name) || fallbackData.badges,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    images: data?.images?.map((img: any) => img.imageUrl) || fallbackData.images,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    colorVariants: data?.variants?.map((variant: any, index: number) => ({
       id: variant.id,
       color: variant.variantName,
       hex: fallbackData.colorVariants?.[index]?.hex || '#000000',
@@ -83,17 +90,17 @@ const mapApiResponseToProductDetail = (apiData: any, fallbackData: ProductDetail
 export default function ProductPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const { trackProductView, trackActivity } = useActivityTracking();
   
   // The slug parameter here could be either:
-  // 1. The actual product ID (from /:productName/p/:productId via rewrite)
+  // 1. The actual product ID (from /:productName/p/:productId via rewrite)  
   // 2. The product slug (from /product/:slug direct access)
-  const slugOrId = Array.isArray(params.slug) ? params.slug[0] : params.slug;
+  const slugOrId = params ? (Array.isArray(params.slug) ? params.slug[0] : params.slug) : null;
   
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [relatedProducts, setRelatedProducts] = useState<ProductDetail[]>([]);
   const [canonicalUrl, setCanonicalUrl] = useState<string>('');
-  const [apiResponse, setApiResponse] = useState<any>(null);
   
   useEffect(() => {
     const fetchProductData = async () => {
@@ -113,13 +120,11 @@ export default function ProductPage() {
             // Try fetching by ID first (in case of URL rewrites)
             productApiData = await productsApi.getProductById(slugOrId);
             console.log('API Product Data fetched:', productApiData);
-            setApiResponse(productApiData);
-          } catch (idError) {
+                      } catch {
             try {
               // Try by slug if ID fails
               productApiData = await getProductBySlug(slugOrId);
               console.log('API Product Data fetched by slug:', productApiData);
-              setApiResponse(productApiData);
             } catch (slugError) {
               console.log('Could not fetch product data, using fallback:', slugError);
             }
@@ -128,6 +133,30 @@ export default function ProductPage() {
           // Map API data to our UI format, using fallback data for missing fields
           const mappedProductData = mapApiResponseToProductDetail(productApiData, fallbackUiData);
           setProduct(mappedProductData);
+          
+          // Track product view once we have the product data
+          if (mappedProductData.id) {
+            trackProductView(mappedProductData.id, 'product_page');
+            
+            // Also track additional metadata for better analytics
+            trackActivity(UserActivityType.PRODUCT_VIEW, {
+              entityId: mappedProductData.id,
+              entityType: 'product',
+              metadata: {
+                source: 'product_page',
+                productSlug: mappedProductData.slug,
+                productTitle: mappedProductData.title,
+                productBrand: mappedProductData.brand,
+                productPrice: mappedProductData.price,
+                productCategory: mappedProductData.categories?.[0]?.name || 'uncategorized',
+                hasDiscount: !!mappedProductData.originalPrice && mappedProductData.originalPrice > mappedProductData.price,
+                inStock: mappedProductData.inStock,
+                referrerSource: searchParams?.get('source') || 'direct',
+                productRating: mappedProductData.rating,
+                productReviews: mappedProductData.reviewCount
+              }
+            });
+          }
           
           // Generate canonical URL for SEO
           const category = mappedProductData.categories?.[0]?.name;
@@ -147,7 +176,7 @@ export default function ProductPage() {
     };
     
     fetchProductData();
-  }, [slugOrId]);
+  }, [slugOrId, searchParams, trackActivity, trackProductView]);
   
   // Show loading state
   if (isLoading) {
@@ -182,6 +211,22 @@ export default function ProductPage() {
       <Head>
         {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
       </Head>
+      
+      {/* Page View Tracking */}
+      <PageViewTracker 
+        pageCategory="product"
+        metadata={{
+          productId: product.id,
+          productSlug: product.slug,
+          productTitle: product.title,
+          productBrand: product.brand,
+          productPrice: product.price,
+          productCategory: product.categories?.[0]?.name || 'uncategorized',
+          inStock: product.inStock,
+          hasDiscount: !!product.originalPrice && product.originalPrice > product.price,
+          source: searchParams?.get('source') || 'direct'
+        }}
+      />
       
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-7xl">
         {/* Breadcrumbs */}

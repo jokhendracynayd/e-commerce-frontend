@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { categoriesApi } from '@/lib/api';
 import { CategoryNode } from '@/types/categories';
 import { SearchBar } from './search/SearchBar';
+import { useWishlistCount } from '@/hooks/useWishlistCount';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -34,6 +35,9 @@ export function Header() {
   
   // Use auth context with isLoading state
   const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth();
+  
+  // Use wishlist count hook
+  const { count: wishlistCount, loading: wishlistLoading } = useWishlistCount();
   
   // Helper function to flatten category tree
   const flattenCategoryTree = (categories: CategoryNode[]): CategoryNode[] => {
@@ -336,7 +340,7 @@ export function Header() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-20 h-8 sm:w-24 sm:h-9 md:w-28 md:h-10 relative">
+              <div className="w-24 h-10 sm:w-28 sm:h-11 md:w-40 md:h-16 relative">
                 <Image src="/images/logo/logo.svg" alt="Logo" fill className="object-contain" />
               </div>
             </Link>
@@ -434,7 +438,11 @@ export function Header() {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 lg:h-6 lg:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
-              <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full">3</span>
+              {isAuthenticated && wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full">
+                  {wishlistLoading ? '...' : wishlistCount > 99 ? '99+' : wishlistCount}
+                </span>
+              )}
             </Link>
             
             {/* User menu */}

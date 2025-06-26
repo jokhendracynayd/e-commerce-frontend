@@ -6,9 +6,10 @@ import { ProductDetail, ColorVariant } from '@/types/product';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import WishlistButton from '@/components/product/WishlistButton';
-import { ProductAvailability, VariantAvailability } from '@/lib/api/inventory-api';
+import { ProductAvailability, VariantAvailability } from '@/types/inventory';
 import { useProductAvailability } from '@/hooks/useProductAvailability';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
+import { useActivityTracking } from '@/hooks/useActivityTracking';
 
 interface ProductInfoProps {
   product: ProductDetail;
@@ -18,6 +19,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
   const router = useRouter();
   const { addToCart } = useCart();
   const { user } = useAuth();
+  const { trackAddToCart } = useActivityTracking();
   const [selectedColorVariant, setSelectedColorVariant] = useState<ColorVariant | undefined>(
     product.colorVariants && product.colorVariants.length > 0 
       ? product.colorVariants[0] 
@@ -69,6 +71,9 @@ export function ProductInfo({ product }: ProductInfoProps) {
   // Handle Add to Cart
   const handleAddToCart = () => {
     setAddingToCart(true);
+    
+    // Track add to cart activity
+    trackAddToCart(product.id, quantity, product.price, selectedColorVariant?.id);
     
     // Add to cart with a slight delay to show animation
     setTimeout(() => {

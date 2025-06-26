@@ -7,11 +7,14 @@ import Link from 'next/link';
 import { productsApi } from '@/lib/api';
 import type { Product, ProductListParams, ApiProductListResponse } from '@/types/product';
 import { SearchBar } from './SearchBar';
+import { PageViewTracker } from '@/components/tracking/PageViewTracker';
+import { useActivityTracking } from '@/hooks/useActivityTracking';
 
 export function ProductSearch() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams.get('q') || '';
+  const { trackSearch, trackFilterUse, trackSortUse } = useActivityTracking();
   const [products, setProducts] = useState<Product[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,6 +79,17 @@ export function ProductSearch() {
       
       setProducts(productsData);
       setTotalCount(totalItems);
+      
+      // Track search if there's a query and results
+      if (query && query.trim()) {
+        trackSearch(query, totalItems, {
+          categories: selectedCategories,
+          brands: selectedBrands,
+          priceRange: currentPriceRange,
+          sortBy: filters.sortBy,
+          page: filters.page
+        });
+      }
       
       // Update available filters based on response (if the API supports this)
       // This is a mock for now - in a real app, this data would come from the API
@@ -163,6 +177,10 @@ export function ProductSearch() {
   // Handle sort change
   const handleSortChange = (sortString: string) => {
     const [sortBy, sortDirection] = sortString.split(':');
+    
+    // Track sort usage
+    trackSortUse(sortBy, sortDirection as 'asc' | 'desc');
+    
     setFilters(prev => ({ 
       ...prev, 
       sortBy: sortBy as 'price' | 'popularity' | 'rating' | 'newest',
@@ -179,6 +197,10 @@ export function ProductSearch() {
         ? prev.filter(id => id !== categoryId)
         : [...prev, categoryId];
       
+      // Track filter usage
+      const categoryName = availableCategories.find(cat => cat.id === categoryId)?.name || categoryId;
+      trackFilterUse('category', categoryName, totalCount);
+      
       return newCategories;
     });
     setFilters(prev => ({ ...prev, page: 1 }));
@@ -191,6 +213,10 @@ export function ProductSearch() {
       const newBrands = prev.includes(brandId)
         ? prev.filter(id => id !== brandId)
         : [...prev, brandId];
+      
+      // Track filter usage
+      const brandName = availableBrands.find(brand => brand.id === brandId)?.name || brandId;
+      trackFilterUse('brand', brandName, totalCount);
       
       return newBrands;
     });
@@ -222,6 +248,22 @@ export function ProductSearch() {
   
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Page View Tracking */}
+      <PageViewTracker 
+        pageCategory="search"
+        metadata={{
+          searchQuery: query,
+          resultsCount: totalCount,
+          currentPage,
+          sortBy: filters.sortBy,
+          sortDirection: filters.sortDirection,
+          selectedCategories,
+          selectedBrands,
+          priceRange: currentPriceRange,
+          hasResults: products.length > 0
+        }}
+      />
+      
       {/* Search bar */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">

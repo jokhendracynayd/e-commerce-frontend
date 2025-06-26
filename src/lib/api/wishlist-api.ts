@@ -143,6 +143,33 @@ const wishlistApi = {
     } catch (error) {
       throw handleApiError(error);
     }
+  },
+  
+  /**
+   * Check if a product is in the wishlist (efficient single-product check)
+   */
+  checkProductInWishlist: async (productId: string, cancelToken?: CancelToken): Promise<boolean> => {
+    try {
+      // Validate input
+      if (!productId) {
+        throw new Error('Product ID is required');
+      }
+      
+      const response: AxiosResponse = await axiosClient.get(
+        `${ENDPOINTS.WISHLIST.BASE}/check/${productId}`,
+        {
+          cancelToken,
+          timeout: DEFAULT_TIMEOUT
+        }
+      );
+      
+      // Extract boolean response
+      return response.data.data || false;
+    } catch (error) {
+      console.error('Error checking product in wishlist:', error);
+      // Return false on error to avoid breaking the UI
+      return false;
+    }
   }
 };
 
