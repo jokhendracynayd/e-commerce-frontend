@@ -51,6 +51,11 @@ const nextConfig: NextConfig = {
         hostname: 'image01-in.oneplus.net',
         pathname: '**',
       },
+      {
+        protocol: 'https',
+        hostname: 'my-ecommerce-uploads.s3.ap-south-1.amazonaws.com',
+        pathname: '**',
+      },
     ],
   },
   // Add URL rewrites for SEO-friendly product URLs
