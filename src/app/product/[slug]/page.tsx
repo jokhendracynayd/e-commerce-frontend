@@ -13,6 +13,7 @@ import { RelatedProducts } from '@/components/product/detail/RelatedProducts';
 import { getCanonicalProductUrl } from '@/utils/url-utils';
 import { getProductBySlug } from '@/services/productService';
 import { productsApi } from '@/lib/api/products-api';
+import { useAnalyticsContext } from '@/context/AnalyticsContext';
 
 // API response mapper - transforms API response to match UI's expected format
 const mapApiResponseToProductDetail = (apiData: any, fallbackData: ProductDetail): ProductDetail => {
@@ -83,6 +84,7 @@ const mapApiResponseToProductDetail = (apiData: any, fallbackData: ProductDetail
 export default function ProductPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const analytics = useAnalyticsContext();
   
   // The slug parameter here could be either:
   // 1. The actual product ID (from /:productName/p/:productId via rewrite)
@@ -128,6 +130,41 @@ export default function ProductPage() {
           // Map API data to our UI format, using fallback data for missing fields
           const mappedProductData = mapApiResponseToProductDetail(productApiData, fallbackUiData);
           setProduct(mappedProductData);
+          
+          // Track product view analytics
+          console.log('🔍 Analytics Debug - Starting trackProductView:', {
+            productId: mappedProductData.id,
+            productSlug: mappedProductData.slug,
+            analytics: analytics ? 'Analytics context available' : 'Analytics context missing',
+            isFunction: typeof analytics?.trackProductView === 'function'
+          });
+          
+          analytics.trackProductView(
+            mappedProductData.id,
+            mappedProductData.slug,
+            'product_page',
+            undefined, // duration - could be tracked separately
+            {
+              productTitle: mappedProductData.title,
+              brandName: mappedProductData.brand,
+              categoryName: mappedProductData.categories?.[0]?.name,
+              price: mappedProductData.price,
+              originalPrice: mappedProductData.originalPrice,
+              discountPercentage: mappedProductData.discountPercentage,
+              rating: mappedProductData.rating,
+              reviewCount: mappedProductData.reviewCount,
+              inStock: mappedProductData.inStock,
+              stockCount: mappedProductData.stockCount,
+              badges: mappedProductData.badges,
+              isAssured: mappedProductData.isAssured,
+              source: searchParams.get('source') || 'direct',
+              referrer: searchParams.get('ref') || undefined,
+            }
+          ).then(() => {
+            console.log('✅ Analytics Debug - trackProductView completed successfully');
+          }).catch((error) => {
+            console.error('❌ Analytics Debug - trackProductView failed:', error);
+          });
           
           // Generate canonical URL for SEO
           const category = mappedProductData.categories?.[0]?.name;

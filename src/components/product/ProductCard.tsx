@@ -6,6 +6,7 @@ import Link from 'next/link';
 import WishlistButton from './WishlistButton';
 import ProductAvailabilityBadge from './ProductAvailabilityBadge';
 import ProductAvailabilityIndicator from './ProductAvailabilityIndicator';
+import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 
 export type ColorVariant = {
@@ -79,6 +80,7 @@ export function ProductCard({
   const [isHovered, setIsHovered] = useState(false);
   const [currentVariantIndex, setCurrentVariantIndex] = useState(0);
   const [currentImage, setCurrentImage] = useState(image);
+  const analytics = useAnalyticsContext();
   
   // Auto-cycle through color variant images when hovered
   useEffect(() => {
@@ -113,7 +115,7 @@ export function ProductCard({
   };
   
   // Calculate discount percentage if both price and originalPrice are available
-  let discountPercentage = null;
+  let discountPercentage: number | null = null;
   if (price && originalPrice && originalPrice > price) {
     // Calculate discount percentage (avoid division by zero)
     const calculatedDiscount = ((originalPrice - price) / originalPrice) * 100;
@@ -124,6 +126,27 @@ export function ProductCard({
       discountPercentage = Math.min(Math.max(1, Math.round(calculatedDiscount)), 90);
     }
   }
+
+  // Handle product click tracking
+  const handleProductClick = () => {
+    analytics.trackProductClick(
+      id,
+      'product_grid', // source
+      undefined, // position - could be passed as prop
+      {
+        productTitle: title,
+        productPrice: price,
+        originalPrice,
+        discount: discountPercentage,
+        rating,
+        reviewCount,
+        badge,
+        isNew,
+        isBestSeller,
+        sponsoredTag,
+      }
+    );
+  };
 
   return (
     <div
@@ -139,7 +162,7 @@ export function ProductCard({
     >
       {/* Image Container */}
       <div className="relative h-28 xs:h-36 sm:h-48 md:h-56 lg:h-64 w-full overflow-hidden">
-        <Link href={link} className="block h-full w-full">
+        <Link href={link} onClick={handleProductClick} className="block h-full w-full">
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50/30 dark:bg-gray-700/20">
             <Image 
               src={currentImage} 
@@ -222,7 +245,7 @@ export function ProductCard({
       
       {/* Product Info */}
       <div className="p-1.5 xs:p-2 sm:p-3 md:p-4">
-        <Link href={link} className="block group-hover:text-primary transition-colors">
+        <Link href={link} onClick={handleProductClick} className="block group-hover:text-primary transition-colors">
           <h3 className="font-heading font-medium text-gray-800 dark:text-gray-100 line-clamp-2 h-8 xs:h-9 sm:h-12 text-[11px] xs:text-xs sm:text-sm md:text-base">
             {title}
           </h3>

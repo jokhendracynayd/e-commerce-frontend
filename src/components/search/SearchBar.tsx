@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { debounce } from 'lodash';
 import { productsApi } from '@/lib/api';
+import { useAnalyticsContext } from '@/context/AnalyticsContext';
 import type { Product } from '@/types/product';
 
 interface SearchBarProps {
@@ -33,6 +34,7 @@ export function SearchBar({
   const [showResults, setShowResults] = useState(false);
   const [selectedResultIndex, setSelectedResultIndex] = useState(-1);
   const router = useRouter();
+  const analytics = useAnalyticsContext();
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   
@@ -68,9 +70,36 @@ export function SearchBar({
       try {
         const results = await productsApi.searchProducts(term, 8);
         setSearchResults(results);
+        
+        // Track search analytics
+        analytics.trackSearch(
+          term,
+          results.length,
+          undefined, // filters - not applicable for basic search
+          undefined, // sortBy - not applicable for basic search
+          {
+            source: 'search_bar',
+            autocomplete: true,
+            hasResults: results.length > 0,
+          }
+        );
       } catch (error) {
         console.error('Error searching products:', error);
         setSearchResults([]);
+        
+        // Track failed search
+        analytics.trackSearch(
+          term,
+          0,
+          undefined,
+          undefined,
+          {
+            source: 'search_bar',
+            autocomplete: true,
+            hasResults: false,
+            error: 'search_failed',
+          }
+        );
       } finally {
         setIsLoading(false);
       }
@@ -100,8 +129,36 @@ export function SearchBar({
     if (selectedResultIndex >= 0 && searchResults[selectedResultIndex]) {
       // Navigate to the selected product
       const selectedProduct = searchResults[selectedResultIndex];
+      
+      // Track product click from search
+      analytics.trackProductClick(
+        selectedProduct.id,
+        'search_autocomplete',
+        selectedResultIndex,
+        {
+          productTitle: selectedProduct.title,
+          searchTerm: searchTerm.trim(),
+          productPrice: selectedProduct.price,
+          categoryName: selectedProduct.category?.name,
+        }
+      );
+      
       router.push(selectedProduct.category ? `/${selectedProduct.category.slug}` : `/product/${selectedProduct.slug}`);
     } else if (searchTerm.trim()) {
+      // Track search submission
+      analytics.trackSearch(
+        searchTerm.trim(),
+        searchResults.length,
+        undefined,
+        undefined,
+        {
+          source: 'search_bar',
+          autocomplete: false,
+          submissionType: 'manual',
+          hasResults: searchResults.length > 0,
+        }
+      );
+      
       // Navigate to search results page
       router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
     }

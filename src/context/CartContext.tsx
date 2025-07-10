@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useRef, ReactNod
 import { ProductDetail, ColorVariant } from '@/types/product';
 import { ContextCartItem } from '@/types/cart';
 import { useAuth } from './AuthContext';
+import { useAnalyticsContext } from './AnalyticsContext';
 import { cartApi } from '@/lib/api/cart-api';
 import { toast } from 'react-hot-toast';
 
@@ -45,6 +46,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSyncTimeRef = useRef<number>(0);
   const { isAuthenticated, user } = useAuth();
+  const analytics = useAnalyticsContext();
   const hasTriedInitialSyncRef = useRef(false);
   
   // Calculate totals from items
@@ -425,6 +427,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
             // Update successful, load latest cart state from backend
             loadBackendCart();
             toast.success('Cart updated');
+            
+            // Track analytics for cart update (treated as add to cart)
+            analytics.trackAddToCart(
+              product.id,
+              selectedColor?.id,
+              quantity,
+              product.discountPrice || product.price,
+              {
+                action: 'update_quantity',
+                previousQuantity: existingItem.quantity,
+                newQuantity: request.quantity,
+                source: 'cart_update',
+              }
+            );
           })
           .catch(error => {
             console.error('Failed to update cart item:', error);
@@ -443,6 +459,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
             // Fetch the complete cart from backend
             loadBackendCart();
             toast.success('Item added to cart');
+            
+            // Track analytics for add to cart
+            analytics.trackAddToCart(
+              product.id,
+              selectedColor?.id,
+              quantity,
+              product.discountPrice || product.price,
+              {
+                action: 'add_new',
+                source: 'product_page',
+                productTitle: product.title,
+                productSlug: product.slug,
+              }
+            );
           })
           .catch(error => {
             console.error('Failed to add item to cart:', error);
@@ -459,6 +489,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // For anonymous users, just update local state
       updateLocalCart();
       toast.success('Item added to cart');
+      
+      // Track analytics for anonymous users too
+      analytics.trackAddToCart(
+        product.id,
+        selectedColor?.id,
+        quantity,
+        product.discountPrice || product.price,
+        {
+          action: 'add_new',
+          source: 'product_page',
+          productTitle: product.title,
+          productSlug: product.slug,
+          userType: 'anonymous',
+        }
+      );
     }
     
     // Helper function to update local state
@@ -498,6 +543,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setIsLoading(true);
         cartApi.removeFromCart(cartItem.cartItemId)
           .then(() => {
+            // Track analytics for remove from cart
+            analytics.trackRemoveFromCart(
+              productId,
+              cartItem.selectedColor?.id,
+              cartItem.quantity,
+              {
+                source: 'cart_page',
+                productTitle: cartItem.product.title,
+                productSlug: cartItem.product.slug,
+                removedQuantity: cartItem.quantity,
+              }
+            );
+            
             // On success, update local state
             setItems(prevItems => prevItems.filter(item => item.product.id !== productId));
             toast.success('Item removed from cart');
@@ -517,6 +575,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     } else {
       // For anonymous users, just update local state
+      const removedItem = items.find(item => item.product.id === productId);
+      if (removedItem) {
+        // Track analytics for anonymous users
+        analytics.trackRemoveFromCart(
+          productId,
+          removedItem.selectedColor?.id,
+          removedItem.quantity,
+          {
+            source: 'cart_page',
+            productTitle: removedItem.product.title,
+            productSlug: removedItem.product.slug,
+            removedQuantity: removedItem.quantity,
+            userType: 'anonymous',
+          }
+        );
+      }
+      
       setItems(prevItems => prevItems.filter(item => item.product.id !== productId));
     }
   }, [isAuthenticated, items]);

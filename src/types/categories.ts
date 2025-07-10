@@ -2,6 +2,8 @@
  * Core category interfaces for the e-commerce application
  */
 
+import { ColorVariant } from './product';
+
 /**
  * Represents a category in the hierarchical category structure
  */
@@ -48,15 +50,7 @@ export interface CategoryReference {
   slug: string;
 }
 
-/**
- * Color variant interface for products
- */
-export interface ColorVariant {
-  id: string;
-  color: string;
-  hex: string;
-  image: string;
-}
+
 
 /**
  * Exchange offer interface

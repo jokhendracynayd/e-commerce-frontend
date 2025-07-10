@@ -121,4 +121,12 @@ export const ENDPOINTS = {
     VARIANT_AVAILABILITY: (variantId: string) => `/inventory/availability/variant/${variantId}`,
     BATCH_AVAILABILITY: '/inventory/availability/batch',
   },
+
+  ANALYTICS: {
+    TRACK_ACTIVITY: '/analytics/activity',
+    TRACK_BATCH: '/analytics/batch',
+    BROWSING_HISTORY: '/analytics/history',
+    USER_ACTIVITIES: '/analytics/activities',
+    MARK_CONVERSION: '/analytics/conversion',
+  },
 }; 
