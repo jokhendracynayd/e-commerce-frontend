@@ -121,19 +121,63 @@ export async function getCategoryProductsRecursive(
         }
       }
       
+      // Map color variants from API product variants
+      const colorVariants = product.variants?.map((variant: any) => ({
+        id: variant.id,
+        color: variant.color || variant.variantName,
+        hex: variant.colorHex || '#CCCCCC',
+        image: variant.variantImage || imageUrl
+      })).filter((variant: any) => variant.color) || [];
+      
+      // Determine product badges
+      let badge: string | undefined;
+      if (product.isNew) badge = 'New';
+      else if (product.isBestSeller) badge = 'Bestseller';
+      else if (product.badges && product.badges.length > 0) badge = product.badges[0];
+      
+      // Calculate original price if discount is available
+      let originalPrice = product.originalPrice;
+      if (!originalPrice && product.discountPrice) {
+        originalPrice = product.price;
+      }
+      
       return {
         id: product.id,
         title: product.title,
         image: imageUrl,
-        price: product.price,
-        originalPrice: product.originalPrice,
-        link: `/${categoryData.slug}`,
-        badge: product.badges && product.badges.length > 0 ? product.badges[0] : undefined,
-        rating: product.rating,
+        price: product.discountPrice || product.price,
+        originalPrice: originalPrice,
+        link: `/${product.slug}/p/${product.id}`,
+        badge: badge,
+        rating: product.averageRating || product.rating,
         reviewCount: product.reviewCount,
-        currency: "INR", // Default currency
+        currency: product.currency || "INR",
         isAssured: product.isAssured || false,
         hasFreeDel: product.hasFreeDel || false,
+        deliveryInfo: product.deliveryInfo,
+        discount: product.discount,
+        
+        // Enhanced fields for ProductCard
+        subtitle: product.subtitle,
+        colorVariants: colorVariants.length > 0 ? colorVariants : undefined,
+        bankOffer: product.bankOffer ? {
+          available: product.bankOffer.available || false,
+          discount: product.bankOffer.discount || 0,
+          bankName: product.bankOffer.bankName,
+          terms: product.bankOffer.terms,
+          validUntil: product.bankOffer.validUntil
+        } : undefined,
+        exchangeOffer: product.exchangeOffer ? {
+          available: product.exchangeOffer.available || false,
+          maxDiscount: product.exchangeOffer.maxDiscount || 0,
+          terms: product.exchangeOffer.terms,
+          brands: product.exchangeOffer.brands
+        } : undefined,
+        isNew: product.isNew || false,
+        isBestSeller: product.isBestSeller || false,
+        isSponsored: product.isSponsored || false,
+        sponsoredTag: product.isSponsored || false,
+        isLimitedDeal: product.isLimitedDeal || false,
       };
     });
     

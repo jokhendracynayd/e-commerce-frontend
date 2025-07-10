@@ -35,43 +35,43 @@ export const productDetailsData: Record<string, ProductDetail> = {
       {
         title: 'General',
         specs: [
-          { key: 'Model Name', value: 'Optimus Pro' },
-          { key: 'Color', value: 'Blue' },
-          { key: 'Dial Shape', value: 'Round' },
-          { key: 'Strap Color', value: 'Blue' },
-          { key: 'Strap Material', value: 'Silicone' }
+          { specKey: 'Model Name', specValue: 'Optimus Pro' },
+          { specKey: 'Color', specValue: 'Blue' },
+          { specKey: 'Dial Shape', specValue: 'Round' },
+          { specKey: 'Strap Color', specValue: 'Blue' },
+          { specKey: 'Strap Material', specValue: 'Silicone' }
         ]
       },
       {
         title: 'Display',
         specs: [
-          { key: 'Display Type', value: 'AMOLED' },
-          { key: 'Display Size', value: '1.43 inches' },
-          { key: 'Resolution', value: '466 x 466 pixels' },
-          { key: 'Touch Screen', value: 'Yes' },
-          { key: 'Brightness', value: '600 nits' }
+          { specKey: 'Display Type', specValue: 'AMOLED' },
+          { specKey: 'Display Size', specValue: '1.43 inches' },
+          { specKey: 'Resolution', specValue: '466 x 466 pixels' },
+          { specKey: 'Touch Screen', specValue: 'Yes' },
+          { specKey: 'Brightness', specValue: '600 nits' }
         ]
       },
       {
         title: 'Features',
         specs: [
-          { key: 'Call Function', value: 'Yes' },
-          { key: 'Bluetooth Calling', value: 'Yes' },
-          { key: 'Voice Assistant', value: 'Yes' },
-          { key: 'Heart Rate Monitoring', value: 'Yes' },
-          { key: 'SpO2 Monitoring', value: 'Yes' },
-          { key: 'Step Counter', value: 'Yes' },
-          { key: 'Sleep Tracking', value: 'Yes' },
-          { key: 'GPS', value: 'Yes' },
-          { key: 'Water Resistant', value: 'IP68' }
+          { specKey: 'Call Function', specValue: 'Yes' },
+          { specKey: 'Bluetooth Calling', specValue: 'Yes' },
+          { specKey: 'Voice Assistant', specValue: 'Yes' },
+          { specKey: 'Heart Rate Monitoring', specValue: 'Yes' },
+          { specKey: 'SpO2 Monitoring', specValue: 'Yes' },
+          { specKey: 'Step Counter', specValue: 'Yes' },
+          { specKey: 'Sleep Tracking', specValue: 'Yes' },
+          { specKey: 'GPS', specValue: 'Yes' },
+          { specKey: 'Water Resistant', specValue: 'IP68' }
         ]
       },
       {
         title: 'Battery',
         specs: [
-          { key: 'Battery Life', value: 'Up to 7 days' },
-          { key: 'Charging Time', value: '2 hours' },
-          { key: 'Battery Type', value: 'Lithium Polymer' }
+          { specKey: 'Battery Life', specValue: 'Up to 7 days' },
+          { specKey: 'Charging Time', specValue: '2 hours' },
+          { specKey: 'Battery Type', specValue: 'Lithium Polymer' }
         ]
       }
     ],
@@ -185,32 +185,32 @@ export const productDetailsData: Record<string, ProductDetail> = {
       {
         title: 'General',
         specs: [
-          { key: 'Model Name', value: 'ColorFit Pro 4' },
-          { key: 'Color', value: 'Jet Black' },
-          { key: 'Dial Shape', value: 'Square' },
-          { key: 'Strap Color', value: 'Black' },
-          { key: 'Strap Material', value: 'Silicone' }
+          { specKey: 'Model Name', specValue: 'ColorFit Pro 4' },
+          { specKey: 'Color', specValue: 'Jet Black' },
+          { specKey: 'Dial Shape', specValue: 'Square' },
+          { specKey: 'Strap Color', specValue: 'Black' },
+          { specKey: 'Strap Material', specValue: 'Silicone' }
         ]
       },
       {
         title: 'Display',
         specs: [
-          { key: 'Display Type', value: 'TFT LCD' },
-          { key: 'Display Size', value: '1.85 inches' },
-          { key: 'Resolution', value: '240 x 280 pixels' },
-          { key: 'Touch Screen', value: 'Yes' }
+          { specKey: 'Display Type', specValue: 'TFT LCD' },
+          { specKey: 'Display Size', specValue: '1.85 inches' },
+          { specKey: 'Resolution', specValue: '240 x 280 pixels' },
+          { specKey: 'Touch Screen', specValue: 'Yes' }
         ]
       },
       {
         title: 'Features',
         specs: [
-          { key: 'Call Function', value: 'Yes' },
-          { key: 'Bluetooth Calling', value: 'Yes' },
-          { key: 'Heart Rate Monitoring', value: 'Yes' },
-          { key: 'SpO2 Monitoring', value: 'Yes' },
-          { key: 'Step Counter', value: 'Yes' },
-          { key: 'Sleep Tracking', value: 'Yes' },
-          { key: 'Water Resistant', value: 'IP68' }
+          { specKey: 'Call Function', specValue: 'Yes' },
+          { specKey: 'Bluetooth Calling', specValue: 'Yes' },
+          { specKey: 'Heart Rate Monitoring', specValue: 'Yes' },
+          { specKey: 'SpO2 Monitoring', specValue: 'Yes' },
+          { specKey: 'Step Counter', specValue: 'Yes' },
+          { specKey: 'Sleep Tracking', specValue: 'Yes' },
+          { specKey: 'Water Resistant', specValue: 'IP68' }
         ]
       }
     ],

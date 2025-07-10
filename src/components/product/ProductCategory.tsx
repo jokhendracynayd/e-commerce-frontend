@@ -127,6 +127,13 @@ export function ProductCategory({ title, products, viewAllLink }: ProductCategor
                   deliveryInfo={product.deliveryInfo}
                   hasFreeDel={product.hasFreeDel || false}
                   currency={product.currency}
+                  subtitle={product.subtitle}
+                  colorVariants={product.colorVariants}
+                  exchangeOffer={product.exchangeOffer}
+                  bankOffer={product.bankOffer}
+                  sponsoredTag={product.sponsoredTag}
+                  isNew={product.isNew}
+                  isBestSeller={product.isBestSeller}
                 />
               </div>
             ))}

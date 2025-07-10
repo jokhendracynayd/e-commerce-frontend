@@ -26,8 +26,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "E-Commerce SaaS Platform",
-  description: "A multi-tenant e-commerce SaaS platform for businesses of all sizes",
+  title: "AllMart",
+  description: "AllMart is a  multi-tenant e-commerce SaaS platform for businesses of all sizes",
 };
 
 // Split the layout into server and client components

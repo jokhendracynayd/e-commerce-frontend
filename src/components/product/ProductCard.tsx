@@ -1,11 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import WishlistButton from './WishlistButton';
 import ProductAvailabilityBadge from './ProductAvailabilityBadge';
 import ProductAvailabilityIndicator from './ProductAvailabilityIndicator';
+import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
+
+export type ColorVariant = {
+  id: string;
+  color: string;
+  hex: string;
+  image: string;
+};
+
+export type ExchangeOffer = {
+  available: boolean;
+  maxDiscount: number;
+};
+
+export type BankOffer = {
+  available: boolean;
+  discount: number;
+  bankName?: string;
+};
 
 export type ProductCardProps = {
   id: string;
@@ -24,6 +43,11 @@ export type ProductCardProps = {
   isNew?: boolean;
   isBestSeller?: boolean;
   currency?: string;
+  subtitle?: string;
+  colorVariants?: ColorVariant[];
+  exchangeOffer?: ExchangeOffer;
+  bankOffer?: BankOffer;
+  sponsoredTag?: boolean;
   onAddToCart?: () => void;
   onAddToWishlist?: () => void;
   onQuickView?: () => void;
@@ -44,8 +68,49 @@ export function ProductCard({
   isNew = false,
   isBestSeller = false,
   currency = 'INR',
+  subtitle,
+  colorVariants = [],
+  exchangeOffer,
+  bankOffer,
+  sponsoredTag = false,
+  rating,
+  reviewCount,
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [currentVariantIndex, setCurrentVariantIndex] = useState(0);
+  const [currentImage, setCurrentImage] = useState(image);
+  
+  // Auto-cycle through color variant images when hovered
+  useEffect(() => {
+    if (colorVariants && colorVariants.length > 1 && isHovered) {
+      const interval = setInterval(() => {
+        setCurrentVariantIndex((prevIndex) => {
+          const nextIndex = (prevIndex + 1) % colorVariants.length;
+          setCurrentImage(colorVariants[nextIndex].image);
+          return nextIndex;
+        });
+      }, 2000); // Change image every 2 seconds when hovered
+      
+      return () => clearInterval(interval);
+    }
+  }, [colorVariants, isHovered]);
+  
+  // Use the first color variant image if available, otherwise use the default image
+  useEffect(() => {
+    if (colorVariants && colorVariants.length > 0) {
+      setCurrentImage(colorVariants[0].image);
+    } else {
+      setCurrentImage(image);
+    }
+  }, [colorVariants, image]);
+
+  // Handle color variant selection
+  const selectColorVariant = (index: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentVariantIndex(index);
+    setCurrentImage(colorVariants[index].image);
+  };
   
   // Calculate discount percentage if both price and originalPrice are available
   let discountPercentage = null;
@@ -77,7 +142,7 @@ export function ProductCard({
         <Link href={link} className="block h-full w-full">
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50/30 dark:bg-gray-700/20">
             <Image 
-              src={image} 
+              src={currentImage} 
               alt={title}
               width={200}
               height={200}
@@ -107,6 +172,12 @@ export function ProductCard({
         
         {/* Badges */}
         <div className="absolute top-1 left-1 sm:top-2 sm:left-2 flex flex-col gap-1 sm:gap-1.5">
+          {sponsoredTag && (
+            <span className="inline-block bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-[8px] xs:text-[10px] sm:text-xs font-medium px-1 xs:px-1.5 sm:px-2 py-0.5 rounded-md shadow-sm">
+              Sponsored
+            </span>
+          )}
+          
           {badge && (
             <span className={`inline-block ${
               badge === 'Featured' ? 'bg-gradient-to-r from-[#8e54e9] to-[#7048e8]' : 
@@ -156,12 +227,18 @@ export function ProductCard({
             {title}
           </h3>
         </Link>
+
+        {/* Subtitle (color/size info) */}
+        {subtitle && (
+          <p className="text-[9px] xs:text-[10px] sm:text-xs text-gray-600 dark:text-gray-300 font-medium truncate mt-0.5 xs:mt-1">
+            {subtitle}
+          </p>
+        )}
         
         {/* Real-time inventory status */}
         <ProductAvailabilityBadge productId={id} />
         
-        {/* Rating - Only show if rating is available and greater than 0 */}
-        {/* 
+        {/* Rating - Enhanced display */}
         {rating && rating > 0 && (
           <div className="flex flex-wrap items-center mt-0.5 xs:mt-1 sm:mt-2 gap-1">
             <div className="flex items-center bg-[#e7e1dc] text-gray-800 text-[8px] xs:text-[10px] sm:text-xs px-1 xs:px-1.5 sm:px-2 py-0.5 rounded-sm">
@@ -187,13 +264,12 @@ export function ProductCard({
             )}
           </div>
         )}
-        */}
         
         {/* Price Section */}
         <div className="mt-1 xs:mt-1.5 sm:mt-2 flex items-baseline flex-wrap gap-0.5 xs:gap-1 sm:gap-1.5">
           {price ? (
             <span className="font-bold text-gray-900 dark:text-white text-xs xs:text-sm sm:text-base md:text-lg">
-              {currency === 'USD' ? '$' : '₹'}{price.toLocaleString()}
+              {getCurrencySymbol(currency)}{formatCurrency(price, currency)}
             </span>
           ) : discount ? (
             <span className="font-bold text-green-600 dark:text-green-400 text-xs xs:text-sm sm:text-base md:text-lg">
@@ -207,7 +283,7 @@ export function ProductCard({
           
           {originalPrice && (
             <span className="text-[10px] xs:text-xs sm:text-sm text-gray-500 line-through">
-              {currency === 'USD' ? '$' : '₹'}{originalPrice.toLocaleString()}
+              {getCurrencySymbol(currency)}{formatCurrency(originalPrice, currency)}
             </span>
           )}
           
@@ -217,6 +293,58 @@ export function ProductCard({
             </span>
           )}
         </div>
+
+        {/* Bank Offer */}
+        {bankOffer?.available && (
+          <div className="mt-1 xs:mt-1.5">
+            <div className="inline-flex items-center bg-blue-50 dark:bg-blue-900/20 rounded-sm">
+              <span className="bg-blue-700 text-white text-[8px] xs:text-[9px] sm:text-[10px] px-1 py-0.5 font-bold">WOW!</span>
+              <span className="text-[8px] xs:text-[9px] sm:text-[10px] px-1 py-0.5 text-gray-700 dark:text-gray-300 font-medium">
+                {getCurrencySymbol(currency)}{bankOffer.discount} with Bank offer
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Exchange Offer */}
+        {exchangeOffer?.available && (
+          <div className="mt-0.5 xs:mt-1 flex items-center text-[8px] xs:text-[9px] sm:text-[10px] md:text-xs text-gray-600 dark:text-gray-300">
+            <svg className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-3.5 sm:h-3.5 mr-0.5 text-[#ed875a]" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 01-1 1h-1.05a2.5 2.5 0 01-4.9 0H6.05a2.5 2.5 0 01-4.9 0H1a1 1 0 01-1-1V5a1 1 0 011-1h10a1 1 0 011 1v2z" clipRule="evenodd" />
+            </svg>
+            <span className="font-medium">Upto {getCurrencySymbol(currency)}{exchangeOffer.maxDiscount} Off on Exchange</span>
+          </div>
+        )}
+
+        {/* Color variant selection */}
+        {colorVariants && colorVariants.length > 0 && (
+          <div className="mt-1 xs:mt-1.5">
+            <div className="flex items-center space-x-1">
+              {colorVariants.slice(0, 4).map((variant, index) => (
+                <button
+                  key={variant.id}
+                  onClick={(e) => selectColorVariant(index, e)}
+                  className={`w-3 h-3 xs:w-4 xs:h-4 sm:w-5 sm:h-5 flex items-center justify-center transition-all duration-200 rounded-full ${
+                    currentVariantIndex === index 
+                      ? 'ring-1 ring-[#ed875a] scale-110' 
+                      : 'ring-1 ring-gray-300 dark:ring-gray-600'
+                  }`}
+                  aria-label={`Select ${variant.color} color`}
+                >
+                  <span 
+                    className="w-2.5 h-2.5 xs:w-3 xs:h-3 sm:w-4 sm:h-4 rounded-full" 
+                    style={{ backgroundColor: variant.hex }}
+                  />
+                </button>
+              ))}
+              {colorVariants.length > 4 && (
+                <span className="text-[8px] xs:text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400 ml-1">
+                  +{colorVariants.length - 4}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
         
         {/* Delivery Info */}
         {(deliveryInfo || hasFreeDel) && (

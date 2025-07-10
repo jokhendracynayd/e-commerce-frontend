@@ -50,7 +50,7 @@ const mapApiResponseToProductDetail = (apiData: any, fallbackData: ProductDetail
       hex: fallbackData.colorVariants?.[index]?.hex || '#000000',
       image: fallbackData.colorVariants?.[index]?.image || (data.images?.[0]?.imageUrl || ''),
     })) || fallbackData.colorVariants,
-    specificationGroups: fallbackData.specificationGroups, // Keep UI value
+    specificationGroups: data.specificationGroups || fallbackData.specificationGroups, // Keep UI value
     highlights: data.highlights || fallbackData.highlights,
     deliveryInfo: fallbackData.deliveryInfo, // Keep UI value
     hasFreeDel: fallbackData.hasFreeDel, // Keep UI value

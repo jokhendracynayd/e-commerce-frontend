@@ -49,7 +49,38 @@ export interface CategoryReference {
 }
 
 /**
- * Product type for category product listings
+ * Color variant interface for products
+ */
+export interface ColorVariant {
+  id: string;
+  color: string;
+  hex: string;
+  image: string;
+}
+
+/**
+ * Exchange offer interface
+ */
+export interface ExchangeOffer {
+  available: boolean;
+  maxDiscount: number;
+  terms?: string;
+  brands?: string[];
+}
+
+/**
+ * Bank offer interface
+ */
+export interface BankOffer {
+  available: boolean;
+  discount: number;
+  bankName?: string;
+  terms?: string;
+  validUntil?: string;
+}
+
+/**
+ * Product type for category product listings - Enhanced with ProductCard features
  */
 export interface CategoryProductType {
   id: string;
@@ -66,6 +97,17 @@ export interface CategoryProductType {
   deliveryInfo?: string;
   hasFreeDel: boolean;
   discount?: string;
+  
+  // Enhanced fields for ProductCard
+  subtitle?: string;
+  colorVariants?: ColorVariant[];
+  bankOffer?: BankOffer;
+  exchangeOffer?: ExchangeOffer;
+  isNew?: boolean;
+  isBestSeller?: boolean;
+  isSponsored?: boolean;
+  sponsoredTag?: boolean;
+  isLimitedDeal?: boolean;
 }
 
 /**

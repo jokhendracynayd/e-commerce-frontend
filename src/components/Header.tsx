@@ -336,7 +336,7 @@ export function Header() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-20 h-8 sm:w-24 sm:h-9 md:w-28 md:h-10 relative">
+              <div className="w-28 h-12 sm:w-36 sm:h-14 md:w-44 md:h-16 relative">
                 <Image src="/images/logo/logo.svg" alt="Logo" fill className="object-contain" />
               </div>
             </Link>

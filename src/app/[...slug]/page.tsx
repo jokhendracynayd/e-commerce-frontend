@@ -307,13 +307,13 @@ export default function CategoryPage() {
           }
         } else {
           // Fallback to dummy data if no API results
-          setProducts(dummyProducts);
+          // setProducts(dummyProducts);
           console.log('Falling back to dummy data - no API results');
         }
       } catch (apiError) {
         console.error('API call error:', apiError);
         // Fallback to dummy data on error
-        setProducts(dummyProducts);
+        // setProducts(dummyProducts);
         console.log('Falling back to dummy data due to API error');
       }
       

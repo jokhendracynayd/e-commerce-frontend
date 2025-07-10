@@ -125,8 +125,8 @@ export type ColorVariant = {
 };
 
 export type Specification = {
-  key: string;
-  value: string;
+  specKey: string;
+  specValue: string;
 };
 
 export type SpecificationGroup = {

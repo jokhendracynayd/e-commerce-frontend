@@ -710,6 +710,7 @@ export default function OrdersPage() {
             {filteredOrders.length > 0 ? (
               <div className="space-y-4 sm:space-y-5">
                 {filteredOrders.map((order) => (
+                  console.log('😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊', order),
                   <div 
                     key={order.id} 
                     className="bg-white dark:bg-gray-800 rounded-lg shadow-[0_5px_20px_-4px_rgba(237,135,90,0.1)] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 border border-gray-100 dark:border-gray-700 hover:shadow-[0_8px_25px_-5px_rgba(237,135,90,0.15)] transition-shadow duration-300"

@@ -16,6 +16,22 @@ export type CategoryType = {
   description?: string;
 };
 
+// Helper function to check if a string is a valid URL
+const isValidUrl = (string: string): boolean => {
+  try {
+    new URL(string);
+    return true;
+  } catch (_) {
+    return false;
+  }
+};
+
+// Helper function to check if a string is an emoji
+const isEmoji = (string: string): boolean => {
+  const emojiRegex = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u;
+  return emojiRegex.test(string) && string.length <= 2;
+};
+
 // This will be replaced by the dynamic data from API
 const fallbackCategories: CategoryType[] = [
   { 
@@ -259,13 +275,19 @@ export function CategoryNavigation() {
                     } transition-colors duration-200`}
                   >
                     <div className="relative w-8 h-8 xs:w-10 xs:h-10 sm:w-12 sm:h-12 md:w-14 md:h-14">
-                      <Image 
-                        src={category.icon} 
-                        alt={category.name} 
-                        fill
-                        sizes="(max-width: 640px) 32px, (max-width: 768px) 40px, (max-width: 1024px) 48px, 56px"
-                        className="object-contain group-hover:scale-110 transition-transform duration-200" 
-                      />
+                      {isValidUrl(category.icon) ? (
+                        <Image 
+                          src={category.icon} 
+                          alt={category.name} 
+                          fill
+                          sizes="(max-width: 640px) 32px, (max-width: 768px) 40px, (max-width: 1024px) 48px, 56px"
+                          className="object-contain group-hover:scale-110 transition-transform duration-200" 
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl xs:text-3xl sm:text-4xl md:text-5xl group-hover:scale-110 transition-transform duration-200">
+                          {category.icon}
+                        </div>
+                      )}
                     </div>
                     
                     {category.featured && (

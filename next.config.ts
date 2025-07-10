@@ -56,7 +56,53 @@ const nextConfig: NextConfig = {
         hostname: 'my-ecommerce-uploads.s3.ap-south-1.amazonaws.com',
         pathname: '**',
       },
+      // Add example.com and other common domains
+      {
+        protocol: 'https',
+        hostname: 'example.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.example.com', // Include all subdomains
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.example.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+        port: '3001',
+        pathname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3001',
+        pathname: '**',
+      },
+      // Common CDN domains
+      {
+        protocol: 'https',
+        hostname: '*.cloudfront.net',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.cloudinary.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.imgix.net',
+        pathname: '**',
+      }
     ],
+    // Also allow image optimization for domains that don't support optimization
+    unoptimized: true
   },
   // Add URL rewrites for SEO-friendly product URLs
   async rewrites() {

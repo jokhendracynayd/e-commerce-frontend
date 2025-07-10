@@ -9,6 +9,7 @@ interface ProductDetailsProps {
 }
 
 export function ProductDetails({ product }: ProductDetailsProps) {
+  console.log('😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊', product.reviews);
   const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'reviews'>('description');
   const [expandedSpecGroups, setExpandedSpecGroups] = useState<string[]>([]);
   
@@ -111,8 +112,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 <div className={`space-y-1 sm:space-y-2 mt-1 sm:mt-2 ${expandedSpecGroups.includes(group.title) ? 'block' : 'hidden'}`}>
                   {group.specs.map((spec, specIndex) => (
                     <div key={specIndex} className="flex py-1 sm:py-1.5">
-                      <span className="w-1/3 text-xs sm:text-sm text-gray-500 dark:text-gray-400">{spec.key}</span>
-                      <span className="w-2/3 text-xs sm:text-sm text-gray-700 dark:text-gray-300">{spec.value}</span>
+                      <span className="w-1/3 text-xs sm:text-sm text-gray-500 dark:text-gray-400">{spec.specKey}</span>
+                      <span className="w-2/3 text-xs sm:text-sm text-gray-700 dark:text-gray-300">{spec.specValue}</span>
                     </div>
                   ))}
                 </div>

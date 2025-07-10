@@ -1,6 +1,6 @@
 // API base URL from environment variables
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.allmart.fashion/api/v1';
-// export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+// export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.allmart.fashion/api/v1';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
 
 // Centralized endpoint definitions for the e-commerce frontend API
 export const ENDPOINTS = {
@@ -38,6 +38,13 @@ export const ENDPOINTS = {
     SPECIFICATIONS: (id: string) => `/products/${id}/specifications`,
   },
   
+  SPECIFICATIONS: {
+    PRODUCT: {
+      GET_BY_PRODUCT: (productId: string) => `/specifications/product/${productId}`,
+      GET_GROUPED: (productId: string) => `/specifications/product/${productId}/grouped`,
+    },
+  },
+
   CATEGORIES: {
     BASE: '/categories',
     DETAIL: (id: string) => `/categories/${id}`,

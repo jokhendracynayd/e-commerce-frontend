@@ -15,6 +15,95 @@ export type CategoryType = {
   viewAllLink?: string;
 };
 
+// Skeleton component for product cards
+const ProductCardSkeleton = () => (
+  <div className="flex-none snap-start">
+    <div className="w-[120px] xs:w-[150px] sm:w-[210px] md:w-[240px] lg:w-[280px] bg-white dark:bg-gray-800 overflow-hidden rounded-lg">
+      {/* Image Container Skeleton */}
+      <div className="relative h-28 xs:h-36 sm:h-48 md:h-56 lg:h-64 w-full overflow-hidden">
+        <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+        
+        {/* Badge skeletons */}
+        <div className="absolute top-1 left-1 sm:top-2 sm:left-2 flex flex-col gap-1 sm:gap-1.5">
+          <div className="h-5 xs:h-6 sm:h-7 w-12 xs:w-14 sm:w-16 bg-gray-300 dark:bg-gray-600 animate-pulse rounded-md"></div>
+        </div>
+        
+        {/* Wishlist button skeleton */}
+        <div className="absolute right-1 top-1 sm:right-2 sm:top-2">
+          <div className="h-6 w-6 xs:h-7 xs:w-7 sm:h-8 sm:w-8 bg-gray-300 dark:bg-gray-600 animate-pulse rounded-full"></div>
+        </div>
+      </div>
+      
+      {/* Product Info Skeleton */}
+      <div className="p-1.5 xs:p-2 sm:p-3 md:p-4">
+        {/* Title skeleton */}
+        <div className="space-y-1 mb-2">
+          <div className="h-3 xs:h-3.5 sm:h-4 bg-gray-200 dark:bg-gray-700 animate-pulse rounded w-full"></div>
+          <div className="h-3 xs:h-3.5 sm:h-4 bg-gray-200 dark:bg-gray-700 animate-pulse rounded w-3/4"></div>
+        </div>
+        
+        {/* Availability badge skeleton */}
+        <div className="h-4 xs:h-5 sm:h-6 w-16 xs:w-18 sm:w-20 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mb-1 xs:mb-1.5 sm:mb-2"></div>
+        
+        {/* Price skeleton */}
+        <div className="flex items-baseline flex-wrap gap-1 mb-1">
+          <div className="h-4 xs:h-5 sm:h-6 w-12 xs:w-14 sm:w-16 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+          <div className="h-3 xs:h-4 sm:h-5 w-8 xs:w-10 sm:w-12 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+        </div>
+        
+        {/* Delivery info skeleton */}
+        <div className="h-3 xs:h-3.5 sm:h-4 w-20 xs:w-24 sm:w-28 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+      </div>
+    </div>
+  </div>
+);
+
+// Skeleton component for product category
+const ProductCategorySkeleton = () => (
+  <section className="py-3 sm:py-4 md:py-6 px-2 sm:px-3 md:px-4 bg-white dark:bg-gray-800 rounded-lg my-2 sm:my-3">
+    <div className="w-full">
+      {/* Title and View All skeleton */}
+      <div className="flex justify-between items-center mb-2 sm:mb-3 md:mb-4 px-2">
+        <div className="h-6 sm:h-7 md:h-8 w-48 sm:w-56 md:w-64 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+        <div className="h-4 sm:h-5 w-16 sm:w-18 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+      </div>
+      
+      <div className="relative">
+        {/* Left scroll button skeleton */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full"></div>
+        
+        {/* Products container skeleton */}
+        <div className="flex overflow-hidden gap-2 xs:gap-3 sm:gap-4 py-4 sm:py-5 md:py-6 px-2 sm:px-3 md:px-4">
+          {[...Array(6)].map((_, index) => (
+            <ProductCardSkeleton key={index} />
+          ))}
+        </div>
+        
+        {/* Right scroll button skeleton */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full"></div>
+        
+        {/* Mobile scroll indicator dots skeleton */}
+        <div className="flex justify-center mt-2 md:hidden">
+          <div className="flex space-x-1.5">
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="w-1.5 h-1.5 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+// Main skeleton component for the entire section
+const ProductCategoriesSkeleton = () => (
+  <div className="w-full py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 bg-gray-50/60 dark:bg-gray-900/80 px-2 sm:px-3 md:px-4">
+    {[...Array(3)].map((_, index) => (
+      <ProductCategorySkeleton key={index} />
+    ))}
+  </div>
+);
+
 // Sample data for reference - not used in production
 
 // export const categories: CategoryType[] = [
@@ -374,7 +463,18 @@ export function ProductCategorySection() {
                   isAssured: p.isAssured,
                   deliveryInfo: p.deliveryInfo,
                   hasFreeDel: p.hasFreeDel,
-                  discount: p.discount
+                  discount: p.discount,
+                  
+                  // Enhanced fields for ProductCard
+                  subtitle: p.subtitle,
+                  colorVariants: p.colorVariants,
+                  bankOffer: p.bankOffer,
+                  exchangeOffer: p.exchangeOffer,
+                  isNew: p.isNew,
+                  isBestSeller: p.isBestSeller,
+                  isSponsored: p.isSponsored,
+                  sponsoredTag: p.sponsoredTag,
+                  isLimitedDeal: p.isLimitedDeal,
                 })),
                 viewAllLink: result.categoryWithProducts.viewAllLink
               });
@@ -400,9 +500,7 @@ export function ProductCategorySection() {
   }, [categoryTree, isCategoriesLoading]);
 
   if (isLoading || isCategoriesLoading) {
-    return <div className="w-full py-2 sm:py-3 md:py-4 space-y-3 sm:space-y-4 md:space-y-6 bg-gray-50/60 dark:bg-gray-900/80 px-2 sm:px-3 md:px-4">
-      <div className="py-8 text-center">Loading product categories...</div>
-    </div>;
+    return <ProductCategoriesSkeleton />;
   }
 
   if (error) {
