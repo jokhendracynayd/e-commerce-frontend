@@ -37,6 +37,9 @@ export * from './categories-api';
 // Export wishlist-related functions and types
 export * from './wishlist-api';
 
+// Export recommendations-related functions and types
+export * from './recommendations-api';
+
 // Default export of all API services
 import authApi from './auth-api';
 import productsApi from './products-api';

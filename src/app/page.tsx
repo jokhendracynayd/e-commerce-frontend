@@ -7,6 +7,8 @@ import { TrendingProducts } from "@/components/product/TrendingProducts";
 import { DealOfTheDay } from "@/components/product/DealOfTheDay";
 import { getCategoryGroups } from "@/services/categoryService";
 import { getTrendingProducts, getDealOfTheDay } from "@/services/productService";
+import RecentlyViewedProducts from "@/components/product/RecentlyViewedProducts";
+import TrendingRecommendations from "@/components/product/TrendingRecommendations";
 
 // Use proper server component data fetching
 export default async function Home() {
@@ -26,10 +28,16 @@ export default async function Home() {
 
       {/* Showcase/Carousel Section */}
       <Showcase />
+
+      {/* Trending Products Section */}
+      <TrendingRecommendations />
     
       {/* Product Categories Section */}
       <ProductCategorySection />
-      
+
+      {/* Recently Viewed Products Section */}
+      <RecentlyViewedProducts />
+
       {/* Category Groups Section */}
       <CategoryGroups groups={categoryGroups} />
       

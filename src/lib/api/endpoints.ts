@@ -129,4 +129,9 @@ export const ENDPOINTS = {
     USER_ACTIVITIES: '/analytics/activities',
     MARK_CONVERSION: '/analytics/conversion',
   },
+
+  RECOMMENDATIONS: {
+    RECENTLY_VIEWED: '/recommendations/recently-viewed',
+    TRENDING: '/recommendations/trending',
+  },
 }; 
