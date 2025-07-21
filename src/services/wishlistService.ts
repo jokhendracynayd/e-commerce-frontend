@@ -30,7 +30,7 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY = 500;
 
 /**
- * Cache implementation for wishlist data
+ * Cache implementation for wishlist data with localStorage persistence
  */
 type WishlistCache = {
   data: {
@@ -42,52 +42,161 @@ type WishlistCache = {
   expiryTime: number;
 };
 
-const wishlistCache: WishlistCache = {
-  data: null,
-  timestamp: 0,
-  productIdMap: new Map<string, boolean>(),
-  expiryTime: 30000 // 30 seconds cache expiry
+// Initialize cache from localStorage if available
+const initializeCache = (): WishlistCache => {
+  const defaultCache: WishlistCache = {
+    data: null,
+    timestamp: 0,
+    productIdMap: new Map<string, boolean>(),
+    expiryTime: 300000 // 5 minutes cache expiry (increased from 30s)
+  };
+
+  if (typeof window === 'undefined') {
+    return defaultCache;
+  }
+
+  try {
+    const savedCache = localStorage.getItem('wishlist_cache');
+    if (savedCache) {
+      const parsedCache = JSON.parse(savedCache);
+      
+      // Check if cached data is still valid
+      if (parsedCache.timestamp && Date.now() - parsedCache.timestamp < defaultCache.expiryTime) {
+        const cache: WishlistCache = {
+          ...defaultCache,
+          data: parsedCache.data,
+          timestamp: parsedCache.timestamp
+        };
+        
+        // Rebuild productIdMap from cached data
+        if (parsedCache.data?.items) {
+          parsedCache.data.items.forEach((item: WishlistItemWithProduct) => {
+            cache.productIdMap.set(item.productId, true);
+          });
+        }
+        
+        console.log('Loaded wishlist cache from localStorage:', cache.data);
+        return cache;
+      } else {
+        // Cache expired, clear it
+        localStorage.removeItem('wishlist_cache');
+      }
+    }
+  } catch (error) {
+    console.error('Error loading wishlist cache from localStorage:', error);
+    localStorage.removeItem('wishlist_cache');
+  }
+
+  return defaultCache;
 };
+
+const wishlistCache: WishlistCache = initializeCache();
 
 /**
  * Check if cache is valid
  */
 function isCacheValid(): boolean {
   if (!wishlistCache.data) return false;
-  return Date.now() - wishlistCache.timestamp < wishlistCache.expiryTime;
+  const isValid = Date.now() - wishlistCache.timestamp < wishlistCache.expiryTime;
+  
+  if (!isValid) {
+    console.log('Wishlist cache expired, clearing...');
+    invalidateCache();
+  }
+  
+  return isValid;
 }
 
 /**
- * Update cache with new wishlist data
+ * Update cache with new wishlist data and persist to localStorage
  */
 function updateCache(data: { items: WishlistItemWithProduct[]; total: number }): void {
   wishlistCache.data = data;
   wishlistCache.timestamp = Date.now();
   
-  // Update the product ID map for quick lookups
+  // Update productIdMap for fast lookups
   wishlistCache.productIdMap.clear();
-  for (const item of data.items) {
+  data.items.forEach(item => {
     wishlistCache.productIdMap.set(item.productId, true);
+  });
+
+  // Persist to localStorage
+  if (typeof window !== 'undefined') {
+    try {
+      const cacheToSave = {
+        data: wishlistCache.data,
+        timestamp: wishlistCache.timestamp
+      };
+      localStorage.setItem('wishlist_cache', JSON.stringify(cacheToSave));
+      console.log('Saved wishlist cache to localStorage:', data);
+    } catch (error) {
+      console.error('Error saving wishlist cache to localStorage:', error);
+    }
   }
 }
 
 /**
- * Invalidate cache
+ * Invalidate cache and clear localStorage
  */
 function invalidateCache(): void {
   wishlistCache.data = null;
   wishlistCache.timestamp = 0;
   wishlistCache.productIdMap.clear();
+  
+  // Clear from localStorage
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem('wishlist_cache');
+      console.log('Cleared wishlist cache from localStorage');
+    } catch (error) {
+      console.error('Error clearing wishlist cache from localStorage:', error);
+    }
+  }
 }
 
 /**
- * Check if the user is authenticated
+ * Check if the user is authenticated with fallback checks
  */
 function validateAuthentication(): boolean {
   try {
-    return isAuthenticated();
+    // First check the axios-client authentication
+    const axiosAuth = isAuthenticated();
+    if (axiosAuth) {
+      return true;
+    }
+    
+    // Fallback: check if there are auth cookies present
+    if (typeof window !== 'undefined') {
+      const authCookie = document.cookie
+        .split(';')
+        .some(cookie => cookie.trim().startsWith('access_token=') || cookie.trim().startsWith('accessToken='));
+      
+      if (authCookie) {
+        console.log('Found auth cookie, considering user authenticated');
+        return true;
+      }
+    }
+    
+    return false;
   } catch (error) {
     console.error('Error validating authentication:', error);
+    
+    // Even if there's an error, check for auth cookies as fallback
+    if (typeof window !== 'undefined') {
+      try {
+        const authCookie = document.cookie
+          .split(';')
+          .some(cookie => cookie.trim().startsWith('access_token=') || cookie.trim().startsWith('accessToken='));
+        
+        if (authCookie) {
+          console.log('Fallback: Found auth cookie despite validation error');
+          return true;
+        }
+      } catch (cookieError) {
+        console.error('Error checking auth cookies:', cookieError);
+      }
+    }
+    
     return false;
   }
 }
@@ -165,9 +274,21 @@ export async function getWishlist(forceRefresh = false): Promise<{
   }
   
   try {
-    // Check authentication
+    // Check authentication only when forcing refresh or no cached data
     if (!validateAuthentication()) {
-      console.log('Not authenticated for wishlist');
+      console.log('Not authenticated for wishlist API call');
+      
+      // If we have cached data but auth failed, return cached data anyway
+      if (isCacheValid() && wishlistCache.data && wishlistCache.data.items.length > 0) {
+        console.log('Returning cached data despite auth check failure');
+        return {
+          ...wishlistCache.data,
+          error: null,
+          requiresAuth: false
+        };
+      }
+      
+      // No cached data and not authenticated
       return {
         items: [],
         total: 0,

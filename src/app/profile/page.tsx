@@ -4,29 +4,27 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
+import { useWishlist } from '@/context/WishlistContext';
 import AddressForm from '@/components/address/AddressForm';
 import AddressList from '@/components/address/AddressList';
 import { Address } from '@/types/address';
-import { getWishlist, removeFromWishlist } from '@/services/wishlistService';
 import { WishlistItemWithProduct } from '@/types/wishlist';
+import { getUserAddresses } from '@/services/addressService';
 import Image from 'next/image';
 import { debounce } from 'lodash';
 
 export default function ProfilePage() {
   const { isAuthenticated, user, logout, isLoading } = useAuth();
+  const { items: wishlistItems, loading: wishlistLoading, error: wishlistError, refreshWishlist, removeItem } = useWishlist();
   const router = useRouter();
   const [activeSection, setActiveSection] = useState('profile');
   const mainContentRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
   
   // Address management state
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addressToEdit, setAddressToEdit] = useState<Address | null>(null);
-  
-  // Wishlist state
-  const [wishlistItems, setWishlistItems] = useState<WishlistItemWithProduct[]>([]);
-  const [wishlistLoading, setWishlistLoading] = useState(false);
-  const [wishlistError, setWishlistError] = useState<string | null>(null);
   
   // Effect to log wishlist rendering for debugging
   useEffect(() => {
@@ -51,41 +49,30 @@ export default function ProfilePage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  // Fetch wishlist data with debouncing to prevent excessive API calls
+  // Fetch addresses when addresses section is active
+  const fetchAddresses = useCallback(async () => {
+    try {
+      const userAddresses = await getUserAddresses();
+      setAddresses(userAddresses);
+    } catch (error) {
+      console.error('Error fetching addresses:', error);
+    }
+  }, []);
+
+  // Fetch addresses when addresses section becomes active
+  useEffect(() => {
+    if (activeSection === 'addresses') {
+      fetchAddresses();
+    }
+  }, [activeSection, fetchAddresses]);
+
+  // Simplified wishlist data fetching using context
   const fetchWishlistData = useCallback(async () => {
     if (!isAuthenticated) return;
     
-    setWishlistLoading(true);
-    setWishlistError(null);
-    
-    try {
-      console.log('Fetching wishlist data...');
-      const result = await getWishlist(true); // Force refresh to get latest data
-      console.log('Wishlist API response:', result);
-      
-      if (result.error) {
-        // Don't show error for canceled requests
-        if (result.error !== 'Request canceled') {
-          setWishlistError(result.error);
-        }
-      } else {
-        console.log('Setting wishlist items:', result.items.length, 'items');
-        if (Array.isArray(result.items)) {
-          setWishlistItems(result.items);
-        } else {
-          console.error('Wishlist items is not an array:', result.items);
-          setWishlistError('Invalid wishlist data format');
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching wishlist:', error);
-      // Only set error if component is still mounted
-      setWishlistError('Failed to load wishlist items');
-    } finally {
-      // Only update loading state if component is still mounted
-      setWishlistLoading(false);
-    }
-  }, [isAuthenticated]);
+    console.log('Refreshing wishlist data via context...');
+    await refreshWishlist();
+  }, [isAuthenticated, refreshWishlist]);
 
   // Create a debounced version of fetchWishlistData
   const debouncedFetchWishlist = useRef(
@@ -226,6 +213,8 @@ export default function ProfilePage() {
   const handleAddressSave = (address: Address) => {
     setShowAddressForm(false);
     setAddressToEdit(null);
+    // Refresh addresses after save
+    fetchAddresses();
   };
   
   const handleAddressCancel = () => {
@@ -458,15 +447,6 @@ export default function ProfilePage() {
                   </button>
                 </div>
                 
-                {/* Debug information in development */}
-                {process.env.NODE_ENV === 'development' && (
-                  <div className="mb-4 p-2 bg-blue-50 text-blue-800 rounded text-xs">
-                    <p>Debug Info: {wishlistItems.length} items in wishlist</p>
-                    <p>Loading: {wishlistLoading ? 'Yes' : 'No'}</p>
-                    <p>Error: {wishlistError || 'None'}</p>
-                  </div>
-                )}
-                
                 {/* Loading State */}
                 {wishlistLoading && (
                   <div className="flex flex-col items-center justify-center py-8">
@@ -647,12 +627,11 @@ export default function ProfilePage() {
                             <button 
                               onClick={async () => {
                                 try {
-                                  const result = await removeFromWishlist(item.productId);
+                                  const result = await removeItem(item.productId);
                                   if (result.success) {
-                                    // Remove item from local state after successful API call
-                                    const updatedItems = wishlistItems.filter(i => i.id !== item.id);
-                                    setWishlistItems(updatedItems);
-                                  } else if (result.requiresAuth) {
+                                    // Item is automatically removed from context state
+                                    console.log('Item removed from wishlist successfully');
+                                  } else if (result.error === 'Authentication required') {
                                     router.push('/login?returnUrl=/profile');
                                   } else {
                                     console.error('Failed to remove item:', result.error);
@@ -875,20 +854,42 @@ export default function ProfilePage() {
                     />
                   ) : (
                     <>
+                      {/* Address Limit Message */}
+                      {addresses.length >= 3 && (
+                        <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-md border border-amber-200 dark:border-amber-800 mb-4">
+                          <div className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p className="text-amber-800 dark:text-amber-200 text-sm font-medium">
+                              You've reached the maximum limit of 3 addresses. To add a new address, please delete an existing one first.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
                       <button 
-                        onClick={handleAddNewAddress}
-                        className="flex items-center p-3 bg-gradient-to-r from-[#ed875a]/10 to-[#ed8c61]/10 hover:from-[#ed875a]/20 hover:to-[#ed8c61]/20 text-[#ed875a] dark:text-[#ed8c61] hover:text-[#d44506] rounded-md border border-dashed border-[#ed875a]/30 w-full sm:w-auto justify-center transition-all duration-300"
+                        onClick={addresses.length >= 3 ? undefined : handleAddNewAddress}
+                        disabled={addresses.length >= 3}
+                        className={`flex items-center p-3 rounded-md border border-dashed w-full sm:w-auto justify-center transition-all duration-300 ${
+                          addresses.length >= 3 
+                            ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-300 dark:border-gray-700 cursor-not-allowed opacity-60' 
+                            : 'bg-gradient-to-r from-[#ed875a]/10 to-[#ed8c61]/10 hover:from-[#ed875a]/20 hover:to-[#ed8c61]/20 text-[#ed875a] dark:text-[#ed8c61] hover:text-[#d44506] border-[#ed875a]/30'
+                        }`}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                         </svg>
-                        <span className="font-medium">Add a new address</span>
+                        <span className="font-medium">
+                          {addresses.length >= 3 ? 'Address limit reached (3/3)' : 'Add a new address'}
+                        </span>
                       </button>
                     
                       <div className="mt-6">
                         <AddressList 
                           showAddNewButton={false}
                           emptyStateMessage="You don't have any saved addresses yet. Add your first address to make checkout faster."
+                          onAddressChange={fetchAddresses}
                         />
                       </div>
                     </>

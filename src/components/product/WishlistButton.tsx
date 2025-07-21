@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useAuthModalContext } from '@/context/AuthModalContext';
-import { isProductInWishlist, toggleWishlistItem } from '@/services/wishlistService';
+import { useWishlist } from '@/context/WishlistContext';
 
 interface WishlistButtonProps {
   productId: string;
@@ -20,19 +20,11 @@ export default function WishlistButton({
   variant = 'icon',
   withText = false
 }: WishlistButtonProps) {
-  const [isInWishlist, setIsInWishlist] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { openAuthModal } = useAuthModalContext();
+  const { isInWishlist, addItem, removeItem } = useWishlist();
 
-  // Check if product is in wishlist on mount
-  useEffect(() => {
-    const checkWishlistStatus = async () => {
-      const status = await isProductInWishlist(productId);
-      setIsInWishlist(status);
-    };
-    
-    checkWishlistStatus();
-  }, [productId]);
+  const isInWishlistStatus = isInWishlist(productId);
 
   const handleWishlistToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -43,32 +35,33 @@ export default function WishlistButton({
     setIsLoading(true);
     
     try {
-      const result = await toggleWishlistItem(productId, (pendingAction) => {
-        // Show auth modal with custom message and the pending action
-        openAuthModal(
-          'Please sign in to add items to your wishlist',
-          'login',
-          pendingAction
-        );
-      });
+      let result;
       
-      if (result.requiresAuth) {
-        // Auth modal will be shown by the callback above
-        setIsLoading(false);
-        return;
+      if (isInWishlistStatus) {
+        // Remove from wishlist
+        result = await removeItem(productId);
+      } else {
+        // Add to wishlist
+        result = await addItem(productId);
       }
       
       if (result.success) {
-        setIsInWishlist(result.action === 'added');
-        
         // Show toast notification
-        if (result.action === 'added') {
-          toast.success('Product added to wishlist');
-        } else if (result.action === 'removed') {
+        if (isInWishlistStatus) {
           toast.success('Product removed from wishlist');
+        } else {
+          toast.success('Product added to wishlist');
         }
       } else {
-        toast.error(result.error || 'Failed to update wishlist');
+        // Handle authentication required
+        if (result.error === 'Authentication required') {
+          openAuthModal(
+            'Please sign in to add items to your wishlist',
+            'login'
+          );
+        } else {
+          toast.error(result.error || 'Failed to update wishlist');
+        }
       }
     } catch (error) {
       console.error('Error toggling wishlist:', error);
@@ -96,8 +89,8 @@ export default function WishlistButton({
     return (
       <button
         onClick={handleWishlistToggle}
-        className={`${sizeClasses[size]} ${isInWishlist ? 'bg-[#fff2ee] dark:bg-[#3a3333]' : 'bg-white/90 dark:bg-gray-800/90'} transition-all transform hover:scale-105 rounded-full flex items-center justify-center ${className}`}
-        aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
+        className={`${sizeClasses[size]} ${isInWishlistStatus ? 'bg-[#fff2ee] dark:bg-[#3a3333]' : 'bg-white/90 dark:bg-gray-800/90'} transition-all transform hover:scale-105 rounded-full flex items-center justify-center ${className}`}
+        aria-label={isInWishlistStatus ? "Remove from wishlist" : "Add to wishlist"}
         disabled={isLoading}
       >
         {isLoading ? (
@@ -107,11 +100,11 @@ export default function WishlistButton({
           </svg>
         ) : (
           <svg 
-            className={`${iconSize[size]} ${isInWishlist ? 'text-[#ed875a]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}
+            className={`${iconSize[size]} ${isInWishlistStatus ? 'text-[#ed875a]' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}
             viewBox="0 0 24 24" 
-            fill={isInWishlist ? "currentColor" : "none"}
+            fill={isInWishlistStatus ? "currentColor" : "none"}
             stroke="currentColor" 
-            strokeWidth={isInWishlist ? "0" : "2"}
+            strokeWidth={isInWishlistStatus ? "0" : "2"}
           >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
@@ -125,7 +118,7 @@ export default function WishlistButton({
     <button
       onClick={handleWishlistToggle}
       className={`inline-flex items-center justify-center px-4 py-2 ${
-        isInWishlist 
+        isInWishlistStatus
           ? 'bg-[#fff2ee] dark:bg-[#3a3333] text-[#ed875a] border border-[#ed875a]/20' 
           : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-700'
       } rounded-md transition-all hover:shadow-sm ${className}`}
@@ -138,16 +131,16 @@ export default function WishlistButton({
         </svg>
       ) : (
         <svg 
-          className={`${iconSize[size]} mr-2 ${isInWishlist ? 'text-[#ed875a]' : ''}`}
+          className={`${iconSize[size]} mr-2 ${isInWishlistStatus ? 'text-[#ed875a]' : ''}`}
           viewBox="0 0 24 24" 
-          fill={isInWishlist ? "currentColor" : "none"}
+          fill={isInWishlistStatus ? "currentColor" : "none"}
           stroke="currentColor" 
-          strokeWidth={isInWishlist ? "0" : "2"}
+          strokeWidth={isInWishlistStatus ? "0" : "2"}
         >
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
       )}
-      {withText && (isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist')}
+      {withText && (isInWishlistStatus ? 'Remove from Wishlist' : 'Add to Wishlist')}
     </button>
   );
 } 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
 import Cookies from 'js-cookie';
 import { authApi, AUTH_EVENTS } from '@/lib/api';
 import { UserDetails } from '@/types/auth';
@@ -348,17 +348,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    isAuthenticated,
+    user,
+    isLoading,
+    login,
+    signup,
+    logout,
+    refreshSession,
+    fetchUserProfile
+  }), [
+    isAuthenticated,
+    user,
+    isLoading,
+    login,
+    signup,
+    logout,
+    refreshSession,
+    fetchUserProfile
+  ]);
+
   return (
-    <AuthContext.Provider value={{
-      isAuthenticated,
-      user,
-      isLoading,
-      login,
-      signup,
-      logout,
-      refreshSession,
-      fetchUserProfile
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

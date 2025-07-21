@@ -4,10 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartProvider } from '@/context/CartContext';
-import { AuthProvider } from '@/context/AuthContext';
-import { AuthModalProvider } from '@/context/AuthModalContext';
-import { CategoryProvider } from '@/context/CategoryContext';
-import { AnalyticsProvider } from '@/context/AnalyticsContext';
+import { CompositeProvider } from '@/context/CompositeProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Suspense } from 'react';
 import { Toaster } from 'react-hot-toast';
@@ -36,54 +33,46 @@ function RootLayoutClient({ children }: { children: React.ReactNode }) {
   'use client';
   
   return (
-    <AuthProvider>
-      <AnalyticsProvider>
-        <AuthModalProvider>
-          <CartProvider>
-            <CategoryProvider>
-              <Header />
-              <main className="flex-1 lg:px-4">
-                <Suspense fallback={<div>Loading...</div>}>
-                  {children}
-                </Suspense>
-              </main>
-              <Footer />
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 3000,
-                  style: {
-                    background: '#fff',
-                    color: '#333',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-                    borderRadius: '8px',
-                    padding: '12px 16px',
-                  },
-                  success: {
-                    iconTheme: {
-                      primary: '#10B981',
-                      secondary: 'white',
-                    },
-                    style: {
-                      border: '1px solid #10B981',
-                    },
-                  },
-                  error: {
-                    iconTheme: {
-                      primary: '#EF4444',
-                      secondary: 'white',
-                    },
-                    style: {
-                      border: '1px solid #EF4444',
-                    },
-                  },
-                }}
-              />
-            </CategoryProvider>
-          </CartProvider>
-        </AuthModalProvider>
-      </AnalyticsProvider>
-    </AuthProvider>
+    <CompositeProvider>
+      <Header />
+      <main className="flex-1 lg:px-4">
+        <Suspense fallback={<div>Loading...</div>}>
+          {children}
+        </Suspense>
+      </main>
+      <Footer />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#fff',
+            color: '#333',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            borderRadius: '8px',
+            padding: '12px 16px',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10B981',
+              secondary: 'white',
+            },
+            style: {
+              border: '1px solid #10B981',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#EF4444',
+              secondary: 'white',
+            },
+            style: {
+              border: '1px solid #EF4444',
+            },
+          },
+        }}
+      />
+    </CompositeProvider>
   );
 }
 

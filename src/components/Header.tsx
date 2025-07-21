@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { CartIcon } from './cart/CartIcon';
 import { useAuth } from '@/context/AuthContext';
+import { useWishlist } from '@/context/WishlistContext';
 import { categoriesApi } from '@/lib/api';
 import { CategoryNode } from '@/types/categories';
 import { SearchBar } from './search/SearchBar';
@@ -34,6 +35,9 @@ export function Header() {
   
   // Use auth context with isLoading state
   const { isAuthenticated, user, logout, isLoading: authLoading } = useAuth();
+  
+  // Use wishlist context for count
+  const { count: wishlistCount } = useWishlist();
   
   // Helper function to flatten category tree
   const flattenCategoryTree = (categories: CategoryNode[]): CategoryNode[] => {
@@ -434,7 +438,11 @@ export function Header() {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 lg:h-6 lg:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
-              <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] font-bold w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full">3</span>
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-black text-[10px] font-bold w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full">
+                  {wishlistCount > 99 ? '99+' : wishlistCount}
+                </span>
+              )}
             </Link>
             
             {/* User menu */}

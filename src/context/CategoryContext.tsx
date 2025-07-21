@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { categoriesApi } from '@/lib/api/categories-api';
 import { CategoryNode } from '@/types/categories';
 
@@ -57,8 +57,16 @@ export function CategoryProvider({ children }: { children: ReactNode }) {
     }, [] as CategoryNode[]);
   };
 
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    categoryTree,
+    flatCategories,
+    isLoading,
+    error
+  }), [categoryTree, flatCategories, isLoading, error]);
+
   return (
-    <CategoryContext.Provider value={{ categoryTree, flatCategories, isLoading, error }}>
+    <CategoryContext.Provider value={contextValue}>
       {children}
     </CategoryContext.Provider>
   );

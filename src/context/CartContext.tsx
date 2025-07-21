@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useRef, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, ReactNode, useCallback, useMemo } from 'react';
 import { ProductDetail, ColorVariant } from '@/types/product';
 import { ContextCartItem } from '@/types/cart';
 import { useAuth } from './AuthContext';
@@ -732,19 +732,33 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [calculateTotals, isAuthenticated, loadBackendCart, items]);
   
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    items,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    totalItems,
+    totalPrice,
+    refreshCart,
+    isLoading,
+    syncWithBackend
+  }), [
+    items,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    totalItems,
+    totalPrice,
+    refreshCart,
+    isLoading,
+    syncWithBackend
+  ]);
+  
   return (
-    <CartContext.Provider value={{
-      items,
-      addToCart,
-      removeFromCart,
-      updateQuantity,
-      clearCart,
-      totalItems,
-      totalPrice,
-      refreshCart,
-      isLoading,
-      syncWithBackend
-    }}>
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

@@ -14,6 +14,7 @@ interface AddressListProps {
   showSelectionMode?: boolean;
   header?: React.ReactNode;
   emptyStateMessage?: string;
+  onAddressChange?: () => void; // Callback when addresses are added/edited/deleted
 }
 
 const AddressList = ({
@@ -23,6 +24,7 @@ const AddressList = ({
   showSelectionMode = false,
   header,
   emptyStateMessage = 'You don\'t have any saved addresses yet.',
+  onAddressChange,
 }: AddressListProps) => {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,6 +68,10 @@ const AddressList = ({
   // Handle delete
   const handleDelete = (addressId: string) => {
     setAddresses(addresses.filter(addr => addr.id !== addressId));
+    // Notify parent component of the change
+    if (onAddressChange) {
+      onAddressChange();
+    }
   };
 
   // Handle save
@@ -81,6 +87,10 @@ const AddressList = ({
       setAddresses([...addresses, address]);
     }
     setShowAddForm(false);
+    // Notify parent component of the change
+    if (onAddressChange) {
+      onAddressChange();
+    }
   };
 
   // Handle cancel
@@ -95,22 +105,46 @@ const AddressList = ({
     setShowAddForm(true);
   };
 
+  // Check if address limit is reached
+  const addressLimitReached = addresses.length >= 3;
+
   return (
     <div className="space-y-6">
       {/* Header section */}
       {header && <div>{header}</div>}
 
+      {/* Address Limit Message */}
+      {addressLimitReached && showAddNewButton && !showAddForm && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-md border border-amber-200 dark:border-amber-800">
+          <div className="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600 dark:text-amber-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-amber-800 dark:text-amber-200 text-sm font-medium">
+              You've reached the maximum limit of 3 addresses. To add a new address, please delete an existing one first.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Add New Address Button */}
       {showAddNewButton && !showAddForm && (
         <div>
           <button 
-            onClick={handleAddNew}
-            className="flex items-center p-3 bg-gradient-to-r from-[#ed875a]/10 to-[#ed8c61]/10 hover:from-[#ed875a]/20 hover:to-[#ed8c61]/20 text-[#ed875a] dark:text-[#ed8c61] hover:text-[#d44506] rounded-md border border-dashed border-[#ed875a]/30 w-full sm:w-auto justify-center transition-all duration-300"
+            onClick={addressLimitReached ? undefined : handleAddNew}
+            disabled={addressLimitReached}
+            className={`flex items-center p-3 rounded-md border border-dashed w-full sm:w-auto justify-center transition-all duration-300 ${
+              addressLimitReached 
+                ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-300 dark:border-gray-700 cursor-not-allowed opacity-60' 
+                : 'bg-gradient-to-r from-[#ed875a]/10 to-[#ed8c61]/10 hover:from-[#ed875a]/20 hover:to-[#ed8c61]/20 text-[#ed875a] dark:text-[#ed8c61] hover:text-[#d44506] border-[#ed875a]/30'
+            }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            <span className="font-medium">Add a new address</span>
+            <span className="font-medium">
+              {addressLimitReached ? 'Address limit reached (3/3)' : 'Add a new address'}
+            </span>
           </button>
         </div>
       )}
@@ -163,13 +197,20 @@ const AddressList = ({
           <p className="text-gray-600 dark:text-gray-400">{emptyStateMessage}</p>
           {!showAddNewButton && (
             <button 
-              onClick={handleAddNew}
-              className="mt-4 flex items-center mx-auto p-2 bg-gradient-to-r from-[#ed875a]/10 to-[#ed8c61]/10 hover:from-[#ed875a]/20 hover:to-[#ed8c61]/20 text-[#ed875a] dark:text-[#ed8c61] hover:text-[#d44506] rounded-md border border-dashed border-[#ed875a]/30 justify-center transition-all duration-300"
+              onClick={addressLimitReached ? undefined : handleAddNew}
+              disabled={addressLimitReached}
+              className={`mt-4 flex items-center mx-auto p-2 rounded-md border border-dashed justify-center transition-all duration-300 ${
+                addressLimitReached 
+                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 border-gray-300 dark:border-gray-700 cursor-not-allowed opacity-60' 
+                  : 'bg-gradient-to-r from-[#ed875a]/10 to-[#ed8c61]/10 hover:from-[#ed875a]/20 hover:to-[#ed8c61]/20 text-[#ed875a] dark:text-[#ed8c61] hover:text-[#d44506] border-[#ed875a]/30'
+              }`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              <span className="text-sm">Add Address</span>
+              <span className="text-sm">
+                {addressLimitReached ? 'Address limit reached (3/3)' : 'Add Address'}
+              </span>
             </button>
           )}
         </div>
