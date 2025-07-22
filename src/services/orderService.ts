@@ -9,7 +9,8 @@ import {
   PaymentIntentRequest,
   PaymentVerifyRequest,
   OrderAddress,
-  OrderItem
+  OrderItem,
+  PaginatedOrdersResponse
 } from '@/types';
 
 /**
@@ -114,6 +115,37 @@ export const getOrderByNumber = async (orderNumber: string): Promise<OrderRespon
   } catch (error) {
     const apiError = handleApiError(error);
     console.error('Error fetching order details by number:', error);
+    toast.error(apiError.message);
+    throw apiError;
+  }
+};
+
+/**
+ * Gets user orders with pagination and filtering
+ * @param params Optional filter parameters
+ * @returns Paginated orders response
+ */
+export const getUserOrders = async (params?: Record<string, any>): Promise<PaginatedOrdersResponse> => {
+  try {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+    
+    const url = queryParams.toString() 
+      ? `${ENDPOINTS.ORDERS.MY_ORDERS}?${queryParams.toString()}`
+      : ENDPOINTS.ORDERS.MY_ORDERS;
+      
+    const response = await axiosClient.get(url);
+    // console.log('User orders API response:', response.data);
+    return response.data.data;
+  } catch (error) {
+    const apiError = handleApiError(error);
+    console.error('Error fetching user orders:', error);
     toast.error(apiError.message);
     throw apiError;
   }

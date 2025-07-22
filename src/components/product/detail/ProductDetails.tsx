@@ -9,7 +9,6 @@ interface ProductDetailsProps {
 }
 
 export function ProductDetails({ product }: ProductDetailsProps) {
-  console.log('😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊', product.reviews);
   const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'reviews'>('description');
   const [expandedSpecGroups, setExpandedSpecGroups] = useState<string[]>([]);
   

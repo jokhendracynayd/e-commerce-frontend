@@ -65,6 +65,7 @@ export interface OrderResponse {
   shippingFee: number;
   discount: number;
   total: number;
+  currency: string;
   items: OrderItem[];
   placedAt: string;
   updatedAt: string;

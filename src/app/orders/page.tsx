@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
-import { ordersApi, OrderFilterParams } from '@/lib/api/orders-api';
+import { getUserOrders } from '@/services/orderService';
 import { OrderResponse, OrderStatus, PaymentStatus, PaginatedOrdersResponse } from '@/types/order';
 import { toast } from 'react-hot-toast';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
@@ -24,85 +24,6 @@ type StatusFilters = {
 type TimeFilters = {
   [key in TimeFilter]: boolean;
 };
-
-// Mock order data based on the image with picsum.photos placeholder images
-const mockOrders = [
-  {
-    id: 'ORD-123456',
-    product: {
-      name: 'ELV DIRECT Laptop Stand for Desk, Adjustable...',
-      image: 'https://picsum.photos/id/20/200/200', // Tech/gadget looking image
-      color: 'Black',
-      size: '',
-    },
-    price: 305,
-    status: 'Cancelled',
-    statusDate: 'May 02',
-    date: '2023-05-02',
-    details: '',
-    canReview: true,
-  },
-  {
-    id: 'ORD-789012',
-    product: {
-      name: 'PHASHIONLINE Embroidered Kurta, Palazzo...',
-      image: 'https://picsum.photos/id/56/200/200', // Fashion/clothing looking image
-      color: 'Black',
-      size: 'XL',
-    },
-    price: 728,
-    status: 'Cancelled',
-    statusDate: 'Jul 31, 2024',
-    date: '2024-07-31',
-    details: 'As per your request, your item has been cancelled',
-    canReview: false,
-  },
-  {
-    id: 'ORD-345678',
-    product: {
-      name: 'Dr. Morepen BP-15 Blood Pressure Monitor...',
-      image: 'https://picsum.photos/id/250/200/200', // Medical-ish looking image
-      color: 'White',
-      size: '',
-    },
-    price: 1579,
-    status: 'Delivered',
-    statusDate: 'Apr 16, 2024',
-    date: '2024-04-16',
-    details: 'Your item has been delivered',
-    canReview: true,
-  },
-  {
-    id: 'ORD-901234',
-    product: {
-      name: 'Firstmed Digital Medical Thermometer Har...',
-      image: 'https://picsum.photos/id/101/200/200', // Another medical-ish looking image
-      color: 'White',
-      size: '',
-    },
-    price: 213,
-    status: 'Delivered',
-    statusDate: 'Apr 16, 2024',
-    date: '2024-04-16',
-    details: 'Your item has been delivered',
-    canReview: true,
-  },
-  {
-    id: 'ORD-567890',
-    product: {
-      name: 'Dr. Morepen Health Care Appliance Combo',
-      image: 'https://picsum.photos/id/96/200/200', // Health product looking image
-      color: '',
-      size: '',
-    },
-    price: 1684,
-    status: 'Cancelled',
-    statusDate: 'Apr 12, 2024',
-    date: '2024-04-12',
-    details: 'You requested a cancellation because you changed your mind about this product.',
-    canReview: false,
-  },
-];
 
 export default function OrdersPage() {
   const { isAuthenticated, user, isLoading: authLoading } = useAuth();
@@ -144,10 +65,10 @@ export default function OrdersPage() {
   const [eligibleProducts, setEligibleProducts] = useState<EligibleProductForReview[]>([]);
   
   // Fetch orders from API using useCallback to memoize the function
-  const fetchOrders = useCallback(async (params: OrderFilterParams = {}) => {
+  const fetchOrders = useCallback(async (params: Record<string, any> = {}) => {
     try {
       setIsLoading(true);
-      const response = await ordersApi.getMyOrders(params);
+      const response = await getUserOrders(params);
       setOrders(response.data);
       setFilteredOrders(response.data);
       setPaginationData({
@@ -215,6 +136,56 @@ export default function OrdersPage() {
     fetchEligibleProducts(); // Refresh eligible products
     fetchOrders(); // Refresh orders to update review status
     toast.success('Thank you for your review!');
+  };
+
+  // Handle invoice download
+  const handleDownloadInvoice = (order: OrderResponse) => {
+    const currencySymbol = getCurrencySymbol(order.currency);
+    
+    // Create a simple invoice content
+    const invoiceContent = `
+INVOICE - Order #${order.orderNumber}
+=====================================
+
+Customer: ${order.user.firstName} ${order.user.lastName}
+Email: ${order.user.email}
+Order Date: ${new Date(order.placedAt).toLocaleDateString()}
+
+ITEMS:
+------
+${order.items.map(item => 
+  `${item.product.title}${item.variant ? ` (${item.variant.variantName})` : ''}
+  Qty: ${item.quantity} x ${currencySymbol}${formatCurrency(item.unitPrice)} = ${currencySymbol}${formatCurrency(item.totalPrice)}`
+).join('\n')}
+
+SUMMARY:
+--------
+Subtotal: ${currencySymbol}${formatCurrency(order.subtotal)}
+${order.discount > 0 ? `Discount: -${currencySymbol}${formatCurrency(order.discount)}\n` : ''}Tax/Fees: ${currencySymbol}${formatCurrency(order.tax + order.shippingFee)}
+Total: ${currencySymbol}${formatCurrency(order.total)}
+
+Payment Method: ${order.paymentMethod}
+Payment Status: ${order.paymentStatus}
+
+Shipping Address:
+${order.shippingAddress.name}
+${order.shippingAddress.street}
+${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.zipCode}
+${order.shippingAddress.country}
+`;
+
+    // Create and download the file
+    const blob = new Blob([invoiceContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `invoice-${order.orderNumber}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    toast.success('Invoice downloaded successfully!');
   };
   
   // Redirect to login if not authenticated, but only after auth state has loaded
@@ -768,7 +739,6 @@ export default function OrdersPage() {
             {filteredOrders.length > 0 ? (
               <div className="space-y-4 sm:space-y-5">
                 {filteredOrders.map((order) => (
-                  console.log('😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊😊', order),
                   <div 
                     key={order.id} 
                     className="bg-white dark:bg-gray-800 rounded-lg shadow-[0_5px_20px_-4px_rgba(237,135,90,0.1)] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 border border-gray-100 dark:border-gray-700 hover:shadow-[0_8px_25px_-5px_rgba(237,135,90,0.15)] transition-shadow duration-300"
@@ -822,8 +792,8 @@ export default function OrdersPage() {
                         {/* Right side info */}
                         <div className="flex flex-col items-start sm:items-end mt-2 sm:mt-0">
                           <div className="text-right">
-                                                         <span className="font-bold text-gray-900 dark:text-white">
-                               {formatOrderPrice(order.total)}
+                              <span className="font-bold text-gray-900 dark:text-white">
+                              {formatOrderPrice(order.total, order.currency)}
                              </span>
                           </div>
                           <div className="sm:text-right text-xs text-gray-600 dark:text-gray-400 mt-1">
@@ -866,7 +836,10 @@ export default function OrdersPage() {
                             </svg>
                             Details
                           </Link>
-                          <button className="text-xs font-medium flex items-center justify-center px-3 py-1.5 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md transition-colors hover:bg-gray-50 dark:hover:bg-gray-700">
+                          <button 
+                            onClick={() => handleDownloadInvoice(order)}
+                            className="text-xs font-medium flex items-center justify-center px-3 py-1.5 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+                          >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                             </svg>

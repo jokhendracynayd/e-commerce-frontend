@@ -108,13 +108,17 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       // Meesho-style URLs: /product-slug/p/product-id -> /product/[slug]
+      // Example: /smartphone/p/abc123 -> /product/abc123
       {
         source: '/:productSlug/p/:productId',
         destination: '/product/:productId',
       },
       // Category-product URLs: /category/product-slug-product-id -> /product/[slug]
+      // Example: /electronics/smartphone-abc123 -> /product/abc123
+      // IMPORTANT: Uses negative lookahead to exclude system routes like:
+      // /orders/, /cart/, /checkout/, /profile/, etc. to prevent conflicts
       {
-        source: '/:category/:productSlug-:productId',
+        source: '/:category((?!orders|cart|checkout|profile|dashboard|login|signup|search|about|contact|api|_next|admin|product)[a-zA-Z0-9-]+)/:productSlug([a-zA-Z0-9-]+)-:productId([a-zA-Z0-9-]+)',
         destination: '/product/:productId',
       },
     ];
