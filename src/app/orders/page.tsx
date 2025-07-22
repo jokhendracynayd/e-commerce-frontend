@@ -9,6 +9,9 @@ import { ordersApi, OrderFilterParams } from '@/lib/api/orders-api';
 import { OrderResponse, OrderStatus, PaymentStatus, PaginatedOrdersResponse } from '@/types/order';
 import { toast } from 'react-hot-toast';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
+import WriteReviewModal from '@/components/review/WriteReviewModal';
+import { reviewService } from '@/services/reviewService';
+import { EligibleProductForReview } from '@/types/review';
 
 // Type definitions for filtering
 type StatusFilter = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'RETURNED';
@@ -135,6 +138,11 @@ export default function OrdersPage() {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [appliedFilterCount, setAppliedFilterCount] = useState(0);
   
+  // Review modal state
+  const [isWriteReviewModalOpen, setIsWriteReviewModalOpen] = useState(false);
+  const [selectedProductForReview, setSelectedProductForReview] = useState<EligibleProductForReview | null>(null);
+  const [eligibleProducts, setEligibleProducts] = useState<EligibleProductForReview[]>([]);
+  
   // Fetch orders from API using useCallback to memoize the function
   const fetchOrders = useCallback(async (params: OrderFilterParams = {}) => {
     try {
@@ -159,16 +167,66 @@ export default function OrdersPage() {
       setIsLoading(false);
     }
   }, []);
+
+  // Fetch eligible products for review
+  const fetchEligibleProducts = useCallback(async () => {
+    try {
+      const products = await reviewService.getEligibleProducts();
+      setEligibleProducts(products);
+    } catch (error) {
+      console.error('Failed to fetch eligible products:', error);
+    }
+  }, []);
+
+  // Handle review button click
+  const handleReviewClick = (order: OrderResponse) => {
+    // Find the product from eligible products that matches this order
+    const eligibleProduct = eligibleProducts.find(p => 
+      p.orderId === order.id && order.items && order.items.length > 0
+    );
+    
+    if (eligibleProduct) {
+      setSelectedProductForReview(eligibleProduct);
+      setIsWriteReviewModalOpen(true);
+    } else {
+      // If not found in eligible products, create a temporary one from order data
+      if (order.items && order.items.length > 0) {
+        const firstItem = order.items[0];
+        const tempProduct: EligibleProductForReview = {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+          orderDate: order.placedAt,
+          product: {
+            id: firstItem.product?.id || '',
+            title: firstItem.product?.title || 'Unknown Product',
+            slug: firstItem.product?.slug || '',
+            imageUrl: firstItem.product?.imageUrl,
+          },
+          quantity: firstItem.quantity,
+        };
+        setSelectedProductForReview(tempProduct);
+        setIsWriteReviewModalOpen(true);
+      }
+    }
+  };
+
+  // Handle review submission success
+  const handleReviewSubmitted = () => {
+    fetchEligibleProducts(); // Refresh eligible products
+    fetchOrders(); // Refresh orders to update review status
+    toast.success('Thank you for your review!');
+  };
   
   // Redirect to login if not authenticated, but only after auth state has loaded
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push('/login?returnUrl=/orders');
     } else if (!authLoading && isAuthenticated) {
-      // Fetch orders when component mounts, user is authenticated, and auth state has loaded
+      // Fetch orders and eligible products when component mounts, user is authenticated, and auth state has loaded
       fetchOrders();
+      fetchEligibleProducts();
     }
-  }, [isAuthenticated, authLoading, router, fetchOrders]);
+  }, [isAuthenticated, authLoading, router, fetchOrders, fetchEligibleProducts]);
 
   // Count applied filters
   useEffect(() => {
@@ -788,11 +846,14 @@ export default function OrdersPage() {
                         {/* Action buttons */}
                         <div className="flex flex-wrap gap-2">
                           {canReviewOrder(order) && (
-                            <button className="text-xs font-medium flex items-center justify-center px-3 py-1.5 bg-[#ed875a]/10 dark:bg-[#ed875a]/20 text-[#d44506] dark:text-[#ed875a] rounded-md transition-colors hover:bg-[#ed875a]/20 dark:hover:bg-[#ed875a]/30">
+                            <button 
+                              onClick={() => handleReviewClick(order)}
+                              className="text-xs font-medium flex items-center justify-center px-3 py-1.5 bg-[#ed875a]/10 dark:bg-[#ed875a]/20 text-[#d44506] dark:text-[#ed875a] rounded-md transition-colors hover:bg-[#ed875a]/20 dark:hover:bg-[#ed875a]/30"
+                            >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                               </svg>
-                              Review
+                              Write Review
                             </button>
                           )}
                           <Link 
@@ -851,6 +912,19 @@ export default function OrdersPage() {
           </div>
         </div>
       </div>
+
+      {/* Write Review Modal */}
+      {selectedProductForReview && (
+        <WriteReviewModal
+          isOpen={isWriteReviewModalOpen}
+          onClose={() => {
+            setIsWriteReviewModalOpen(false);
+            setSelectedProductForReview(null);
+          }}
+          product={selectedProductForReview}
+          onReviewSubmitted={handleReviewSubmitted}
+        />
+      )}
     </div>
   );
 } 

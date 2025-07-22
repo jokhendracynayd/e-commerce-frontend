@@ -130,7 +130,7 @@ export default function CategoryPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [sortBy, setSortBy] = useState('popularity');
   const [filters, setFilters] = useState<FilterState>({
-    priceRange: [0, 50000],
+    priceRange: [0, 500000000],
     ratings: [],
     brands: [],
     availability: [],
@@ -236,7 +236,6 @@ export default function CategoryPage() {
           params
         ) as ApiResponse;
         
-        console.log('Category Products API Response:', response);
         
         // If we have API data, transform it to match our UI format
         if (response && response.data && response.data.data && response.data.data.length > 0) {

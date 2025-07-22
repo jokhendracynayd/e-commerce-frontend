@@ -6,7 +6,6 @@ import {
   ApiProduct as Product, 
   ProductListParams, 
   ApiProductListResponse as ProductListResponse,
-  CreateReviewRequest,
   ApiProductSpecification as ProductSpecification,
   ApiProductReview as ProductReview,
   ApiProductImage as ProductImage,
@@ -27,7 +26,6 @@ export type {
   Category,
   Tag,
   ProductReview,
-  CreateReviewRequest,
   ProductListParams,
   ProductListResponse
 };
@@ -103,6 +101,7 @@ export const productsApi = {
         categorySlug,
         recursive,
       };
+
       
       const response: AxiosResponse = await axiosClient.get(
         ENDPOINTS.PRODUCTS.BASE,
@@ -300,20 +299,7 @@ export const productsApi = {
     }
   },
   
-  /**
-   * Add a product review
-   */
-  addProductReview: async (productId: string, data: CreateReviewRequest): Promise<ProductReview> => {
-    try {
-      const response: AxiosResponse = await axiosClient.post(
-        ENDPOINTS.PRODUCTS.ADD_REVIEW(productId),
-        data
-      );
-      return response.data;
-    } catch (error) {
-      throw handleApiError(error);
-    }
-  },
+
 };
 
 export default productsApi; 

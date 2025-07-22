@@ -9,7 +9,10 @@ import AddressForm from '@/components/address/AddressForm';
 import AddressList from '@/components/address/AddressList';
 import { Address } from '@/types/address';
 import { WishlistItemWithProduct } from '@/types/wishlist';
+import { Review, UpdateReviewRequest } from '@/types/review';
 import { getUserAddresses } from '@/services/addressService';
+import { reviewService } from '@/services/reviewService';
+import WriteReviewModal from '@/components/review/WriteReviewModal';
 import Image from 'next/image';
 import { debounce } from 'lodash';
 
@@ -25,6 +28,13 @@ export default function ProfilePage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [addressToEdit, setAddressToEdit] = useState<Address | null>(null);
+  
+  // Reviews management state
+  const [userReviews, setUserReviews] = useState<Review[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
+  const [editingReview, setEditingReview] = useState<Review | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   
   // Effect to log wishlist rendering for debugging
   useEffect(() => {
@@ -59,12 +69,34 @@ export default function ProfilePage() {
     }
   }, []);
 
+  // Fetch user reviews when reviews section is active
+  const fetchUserReviews = useCallback(async () => {
+    setReviewsLoading(true);
+    setReviewsError(null);
+    try {
+      const response = await reviewService.getMyReviews();
+      setUserReviews(response.data);
+    } catch (error: any) {
+      setReviewsError(error.message || 'Failed to fetch reviews');
+      console.error('Error fetching user reviews:', error);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, []);
+
   // Fetch addresses when addresses section becomes active
   useEffect(() => {
     if (activeSection === 'addresses') {
       fetchAddresses();
     }
   }, [activeSection, fetchAddresses]);
+
+  // Fetch reviews when reviews section becomes active
+  useEffect(() => {
+    if (activeSection === 'reviews') {
+      fetchUserReviews();
+    }
+  }, [activeSection, fetchUserReviews]);
 
   // Simplified wishlist data fetching using context
   const fetchWishlistData = useCallback(async () => {
@@ -220,6 +252,36 @@ export default function ProfilePage() {
   const handleAddressCancel = () => {
     setShowAddressForm(false);
     setAddressToEdit(null);
+  };
+
+  // Review handlers
+  const handleEditReview = (review: Review) => {
+    setEditingReview(review);
+    setShowEditModal(true);
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+      try {
+        await reviewService.deleteReview(reviewId);
+        setUserReviews(prev => prev.filter(review => review.id !== reviewId));
+      } catch (error: any) {
+        alert('Failed to delete review: ' + (error.message || 'Unknown error'));
+      }
+    }
+  };
+
+  const handleUpdateReview = async (reviewId: string, data: UpdateReviewRequest) => {
+    try {
+      const updatedReview = await reviewService.updateReview(reviewId, data);
+      setUserReviews(prev => prev.map(review => 
+        review.id === reviewId ? updatedReview : review
+      ));
+      setShowEditModal(false);
+      setEditingReview(null);
+    } catch (error: any) {
+      alert('Failed to update review: ' + (error.message || 'Unknown error'));
+    }
   };
   
   return (
@@ -898,14 +960,350 @@ export default function ProfilePage() {
               </div>
             )}
             
+            {/* My Reviews Section */}
+            {activeSection === 'reviews' && (
+              <div>
+                <div className="flex items-center mb-6">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-[#ed875a]/10 to-[#ed8c61]/20 dark:from-[#ed875a]/20 dark:to-[#ed8c61]/30 flex items-center justify-center mr-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#ed875a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-medium text-gray-900 dark:text-white">My Reviews & Ratings</h2>
+                  
+                  <button 
+                    onClick={() => fetchUserReviews()}
+                    className="ml-auto p-2 text-sm text-[#ed875a] hover:bg-[#ed875a]/10 rounded-full flex items-center"
+                    aria-label="Refresh reviews"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span className="ml-1">Refresh</span>
+                  </button>
+                </div>
+
+                {/* Loading State */}
+                {reviewsLoading && (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <div className="animate-pulse space-y-4 w-full">
+                      {[1, 2, 3].map((item) => (
+                        <div key={item} className="flex border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                          <div className="bg-gray-200 dark:bg-gray-700 h-24 w-24 rounded"></div>
+                          <div className="ml-4 flex-1 space-y-2 py-1">
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Error State */}
+                {reviewsError && !reviewsLoading && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg p-4 text-center">
+                    <p className="text-red-600 dark:text-red-400">{reviewsError}</p>
+                    <button 
+                      onClick={fetchUserReviews}
+                      className="mt-3 px-4 py-2 bg-red-100 dark:bg-red-800/30 text-red-600 dark:text-red-400 rounded-md hover:bg-red-200 dark:hover:bg-red-800/50 transition-colors"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {!reviewsLoading && !reviewsError && userReviews.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-8 sm:py-12">
+                    <div className="w-52 sm:w-64 h-52 sm:h-64 relative mb-6 sm:mb-8">
+                      <div className="absolute top-0 left-0 w-full h-full">
+                        <div className="relative">
+                          {/* Review icon with stars */}
+                          <div className="w-40 sm:w-48 h-32 sm:h-36 border-2 border-gray-200 dark:border-gray-600 shadow-md mx-auto bg-white dark:bg-gray-700 rounded-md flex items-center justify-center">
+                            <div className="w-20 sm:w-24 h-20 sm:h-24 bg-gradient-to-r from-[#f5f1ed]/70 to-[#f5f1ed]/30 dark:from-gray-750/50 dark:to-gray-750/20 rounded-md flex items-center justify-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-[#ed875a] opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                              </svg>
+                            </div>
+                          </div>
+                          {/* Stars around the review icon */}
+                          <div className="absolute top-0 right-8">
+                            <div className="w-7 sm:w-8 h-7 sm:h-8 rounded-full bg-gradient-to-br from-[#ed875a]/30 to-[#ed875a]/10 dark:from-[#ed875a]/40 dark:to-[#ed875a]/20 animate-pulse-gentle"></div>
+                          </div>
+                          <div className="absolute top-12 right-0">
+                            <div className="w-5 sm:w-6 h-5 sm:h-6 rounded-full bg-gradient-to-br from-[#ed8c61]/30 to-[#ed8c61]/10 dark:from-[#ed8c61]/40 dark:to-[#ed8c61]/20 animate-pulse-gentle [animation-delay:0.5s]"></div>
+                          </div>
+                          <div className="absolute bottom-12 right-12">
+                            <div className="w-9 sm:w-10 h-9 sm:h-10 rounded-full bg-gradient-to-br from-[#d44506]/30 to-[#d44506]/10 dark:from-[#d44506]/40 dark:to-[#d44506]/20 animate-pulse-gentle [animation-delay:0.8s]"></div>
+                          </div>
+                          <div className="absolute top-6 left-6">
+                            <div className="w-7 sm:w-8 h-7 sm:h-8 rounded-full bg-gradient-to-br from-[#ed875a]/30 to-[#ed875a]/10 dark:from-[#ed875a]/40 dark:to-[#ed875a]/20 animate-pulse-gentle [animation-delay:1.2s]"></div>
+                          </div>
+                          <div className="absolute bottom-4 left-0">
+                            <div className="w-9 sm:w-10 h-5 sm:h-6 rounded-full bg-gradient-to-br from-[#ed8c61]/30 to-[#ed8c61]/10 dark:from-[#ed8c61]/40 dark:to-[#ed8c61]/20 animate-pulse-gentle [animation-delay:0.3s]"></div>
+                          </div>
+                          <div className="absolute top-20 left-0">
+                            <div className="w-5 sm:w-6 h-9 sm:h-10 rounded-full bg-gradient-to-br from-[#d44506]/30 to-[#d44506]/10 dark:from-[#d44506]/40 dark:to-[#d44506]/20 animate-pulse-gentle [animation-delay:1.5s]"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-medium text-gray-900 dark:text-white mb-2">No Reviews Yet</h2>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6 max-w-xs text-center">Start reviewing products you've purchased to help other customers.</p>
+                    <Link 
+                      href="/orders" 
+                      className="flex items-center px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white rounded-md transition-all duration-300 hover:shadow-lg hover:shadow-[#ed875a]/20 transform hover:-translate-y-0.5"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                      </svg>
+                      View Orders
+                    </Link>
+                  </div>
+                )}
+
+                {/* Reviews List */}
+                {!reviewsLoading && !reviewsError && userReviews.length > 0 && (
+                  <div className="space-y-4">
+                    {userReviews.map((review) => (
+                      <div 
+                        key={review.id} 
+                        className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 transition-all duration-300 hover:shadow-md hover:border-[#ed875a]/30 dark:hover:border-[#ed875a]/20"
+                      >
+                        {/* Product Info */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start">
+                            {review.product?.imageUrl && (
+                              <div className="flex-shrink-0 w-16 h-16 mr-3 relative rounded-md overflow-hidden bg-gray-100 dark:bg-gray-750">
+                                <Image
+                                  src={review.product.imageUrl} 
+                                  alt={review.product.title || 'Product'}
+                                  fill
+                                  sizes="64px"
+                                  className="object-cover"
+                                />
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-base font-medium text-gray-900 dark:text-white truncate">
+                                {review.product?.title || 'Product'}
+                              </h3>
+                              {review.isVerifiedPurchase && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 mt-1">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  Verified Purchase
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="flex items-center gap-2 ml-4">
+                            <button
+                              onClick={() => handleEditReview(review)}
+                              className="p-2 text-xs text-[#ed875a] hover:bg-[#ed875a]/10 rounded-full transition-colors"
+                              aria-label="Edit review"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteReview(review.id)}
+                              className="p-2 text-xs text-red-500 hover:bg-red-500/10 rounded-full transition-colors"
+                              aria-label="Delete review"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Rating */}
+                        <div className="flex items-center mb-3">
+                          <div className="flex items-center">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <svg
+                                key={star}
+                                xmlns="http://www.w3.org/2000/svg"
+                                className={`h-5 w-5 ${star <= review.rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            ))}
+                          </div>
+                          <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                            {review.rating} out of 5 stars
+                          </span>
+                        </div>
+
+                        {/* Review Title */}
+                        {review.title && (
+                          <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                            {review.title}
+                          </h4>
+                        )}
+
+                        {/* Review Comment */}
+                        {review.comment && (
+                          <p className="text-gray-700 dark:text-gray-300 mb-3 leading-relaxed">
+                            {review.comment}
+                          </p>
+                        )}
+
+                        {/* Review Meta */}
+                        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                          <span>
+                            Reviewed on {new Date(review.createdAt).toLocaleDateString()}
+                          </span>
+                          {review.helpfulCount > 0 && (
+                            <span className="flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                              </svg>
+                              {review.helpfulCount} found helpful
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
             {/* Other sections would be similarly implemented */}
-            {(activeSection !== 'wishlist' && activeSection !== 'profile' && activeSection !== 'addresses') && (
+            {(activeSection !== 'wishlist' && activeSection !== 'profile' && activeSection !== 'addresses' && activeSection !== 'reviews') && (
               <div className="flex items-center justify-center h-64">
                 <p className="text-gray-500 dark:text-gray-400">This section is under development.</p>
               </div>
             )}
           </div>
         </div>
+        
+        {/* Edit Review Modal */}
+        {showEditModal && editingReview && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Edit Review</h3>
+                <button
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setEditingReview(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const rating = parseInt(formData.get('rating') as string);
+                  const title = formData.get('title') as string;
+                  const comment = formData.get('comment') as string;
+                  
+                  handleUpdateReview(editingReview.id, {
+                    rating: rating || editingReview.rating,
+                    title: title || undefined,
+                    comment: comment || undefined,
+                  });
+                }}
+                className="space-y-4"
+              >
+                {/* Rating */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Rating
+                  </label>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <label key={star} className="cursor-pointer">
+                        <input
+                          type="radio"
+                          name="rating"
+                          value={star}
+                          defaultChecked={star === editingReview.rating}
+                          className="sr-only"
+                        />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-8 w-8 text-yellow-400 hover:text-yellow-500 transition-colors"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Title (optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="title"
+                    defaultValue={editingReview.title || ''}
+                    placeholder="Give your review a title"
+                    maxLength={100}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                {/* Comment */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Comment (optional)
+                  </label>
+                  <textarea
+                    name="comment"
+                    defaultValue={editingReview.comment || ''}
+                    placeholder="Share your experience with this product"
+                    rows={4}
+                    maxLength={1000}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                  />
+                </div>
+
+                {/* Buttons */}
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingReview(null);
+                    }}
+                    className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white rounded-md hover:shadow-md transition-all duration-300 text-sm"
+                  >
+                    Update Review
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

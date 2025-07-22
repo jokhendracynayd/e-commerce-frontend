@@ -85,10 +85,7 @@ export interface ApiProductReview {
   createdAt: string;
 }
 
-export interface CreateReviewRequest {
-  rating: number;
-  comment?: string;
-}
+
 
 export interface ProductListParams {
   page?: number;

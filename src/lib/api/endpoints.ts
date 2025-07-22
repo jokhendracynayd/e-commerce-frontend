@@ -117,6 +117,18 @@ export const ENDPOINTS = {
       QR: '/payments/upi/qr-code',
     },
   },
+  
+  REVIEWS: {
+    BASE: '/reviews',
+    DETAIL: (id: string) => `/reviews/${id}`,
+    MY_REVIEWS: '/reviews/my-reviews',
+    ELIGIBLE_PRODUCTS: '/reviews/eligible-products',
+    CAN_REVIEW: (orderId: string, productId: string) => `/reviews/can-review/${orderId}/${productId}`,
+    PRODUCT_STATS: (productId: string) => `/reviews/products/${productId}/stats`,
+    CREATE: '/reviews',
+    UPDATE: (id: string) => `/reviews/${id}`,
+    DELETE: (id: string) => `/reviews/${id}`,
+  },
 
   INVENTORY: {
     PRODUCT_AVAILABILITY: (productId: string) => `/inventory/availability/product/${productId}`,
