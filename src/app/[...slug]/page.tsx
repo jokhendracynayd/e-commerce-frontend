@@ -9,6 +9,8 @@ import { useCategories } from '@/context/CategoryContext';
 import { CategoryNode } from '@/types/categories';
 import { CategoryBreadcrumb } from '@/components/product/CategoryBreadcrumb';
 import { getProductsByCategorySlug } from '@/services/productService';
+import { debounce } from 'lodash';
+import Link from 'next/link';
 
 // Define API response interfaces
 interface ApiProductVariant {
@@ -555,13 +557,13 @@ export default function CategoryPage() {
         <h2 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Browse Subcategories</h2>
         <div className="flex flex-wrap gap-1.5">
           {childCategories.map(category => (
-            <a 
-              key={category.id} 
+            <Link 
+              key={category.id}
               href={buildCategoryPath(category, flatCategories)}
               className="inline-flex items-center px-2 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               {category.name}
-            </a>
+            </Link>
           ))}
         </div>
       </>

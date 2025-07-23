@@ -118,7 +118,7 @@ const nextConfig: NextConfig = {
       // IMPORTANT: Uses negative lookahead to exclude system routes like:
       // /orders/, /cart/, /checkout/, /profile/, etc. to prevent conflicts
       {
-        source: '/:category((?!orders|cart|checkout|profile|dashboard|login|signup|search|about|contact|api|_next|admin|product)[a-zA-Z0-9-]+)/:productSlug([a-zA-Z0-9-]+)-:productId([a-zA-Z0-9-]+)',
+        source: '/:category((?!orders|cart|checkout|profile|dashboard|login|signup|search|about|contact|api|_next|admin|product)[a-zA-Z0-9-]+)/:productSlug([a-zA-Z0-9-]+)-:productId([0-9a-fA-F]{16,})',
         destination: '/product/:productId',
       },
     ];
