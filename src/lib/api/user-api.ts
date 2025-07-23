@@ -28,7 +28,7 @@ export const userApi = {
    */
   updateUserProfile: async (data: UserUpdateRequest): Promise<UserDetails> => {
     try {
-      const response = await axiosClient.patch(ENDPOINTS.USERS.BASE, data);
+      const response = await axiosClient.patch(ENDPOINTS.USERS.ME, data);
       return response.data.data;
     } catch (error) {
       throw handleApiError(error);

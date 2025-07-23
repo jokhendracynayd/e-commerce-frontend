@@ -69,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: apiUser.email,
       role: apiUser.role,
       status: apiUser.status,
+      gender: apiUser.gender || undefined,
       initials,
       // Add any additional properties we want to expose in the User interface
       profileImage: apiUser.profileImage || null,

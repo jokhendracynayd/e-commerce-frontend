@@ -14,6 +14,7 @@ export interface User {
   lastName?: string;
   email: string;
   role: 'USER' | 'ADMIN' | 'SELLER';
+  gender?: string;
   initials: string;
   status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   profileImage?: string | null;

@@ -15,9 +15,11 @@ import { reviewService } from '@/services/reviewService';
 import WriteReviewModal from '@/components/review/WriteReviewModal';
 import Image from 'next/image';
 import { debounce } from 'lodash';
+import { userService } from '@/services/userService';
+import { toast } from 'react-hot-toast';
 
 export default function ProfilePage() {
-  const { isAuthenticated, user, logout, isLoading } = useAuth();
+  const { isAuthenticated, user, logout, isLoading, fetchUserProfile } = useAuth();
   const { items: wishlistItems, loading: wishlistLoading, error: wishlistError, refreshWishlist, removeItem } = useWishlist();
   const router = useRouter();
   const [activeSection, setActiveSection] = useState('profile');
@@ -35,6 +37,65 @@ export default function ProfilePage() {
   const [reviewsError, setReviewsError] = useState<string | null>(null);
   const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  
+  // Profile editing state
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [fullName, setFullName] = useState(user?.name || '');
+  const [phoneInput, setPhoneInput] = useState(user?.phone || '');
+  const [genderInput, setGenderInput] = useState<string>('');
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [errors, setErrors] = useState<{ fullName?: string; phone?: string }>({});
+  
+  const phoneRegex = /^\+?[1-9]\d{9,14}$/;
+  
+  const validateProfile = (): boolean => {
+    const newErrors: { fullName?: string; phone?: string } = {};
+    if (!fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
+    }
+    if (phoneInput && !phoneRegex.test(phoneInput.trim())) {
+      newErrors.phone = 'Enter a valid phone number (e.g. +1234567890)';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
+  const startEditingProfile = () => {
+    setFullName(user?.name || '');
+    setPhoneInput(user?.phone || '');
+    setGenderInput(((user as any)?.gender as string) || '');
+    setIsEditingProfile(true);
+  };
+  
+  const cancelEditingProfile = () => {
+    setIsEditingProfile(false);
+  };
+  
+  const saveProfileChanges = async () => {
+    if (savingProfile) return;
+    if (!validateProfile()) {
+      return;
+    }
+    setSavingProfile(true);
+    try {
+      const [firstName, ...rest] = fullName.trim().split(' ');
+      const payload = {
+        firstName: firstName || undefined,
+        lastName: rest.length ? rest.join(' ') : undefined,
+        phone: "+91"+phoneInput.trim() || undefined,
+        gender: genderInput || undefined,
+      };
+      await userService.updateProfile(payload);
+      await fetchUserProfile();
+      toast.success('Profile updated successfully');
+      setIsEditingProfile(false);
+    } catch (error: any) {
+      console.error('Failed to update profile:', error);
+      toast.error(error?.message || 'Failed to update profile');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
   
   // Effect to log wishlist rendering for debugging
   useEffect(() => {
@@ -757,9 +818,13 @@ export default function ProfilePage() {
                           <input 
                             type="text"
                             className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
-                            defaultValue={user.name}
-                            readOnly
+                            value={isEditingProfile ? fullName : user?.name || ''}
+                            onChange={isEditingProfile ? (e) => setFullName(e.target.value) : undefined}
+                            readOnly={!isEditingProfile}
                           />
+                          {errors.fullName && (
+                            <p className="text-xs text-red-600 mt-1">{errors.fullName}</p>
+                          )}
                           <div className="absolute inset-y-0 right-3 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -789,9 +854,13 @@ export default function ProfilePage() {
                           <input 
                             type="tel"
                             className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50"
-                            defaultValue="+91 9876543210"
-                            readOnly
+                            value={isEditingProfile ? phoneInput : (user?.phone || '')}
+                            onChange={isEditingProfile ? (e) => setPhoneInput(e.target.value) : undefined}
+                            readOnly={!isEditingProfile}
                           />
+                          {errors.phone && (
+                            <p className="text-xs text-red-600 mt-1">{errors.phone}</p>
+                          )}
                           <div className="absolute inset-y-0 right-3 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -804,13 +873,15 @@ export default function ProfilePage() {
                         <div className="relative">
                           <select
                             className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#ed875a] focus:border-transparent transition-all duration-200 group-hover:border-[#ed875a]/50 appearance-none"
-                            defaultValue=""
+                            value={isEditingProfile ? genderInput : (user?.gender || '')}
+                            onChange={isEditingProfile ? (e) => setGenderInput(e.target.value) : undefined}
+                            disabled={!isEditingProfile}
                           >
                             <option value="" disabled>Not specified</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
-                            <option value="prefer_not_to_say">Prefer not to say</option>
+                            <option value="MALE">Male</option>
+                            <option value="FEMALE">Female</option>
+                            <option value="OTHER">Other</option>
+                            <option value="PREFER_NOT_TO_SAY">Prefer not to say</option>
                           </select>
                           <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -822,18 +893,42 @@ export default function ProfilePage() {
                     </div>
                   
                     <div className="flex flex-wrap gap-4 mt-6">
-                      <button className="px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white rounded-md transition-all duration-300 hover:shadow-lg hover:shadow-[#ed875a]/20 transform hover:-translate-y-0.5 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                        Edit Profile
-                      </button>
-                      <button className="px-5 sm:px-6 py-2.5 sm:py-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md border border-gray-300 dark:border-gray-600 transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-650 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        Change Password
-                      </button>
+                      {isEditingProfile ? (
+                        <>
+                          <button
+                            onClick={saveProfileChanges}
+                            disabled={savingProfile || Object.keys(errors).length>0}
+                            className="px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white rounded-md transition-all duration-300 hover:shadow-lg hover:shadow-[#ed875a]/20 flex items-center disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {savingProfile ? 'Saving...' : 'Save Changes'}
+                          </button>
+                          <button
+                            onClick={cancelEditingProfile}
+                            disabled={savingProfile}
+                            className="px-5 sm:px-6 py-2.5 sm:py-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md border border-gray-300 dark:border-gray-600 transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-650"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={startEditingProfile}
+                            className="px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white rounded-md transition-all duration-300 hover:shadow-lg hover:shadow-[#ed875a]/20 transform hover:-translate-y-0.5 flex items-center"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            Edit Profile
+                          </button>
+                          <button className="px-5 sm:px-6 py-2.5 sm:py-3 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md border border-gray-300 dark:border-gray-600 transition-all duration-300 hover:bg-gray-50 dark:hover:bg-gray-650 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                            Change Password
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                   

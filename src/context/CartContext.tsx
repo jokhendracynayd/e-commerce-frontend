@@ -444,10 +444,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           })
           .catch(error => {
             console.error('Failed to update cart item:', error);
-            toast.error('Failed to update cart');
-            
-            // Still update local state for better UX
-            updateLocalCart();
+            const message = (error?.message) || (error?.response?.data?.message) || 'Failed to update cart';
+            toast.error(message);
           })
           .finally(() => {
             setIsLoading(false);
@@ -476,10 +474,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           })
           .catch(error => {
             console.error('Failed to add item to cart:', error);
-            toast.error('Failed to add item to cart');
-            
-            // Still update local state for better UX
-            updateLocalCart();
+            const message = (error?.message) || (error?.response?.data?.message) || 'Failed to add item to cart';
+            toast.error(message);
+            // Do NOT mutate local cart on backend failure to keep state consistent
           })
           .finally(() => {
             setIsLoading(false);
@@ -623,7 +620,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           })
           .catch(error => {
             console.error('Failed to update cart item:', error);
-            toast.error('Failed to update cart item');
+            const message = (error?.message) || (error?.response?.data?.message) || 'Failed to update cart item';
+            toast.error(message);
           })
           .finally(() => {
             setIsLoading(false);
