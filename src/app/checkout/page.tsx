@@ -12,12 +12,13 @@ import PaymentSection from '@/components/checkout/payment/PaymentSection';
 import CheckoutForm from '@/components/checkout/CheckoutForm';
 import { CreateOrderRequest } from '@/types';
 import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
+import { useProductAvailability } from '@/hooks/useProductAvailability';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, totalPrice } = useCart();
   const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [pincode, setPincode] = useState('');
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -49,6 +50,7 @@ export default function CheckoutPage() {
   const [deliveryInstructions, setDeliveryInstructions] = useState('');
   const [timeSlot, setTimeSlot] = useState('anytime');
   const [paymentData, setPaymentData] = useState<Record<string, string>>({});
+
   
   // Handle address selection
   const handleAddressSelect = (address: Address) => {

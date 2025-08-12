@@ -92,7 +92,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
       // Make sure we redirect to checkout page, not home page
       setTimeout(() => {
         router.push('/checkout');
-      }, 100);
+      }, 1000);
     } else {
       // If not logged in, redirect to login page with return URL
       router.push(`/login?returnUrl=${encodeURIComponent('/checkout')}`);
@@ -334,9 +334,9 @@ export function ProductInfo({ product }: ProductInfoProps) {
       <div className="flex flex-wrap gap-2 sm:gap-3 mt-4 sm:mt-6">
         <button
           onClick={handleAddToCart}
-          disabled={addingToCart || isOutOfStock}
+          disabled={addingToCart}
           className={`flex-1 min-w-24 h-10 sm:h-12 rounded-md font-medium text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2 ${
-            addingToCart || isOutOfStock
+            addingToCart
               ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               : 'bg-gradient-to-r from-[#d44506] to-[#ed875a] hover:shadow-md text-white'
           } transition-all`}
@@ -355,17 +355,13 @@ export function ProductInfo({ product }: ProductInfoProps) {
               d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
             />
           </svg>
-          {addingToCart ? 'Adding...' : isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+          {addingToCart ? 'Adding...' : 'Add to Cart'}
         </button>
         
         <button
           onClick={handleBuyNow}
-          disabled={isOutOfStock}
-          className={`flex-1 min-w-24 h-10 sm:h-12 rounded-md font-medium text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2 ${
-            isOutOfStock
-              ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-              : 'bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-md text-white'
-          } transition-all`}
+          // disabled={isOutOfStock}
+          className={`flex-1 min-w-24 h-10 sm:h-12 rounded-md font-medium text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2 bg-gradient-to-r from-[#ed875a] to-[#ed8c61] hover:shadow-md text-white transition-all`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -397,7 +393,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
       </div>
       
       {/* Exchange offer */}
-      {product.exchangeOffer?.available && (
+      {/* {product.exchangeOffer?.available && (
         <div className="flex items-start gap-2 border-t border-gray-200 dark:border-gray-700 pt-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#ed875a] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -411,7 +407,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
             </button>
           </div>
         </div>
-      )}
+      )} */}
       
       {/* Warranty */}
       {product.warranty && (

@@ -114,7 +114,7 @@ export default function ProductPage() {
           try {
             // Try fetching by ID first (in case of URL rewrites)
             productApiData = await productsApi.getProductById(slugOrId);
-            console.log('API Product Data fetched:', productApiData);
+            // console.log('API Product Data fetched:', productApiData);
             setApiResponse(productApiData);
           } catch (idError) {
             try {

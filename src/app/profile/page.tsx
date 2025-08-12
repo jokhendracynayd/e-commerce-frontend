@@ -659,132 +659,197 @@ export default function ProfilePage() {
                 
                 {/* Wishlist Items List */}
                 {!wishlistLoading && !wishlistError && Array.isArray(wishlistItems) && wishlistItems.length > 0 && (
-                  <div className="space-y-4">
-                    {wishlistItems.map((item, index) => (
-                      <div 
-                        key={item.id || `wishlist-item-${index}`} 
-                        className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 transition-all duration-300 hover:shadow-md hover:border-[#ed875a]/30 dark:hover:border-[#ed875a]/20 flex flex-col sm:flex-row"
-                      >
-                        {/* Product Image */}
-                        <div className="flex-shrink-0 w-full sm:w-32 h-32 sm:h-32 mb-4 sm:mb-0 relative rounded-md overflow-hidden bg-gray-100 dark:bg-gray-750">
-                          {item.product.images[0] ? (
-                            <Image
-                              src={item.product.images[0]} 
-                              alt={item.product.title}
-                              fill
-                              sizes="(max-width: 640px) 100vw, 128px"
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Debug info */}
-                        {process.env.NODE_ENV === 'development' && (
-                          <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs p-1 rounded">
-                            ID: {item.id} | Product ID: {item.productId}
+                  <div>
+                    {/* Wishlist Stats */}
+                    <div className="mb-6 bg-gradient-to-r from-[#f5f1ed]/70 to-[#f5f1ed]/30 dark:from-gray-750/50 dark:to-gray-750/20 rounded-lg p-4 shadow-sm">
+                      <div className="flex flex-wrap justify-between items-center">
+                        <div className="flex items-center mb-2 sm:mb-0">
+                          <div className="w-10 h-10 rounded-full bg-[#ed875a]/10 flex items-center justify-center mr-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#ed875a]" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                            </svg>
                           </div>
-                        )}
-                        
-                        {/* Product Details */}
-                        <div className="flex-1 sm:ml-4 flex flex-col">
-                          <Link 
-                            href={`/product/${item.product.slug}`}
-                            className="text-base sm:text-lg font-medium text-gray-900 dark:text-white hover:text-[#ed875a] dark:hover:text-[#ed8c61] transition-colors duration-300 line-clamp-2"
+                          <div>
+                            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Your Collection</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">{wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'} saved</p>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <button 
+                            onClick={() => refreshWishlist()}
+                            className="px-3 py-1.5 text-sm bg-white dark:bg-gray-700 text-[#ed875a] dark:text-[#ed8c61] border border-[#ed875a]/30 dark:border-[#ed8c61]/30 rounded-md transition-all duration-300 hover:bg-[#ed875a]/5 dark:hover:bg-[#ed8c61]/10 flex items-center"
                           >
-                            {item.product.title}
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Refresh
+                          </button>
+                          <Link 
+                            href="/products" 
+                            className="px-3 py-1.5 text-sm bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white rounded-md transition-all duration-300 hover:shadow-md hover:shadow-[#ed875a]/20 flex items-center"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Add More
                           </Link>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Grid Layout for Wishlist Items */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                      {wishlistItems.map((item, index) => (
+                        <div 
+                          key={item.id || `wishlist-item-${index}`} 
+                          className="group border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-[#ed875a]/30 dark:hover:border-[#ed875a]/20 flex flex-col h-full bg-white dark:bg-gray-800"
+                        >
+                          {/* Product Image with Overlay */}
+                          <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-750">
+                            {item.product.images[0] ? (
+                              <Image
+                                src={item.product.images[0]} 
+                                alt={item.product.title}
+                                fill
+                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                className="object-cover transition-transform duration-500 group-hover:scale-110"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                            )}
+                            
+                            {/* Quick Action Overlay */}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                              <Link 
+                                href={`/${item.product.slug}/p/${item.product.id}`}
+                                className="w-10 h-10 rounded-full bg-white flex items-center justify-center transition-transform duration-300 hover:scale-110"
+                                title="View Details"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                              </Link>
+                              <button 
+                                onClick={async () => {
+                                  try {
+                                    const result = await removeItem(item.productId);
+                                    if (result.success) {
+                                      toast.success('Item removed from wishlist');
+                                    } else if (result.error === 'Authentication required') {
+                                      router.push('/login?returnUrl=/profile');
+                                    } else {
+                                      toast.error(result.error || 'Failed to remove item');
+                                    }
+                                  } catch (error) {
+                                    console.error('Error removing wishlist item:', error);
+                                    toast.error('Something went wrong');
+                                  }
+                                }}
+                                className="w-10 h-10 rounded-full bg-white flex items-center justify-center transition-transform duration-300 hover:scale-110"
+                                title="Remove from wishlist"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                            
+                            {/* Discount Badge */}
+                            {(item.product.discountPercentage ?? 0) > 0 && (
+                              <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-md">
+                                {item.product.discountPercentage}% OFF
+                              </div>
+                            )}
+                          </div>
                           
-                          <div className="flex items-center mt-1 mb-2">
+                          {/* Product Details */}
+                          <div className="p-4 flex-1 flex flex-col">
+                            {/* Brand */}
                             {item.product.brand && (
-                              <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">
+                              <span className="text-xs text-[#ed875a] dark:text-[#ed8c61] font-medium mb-1">
                                 {item.product.brand}
                               </span>
                             )}
                             
-                            {item.product.rating > 0 && (
-                              <div className="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
-                                <span className="text-xs text-gray-600 dark:text-gray-400 ml-1">
-                                  {item.product.rating} ({item.product.reviewCount})
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center mt-auto">
-                            {item.product.discountPercentage ? (
-                              <div className="flex items-center">
-                                <span className="text-lg font-bold text-gray-900 dark:text-white mr-2">
-                                  ₹{(item.product.price - (item.product.price * item.product.discountPercentage / 100)).toFixed(0)}
-                                </span>
-                                <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
-                                  ₹{item.product.price}
-                                </span>
-                                <span className="ml-2 text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded">
-                                  {item.product.discountPercentage}% OFF
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-lg font-bold text-gray-900 dark:text-white">
-                                ₹{item.product.price}
-                              </span>
-                            )}
-                          </div>
-                          
-                          {/* Action Buttons */}
-                          <div className="flex items-center gap-2 mt-4">
+                            {/* Title */}
                             <Link 
-                              href={`/product/${item.product.slug}`}
-                              className="px-4 py-2 text-xs sm:text-sm bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white rounded transition-all duration-300 hover:shadow-md hover:shadow-[#ed875a]/20 flex-1 text-center"
+                              href={`/${item.product.slug}/p/${item.product.id}`}
+                              className="text-base font-medium text-gray-900 dark:text-white hover:text-[#ed875a] dark:hover:text-[#ed8c61] transition-colors duration-300 line-clamp-2 mb-1"
+                            >
+                              {item.product.title}
+                            </Link>
+                            
+                            {/* Rating */}
+                            {item.product.rating > 0 && (
+                              <div className="flex items-center mb-2">
+                                <div className="flex">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <svg 
+                                      key={star}
+                                      xmlns="http://www.w3.org/2000/svg" 
+                                      className={`h-3.5 w-3.5 ${star <= Math.round(item.product.rating) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} 
+                                      viewBox="0 0 20 20" 
+                                      fill="currentColor"
+                                    >
+                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.176 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                  ))}
+                                </div>
+                                <span className="text-xs text-gray-600 dark:text-gray-400 ml-1">
+                                  ({item.product.reviewCount})
+                                </span>
+                              </div>
+                            )}
+                            
+                            {/* Price */}
+                            <div className="mt-auto">
+                              <div className="flex items-center">
+                                {item.product.discountPercentage ? (
+                                  <>
+                                    <span className="text-lg font-bold text-gray-900 dark:text-white mr-2">
+                                      ₹{(item.product.price - (item.product.price * item.product.discountPercentage / 100)).toFixed(0)}
+                                    </span>
+                                    <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
+                                      ₹{item.product.price}
+                                    </span>
+                                  </>
+                                ) : (
+                                  <span className="text-lg font-bold text-gray-900 dark:text-white">
+                                    ₹{item.product.price}
+                                  </span>
+                                )}
+                              </div>
+                              
+                              {/* Added Date */}
+                              <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                Added {new Date(item.addedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Action Button */}
+                          <div className="px-4 pb-4">
+                            <Link 
+                              href={`/${item.product.slug}/p/${item.product.id}`}
+                              className="block w-full py-2 text-center text-sm bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white rounded-md transition-all duration-300 hover:shadow-md hover:shadow-[#ed875a]/20 transform hover:-translate-y-0.5"
                             >
                               View Details
                             </Link>
-                            <button 
-                              onClick={async () => {
-                                try {
-                                  const result = await removeItem(item.productId);
-                                  if (result.success) {
-                                    // Item is automatically removed from context state
-                                    console.log('Item removed from wishlist successfully');
-                                  } else if (result.error === 'Authentication required') {
-                                    router.push('/login?returnUrl=/profile');
-                                  } else {
-                                    console.error('Failed to remove item:', result.error);
-                                  }
-                                } catch (error) {
-                                  console.error('Error removing wishlist item:', error);
-                                }
-                              }}
-                              className="px-3 py-2 text-xs sm:text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                              aria-label="Remove from wishlist"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </div>
-                          
-                          {/* Added Date */}
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                            Added on {new Date(item.addedAt).toLocaleDateString()}
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                     
                     {/* Continue Shopping Button */}
-                    <div className="flex justify-center mt-8">
+                    <div className="flex justify-center mt-8 mb-4">
                       <Link 
                         href="/products" 
-                        className="flex items-center px-5 py-2.5 bg-white dark:bg-gray-700 text-[#ed875a] dark:text-[#ed8c61] border border-[#ed875a]/30 dark:border-[#ed8c61]/30 rounded-md transition-all duration-300 hover:bg-[#ed875a]/5 dark:hover:bg-[#ed8c61]/10"
+                        className="flex items-center px-6 py-3 bg-white dark:bg-gray-700 text-[#ed875a] dark:text-[#ed8c61] border border-[#ed875a]/30 dark:border-[#ed8c61]/30 rounded-md transition-all duration-300 hover:bg-[#ed875a]/5 dark:hover:bg-[#ed8c61]/10 shadow-sm"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -1402,4 +1467,4 @@ export default function ProfilePage() {
       </div>
     </div>
   );
-} 
+}
