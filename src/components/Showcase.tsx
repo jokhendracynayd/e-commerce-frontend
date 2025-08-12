@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getHomeTopBanners } from '@/services/promoBannerService';
+import { PromoBanner } from '@/types/promoBanner';
 
 type SlideType = {
   id: number;
@@ -16,7 +18,7 @@ type SlideType = {
   link: string;
 };
 
-const slides: SlideType[] = [
+const fallbackSlides: SlideType[] = [
   {
     id: 1,
     title: 'From Bharat, for all',
@@ -55,6 +57,7 @@ const slides: SlideType[] = [
 export function Showcase() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [banners, setBanners] = useState<PromoBanner[] | null>(null);
   
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -70,6 +73,30 @@ export function Showcase() {
     };
   }, [isAutoPlaying]);
   
+  useEffect(() => {
+    // Fetch promo banners for HOME_TOP; fallback to static slides
+    (async () => {
+      const data = await getHomeTopBanners();
+      setBanners(data && data.length > 0 ? data : []);
+    })();
+  }, []);
+
+  const slides: SlideType[] = useMemo(() => {
+    if (!banners) return fallbackSlides;
+    if (banners.length === 0) return fallbackSlides;
+    return banners.map((b, idx) => ({
+      id: idx + 1,
+      title: b.title,
+      subtitle: b.subtitle || '',
+      tagline: b.ctaText || '',
+      brandLogo: b.imageUrl,
+      productImage: b.imageUrl,
+      backgroundColor: b.backgroundColor || '#000000',
+      accentColor: '#1976d2',
+      link: b.linkUrl || '#',
+    }));
+  }, [banners]);
+
   const handlePrevSlide = () => {
     setIsAutoPlaying(false);
     setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
@@ -80,7 +107,7 @@ export function Showcase() {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
   };
   
-  const slide = slides[currentSlide];
+  const slide = slides[currentSlide] || fallbackSlides[0];
   
   return (
     <div className="relative w-full mt-1 sm:mt-2 h-[250px] xs:h-[300px] sm:h-[350px] md:h-[400px] lg:h-[450px] overflow-hidden">

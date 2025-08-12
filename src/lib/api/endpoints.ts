@@ -149,4 +149,8 @@ export const ENDPOINTS = {
     RECENTLY_VIEWED: '/recommendations/recently-viewed',
     TRENDING: '/recommendations/trending',
   },
+
+  PROMO_BANNERS: {
+    BASE: '/promo-banners',
+  },
 }; 
