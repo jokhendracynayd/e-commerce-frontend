@@ -262,18 +262,18 @@ export function ProductCard({
         <ProductAvailabilityBadge productId={id} />
         
         {/* Rating - Enhanced display */}
-        {rating && rating > 0 && (
+        {(rating ?? 0) > 0 && (
           <div className="flex flex-wrap items-center mt-0.5 xs:mt-1 sm:mt-2 gap-1">
             <div className="flex items-center bg-[#e7e1dc] text-gray-800 text-[8px] xs:text-[10px] sm:text-xs px-1 xs:px-1.5 sm:px-2 py-0.5 rounded-sm">
-              <span className="font-semibold">{rating.toFixed(1)}</span>
+              <span className="font-semibold">{Number(rating).toFixed(1)}</span>
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
                 viewBox="0 0 20 20" 
                 fill="currentColor" 
                 className={`w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 ml-0.5 ${
-                  rating >= 4 ? 'text-[#0e6b65]' : 
-                  rating >= 3 ? 'text-[#14958f]' : 
-                  rating >= 2 ? 'text-[#45ada5]' : 
+                  Number(rating) >= 4 ? 'text-[#0e6b65]' : 
+                  Number(rating) >= 3 ? 'text-[#14958f]' : 
+                  Number(rating) >= 2 ? 'text-[#45ada5]' : 
                   'text-[#f9d776]'
                 }`}
               >

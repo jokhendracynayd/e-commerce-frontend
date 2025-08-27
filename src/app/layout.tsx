@@ -6,7 +6,8 @@ import { Footer } from "@/components/Footer";
 import { CartProvider } from '@/context/CartContext';
 import { CompositeProvider } from '@/context/CompositeProvider';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
+import ChatClientLoader from '@/components/ChatClientLoader';
 import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({
@@ -31,7 +32,6 @@ export const metadata: Metadata = {
 // Split the layout into server and client components
 function RootLayoutClient({ children }: { children: React.ReactNode }) {
   'use client';
-  
   return (
     <CompositeProvider>
       <Header />
@@ -41,6 +41,10 @@ function RootLayoutClient({ children }: { children: React.ReactNode }) {
         </Suspense>
       </main>
       <Footer />
+      {/* Chat assistant widget - client-only loader */}
+      {/* ChatClientLoader is a 'use client' component so it's safe to render here */}
+      {/* Dynamically import to reduce initial JS payload */}
+      <ChatClientLoader />
       <Toaster
         position="top-right"
         toastOptions={{
@@ -48,7 +52,7 @@ function RootLayoutClient({ children }: { children: React.ReactNode }) {
           style: {
             background: '#fff',
             color: '#333',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            boxShadow: '0 4px 12px rgba(130, 73, 73, 0.15)',
             borderRadius: '8px',
             padding: '12px 16px',
           },
@@ -67,7 +71,7 @@ function RootLayoutClient({ children }: { children: React.ReactNode }) {
               secondary: 'white',
             },
             style: {
-              border: '1px solid #EF4444',
+              border: '1px solidrgb(213, 92, 92)',
             },
           },
         }}
