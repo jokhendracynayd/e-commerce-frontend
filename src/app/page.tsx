@@ -39,7 +39,7 @@ export default async function Home() {
       <RecentlyViewedProducts />
 
       {/* Category Groups Section */}
-      <CategoryGroups groups={categoryGroups} />
+      {/* <CategoryGroups groups={categoryGroups} /> */}
       
       {/* Trending Products Section */}
       <TrendingProducts products={trendingProducts} />

@@ -411,7 +411,7 @@ export function Header() {
             <SearchBar 
               onFocus={expandSearch}
               onBlur={collapseSearch}
-              placeholder="Search products..."
+              placeholder="Search for products, brands, categories and more..."
               fullWidth
             />
           </div>
@@ -554,7 +554,7 @@ export function Header() {
         {isMenuOpen && (
           <div className="mt-3 md:hidden">
             <SearchBar 
-              placeholder="Search products..." 
+              placeholder="Search for products, brands, categories and more..." 
               autoFocus={true}
               fullWidth={true}
               isMobile={true}

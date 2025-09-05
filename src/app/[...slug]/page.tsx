@@ -119,7 +119,7 @@ export default function CategoryPage() {
   const params = useParams();
   const slugArray = Array.isArray(params.slug) ? params.slug : [];
   const categorySlug = slugArray.length > 0 ? slugArray[slugArray.length - 1] : '';
-  
+  console.log(categorySlug,"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",slugArray)
   // Get categories from context
   const { categoryTree, flatCategories, isLoading: categoriesLoading } = useCategories();
   

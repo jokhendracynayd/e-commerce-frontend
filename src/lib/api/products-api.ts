@@ -250,6 +250,7 @@ export const productsApi = {
    */
   searchProducts: async (query: string, limit?: number): Promise<Product[]> => {
     try {
+      console.log('Searching for products with query:👌🤣🤣🤣🤣🤣🤣🤣😘😁😁', query);
       const response: AxiosResponse = await axiosClient.get(
         ENDPOINTS.PRODUCTS.SEARCH,
         { params: { q: query, limit } }
