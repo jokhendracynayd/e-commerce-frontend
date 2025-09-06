@@ -100,4 +100,5 @@ export * from './cart';
 export * from './payment';
 export * from './order';
 export * from './address';
-export * from './review'; 
+export * from './review';
+export * from './deal'; 

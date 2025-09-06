@@ -96,14 +96,19 @@ export const ENDPOINTS = {
   },
   
   DEALS: {
-    FLASH: '/deals/flash',
-    TRENDING: '/deals/trending',
-    DEAL_OF_DAY: '/deals/of-the-day',
-    BY_TYPE: {
-      TRENDING: '/deals/types/TRENDING/products',
-      FLASH: '/deals/types/FLASH/products',
-      DEAL_OF_DAY: '/deals/types/DEAL_OF_DAY/products',
-    }
+    BASE: '/deals',
+    DETAIL: (id: string) => `/deals/${id}`,
+    BY_TYPE: (type: string) => `/deals/types/${type}/products`,
+    APPLY: (id: string) => `/deals/${id}/apply`,
+    LIMITS: (id: string) => `/deals/${id}/limits`,
+    STATS: (id: string) => `/deals/${id}/stats`,
+    ADD_PRODUCTS: (id: string) => `/deals/${id}/products`,
+    ADD_PRODUCTS_VALIDATE: (id: string) => `/deals/${id}/products/validate`,
+    REMOVE_PRODUCT: (id: string, productId: string) => `/deals/${id}/products/${productId}`,
+    // Specific deal type endpoints
+    TRENDING: '/deals/types/TRENDING/products',
+    FLASH_DEALS: '/deals/types/FLASH/products',
+    DEAL_OF_DAY: '/deals/types/DEAL_OF_DAY/products',
   },
   
   PAYMENTS: {

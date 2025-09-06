@@ -33,7 +33,7 @@ function getCsrfToken(): string | null {
 // Create the axios instance
 export const axiosClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000, // 15 seconds
+  timeout: 30000, // 30 seconds - increased timeout
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
@@ -236,7 +236,18 @@ axiosClient.interceptors.request.use(
 axiosClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean; _retryCount?: number };
+    
+    // Handle timeout errors with retry
+    if (error.code === 'ECONNABORTED' && (originalRequest._retryCount || 0) < 3) {
+      originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
+      console.log(`Retrying request (attempt ${originalRequest._retryCount}) due to timeout:`, originalRequest.url);
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, 1000 * (originalRequest._retryCount || 1)));
+      
+      return axiosClient(originalRequest);
+    }
     
     // Handle 401 errors (token expired) with automatic refresh
     if (

@@ -147,7 +147,7 @@ export const productsApi = {
   getTrendingProducts: async (limit?: number, page: number = 1): Promise<Product[]> => {
     try {
       const response: AxiosResponse = await axiosClient.get(
-        ENDPOINTS.DEALS.BY_TYPE.TRENDING,
+        ENDPOINTS.DEALS.TRENDING,
         { 
           params: { 
             limit,
@@ -177,7 +177,7 @@ export const productsApi = {
   getDealOfTheDay: async (): Promise<Product[]> => {
     try {
       const response: AxiosResponse = await axiosClient.get(
-        ENDPOINTS.DEALS.BY_TYPE.DEAL_OF_DAY,
+        ENDPOINTS.DEALS.DEAL_OF_DAY,
         { 
           params: { 
             limit: 1,
