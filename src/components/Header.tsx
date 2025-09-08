@@ -383,7 +383,7 @@ export function Header() {
               </div>
             </div>
 
-            <Link 
+            {/* <Link 
               href="/deals" 
               className={`text-sm lg:text-base text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light font-medium transition-colors relative ${pathname === '/deals' ? 'text-primary dark:text-primary-light' : ''}`}
             >
@@ -403,7 +403,7 @@ export function Header() {
               className={`text-sm lg:text-base text-gray-700 dark:text-gray-200 hover:text-primary dark:hover:text-primary-light font-medium transition-colors ${pathname === '/bestsellers' ? 'text-primary dark:text-primary-light' : ''}`}
             >
               Best Sellers
-            </Link>
+            </Link> */}
           </nav>
 
           {/* Search bar - hidden on mobile, visible on desktop */}

@@ -15,6 +15,7 @@ interface AddressListProps {
   header?: React.ReactNode;
   emptyStateMessage?: string;
   onAddressChange?: () => void; // Callback when addresses are added/edited/deleted
+  autoSelectFirst?: boolean; // New prop to auto-select first/default address
 }
 
 const AddressList = ({
@@ -25,6 +26,7 @@ const AddressList = ({
   header,
   emptyStateMessage = 'You don\'t have any saved addresses yet.',
   onAddressChange,
+  autoSelectFirst = false,
 }: AddressListProps) => {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,6 +41,14 @@ const AddressList = ({
     try {
       const result = await getUserAddresses();
       setAddresses(result);
+      
+      // Auto-select first/default address if enabled and no address is currently selected
+      if (autoSelectFirst && result.length > 0 && !selectedAddressId && onSelectAddress) {
+        // Find default address first, otherwise select the first one
+        const defaultAddress = result.find(addr => addr.isDefault);
+        const addressToSelect = defaultAddress || result[0];
+        onSelectAddress(addressToSelect);
+      }
     } catch (err) {
       console.error('Error fetching addresses:', err);
       setError('Failed to load addresses. Please try again.');

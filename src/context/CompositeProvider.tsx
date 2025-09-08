@@ -7,6 +7,7 @@ import { AuthModalProvider } from './AuthModalContext';
 import { CartProvider } from './CartContext';
 import { WishlistProvider } from './WishlistContext';
 import { CategoryProvider } from './CategoryContext';
+import { CheckoutProvider } from './CheckoutContext';
 
 interface CompositeProviderProps {
   children: ReactNode;
@@ -24,7 +25,9 @@ export function CompositeProvider({ children }: CompositeProviderProps) {
           <CartProvider>
             <WishlistProvider>
               <CategoryProvider>
-                {children}
+                <CheckoutProvider>
+                  {children}
+                </CheckoutProvider>
               </CategoryProvider>
             </WishlistProvider>
           </CartProvider>

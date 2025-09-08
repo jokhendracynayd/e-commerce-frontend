@@ -65,9 +65,9 @@ const UpiPaymentForm = ({ onDataChange, fields = [] }: UpiPaymentFormProps) => {
         <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           UPI App
         </label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           {UPI_APPS.map((app) => (
-            <div key={app}>
+            <div key={app} className="min-w-0">
               <input 
                 type="radio" 
                 id={`upi-${app}`} 
@@ -79,9 +79,9 @@ const UpiPaymentForm = ({ onDataChange, fields = [] }: UpiPaymentFormProps) => {
               />
               <label 
                 htmlFor={`upi-${app}`}
-                className="flex flex-col items-center justify-center p-2 sm:p-3 h-full text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium border border-gray-200 dark:border-gray-700 rounded-md cursor-pointer peer-checked:border-[#ed875a] peer-checked:text-[#ed875a] peer-checked:bg-[#ed875a]/10 hover:bg-gray-50 dark:hover:bg-gray-750 transition-all"
+                className="flex items-center justify-center p-2 text-gray-600 dark:text-gray-300 text-xs font-medium border border-gray-200 dark:border-gray-700 rounded-md cursor-pointer peer-checked:border-[#ed875a] peer-checked:text-[#ed875a] peer-checked:bg-[#ed875a]/10 hover:bg-gray-50 dark:hover:bg-gray-750 transition-all min-h-[40px] w-full"
               >
-                {app}
+                <span className="truncate text-center w-full">{app}</span>
               </label>
             </div>
           ))}

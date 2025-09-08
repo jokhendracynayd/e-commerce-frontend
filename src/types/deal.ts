@@ -1,4 +1,8 @@
 // Deal Types for E-commerce Frontend
+import { Product } from './product';
+import { User } from './user';
+import { OrderResponse as Order } from './order';
+
 export interface Deal {
   id: string;
   title: string;
@@ -187,7 +191,5 @@ export interface DealUsageProps {
   className?: string;
 }
 
-// Import related types
-import { Product } from './product';
-import { User } from './user';
-import { OrderResponse as Order } from './order';
+// Re-export Product for backward compatibility
+export type { Product } from './product';

@@ -10,13 +10,14 @@ interface CheckoutFormProps {
   onSubmitOrder: () => void;
   isFormValid: boolean;
   isProcessing?: boolean;
+  buttonText?: string;
 }
 
 /**
  * CheckoutForm component for handling cart checkout process
  * and authentication check before purchase
  */
-const CheckoutForm = ({ onSubmitOrder, isFormValid, isProcessing = false }: CheckoutFormProps) => {
+const CheckoutForm = ({ onSubmitOrder, isFormValid, isProcessing = false, buttonText = "Place Order" }: CheckoutFormProps) => {
   const { isAuthenticated } = useAuth();
   const { syncWithBackend } = useCart();
   const [isCartSyncing, setIsCartSyncing] = useState(false);
@@ -77,7 +78,7 @@ const CheckoutForm = ({ onSubmitOrder, isFormValid, isProcessing = false }: Chec
         </>
       ) : (
         <>
-          Place Order
+          {buttonText}
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
           </svg>

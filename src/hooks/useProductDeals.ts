@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { DealsService } from '../services/dealsService';
-import { Deal, Product } from '../types/deal';
+import { Deal, DealStatus } from '../types/deal';
+import { Product } from '../types/product';
 
 interface UseProductDealsOptions {
   productId?: string;
@@ -52,7 +53,7 @@ export const useProductDeals = ({
       } else {
         // Fetch all active deals
         const result = await DealsService.getDeals({
-          status: ['ACTIVE'],
+          status: [DealStatus.ACTIVE],
         });
         
         if (result.success) {

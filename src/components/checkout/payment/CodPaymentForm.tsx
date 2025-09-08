@@ -68,9 +68,9 @@ const CodPaymentForm = ({ onDataChange, fields = [] }: CodPaymentFormProps) => {
         <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Preferred Delivery Time
         </label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           {TIME_SLOTS.map((time) => (
-            <div key={time}>
+            <div key={time} className="min-w-0">
               <input 
                 type="radio" 
                 id={`time-${time}`} 
@@ -82,9 +82,9 @@ const CodPaymentForm = ({ onDataChange, fields = [] }: CodPaymentFormProps) => {
               />
               <label 
                 htmlFor={`time-${time}`}
-                className="flex flex-col items-center justify-center p-2 sm:p-3 h-full text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium border border-gray-200 dark:border-gray-700 rounded-md cursor-pointer peer-checked:border-[#ed875a] peer-checked:text-[#ed875a] peer-checked:bg-[#ed875a]/10 hover:bg-gray-50 dark:hover:bg-gray-750 transition-all"
+                className="flex items-center justify-center p-2 text-gray-600 dark:text-gray-300 text-xs font-medium border border-gray-200 dark:border-gray-700 rounded-md cursor-pointer peer-checked:border-[#ed875a] peer-checked:text-[#ed875a] peer-checked:bg-[#ed875a]/10 hover:bg-gray-50 dark:hover:bg-gray-750 transition-all min-h-[40px] w-full"
               >
-                {time.charAt(0).toUpperCase() + time.slice(1)}
+                <span className="truncate text-center w-full">{time.charAt(0).toUpperCase() + time.slice(1)}</span>
               </label>
             </div>
           ))}

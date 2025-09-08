@@ -9,28 +9,28 @@ import CodPaymentForm from './CodPaymentForm';
 
 // Define default payment methods (can be replaced with API data)
 const DEFAULT_PAYMENT_METHODS: PaymentMethod[] = [
-  {
-    id: 'card',
-    name: 'Credit/Debit Card',
-    description: 'Pay securely using your credit or debit card',
-    isActive: true,
-    requiresAdditionalInfo: true,
-    displayOrder: 1,
-    badges: [
-      { text: 'Secure', type: 'success' }
-    ]
-  },
-  {
-    id: 'upi',
-    name: 'UPI',
-    description: 'Pay using your preferred UPI app',
-    isActive: true,
-    requiresAdditionalInfo: true,
-    displayOrder: 2,
-    badges: [
-      { text: 'Instant', type: 'info' }
-    ]
-  },
+  // {
+  //   id: 'upi',
+  //   name: 'UPI',
+  //   description: 'Pay using your preferred UPI app',
+  //   isActive: true,
+  //   requiresAdditionalInfo: true,
+  //   displayOrder: 1,
+  //   badges: [
+  //     { text: 'Instant', type: 'info' }
+  //   ]
+  // },
+  // {
+  //   id: 'card',
+  //   name: 'Credit/Debit Card',
+  //   description: 'Pay securely using your credit or debit card',
+  //   isActive: true,
+  //   requiresAdditionalInfo: true,
+  //   displayOrder: 2,
+  //   badges: [
+  //     { text: 'Secure', type: 'success' }
+  //   ]
+  // },
   {
     id: 'cod',
     name: 'Cash on Delivery',
@@ -100,7 +100,16 @@ const PaymentSection = ({
 
   // Ensure the parent is updated with the initial method on component mount
   useEffect(() => {
-    onPaymentDataChange(selectedMethodId, paymentData);
+    // If COD is selected, set default data immediately
+    if (selectedMethodId === 'cod') {
+      const codDefaultData = {
+        deliveryInstructions: '',
+        timeSlot: 'anytime'
+      };
+      handleFormDataChange(codDefaultData);
+    } else {
+      onPaymentDataChange(selectedMethodId, paymentData);
+    }
   }, []);
 
   return (
@@ -114,15 +123,31 @@ const PaymentSection = ({
         <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Payment Method</h2>
       </div>
       
-      {/* Payment Method Selector */}
-      <PaymentMethodSelector 
-        paymentMethods={paymentMethods} 
-        selectedMethodId={selectedMethodId}
-        onSelect={handlePaymentMethodChange}
-      />
-      
-      {/* Dynamic Payment Form */}
-      {renderPaymentForm()}
+      {/* Side by side layout for payment method selector and form */}
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+        {/* Payment Method Selector - Left side */}
+        <div className="lg:w-1/2">
+          <PaymentMethodSelector 
+            paymentMethods={paymentMethods} 
+            selectedMethodId={selectedMethodId}
+            onSelect={handlePaymentMethodChange}
+          />
+        </div>
+        
+        {/* Dynamic Payment Form - Right side */}
+        <div className="lg:w-1/2">
+          <div className="bg-gray-50/50 dark:bg-gray-700/30 rounded-lg p-4 border border-gray-200/50 dark:border-gray-600/50">
+            <div className="mb-3">
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-white">
+                {selectedMethodId === 'upi' && 'UPI Payment Details'}
+                {selectedMethodId === 'card' && 'Card Payment Details'}
+                {selectedMethodId === 'cod' && 'Delivery Instructions'}
+              </h3>
+            </div>
+            {renderPaymentForm()}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -144,7 +144,7 @@ export function Footer() {
             </ul>
           </div>
           
-          <div>
+          {/* <div>
             <h4 className="font-bold text-lg text-gray-900 dark:text-white mb-4 sm:mb-5 pb-1 border-b border-gray-200 dark:border-gray-700 inline-block">Contact</h4>
             <ul className="space-y-2.5 sm:space-y-3">
               <li className="flex items-start">
@@ -179,7 +179,7 @@ export function Footer() {
                 </span>
               </li>
             </ul>
-          </div>
+          </div> */}
         </div>
       </div>
       
@@ -188,7 +188,7 @@ export function Footer() {
         <div className="container mx-auto px-4 py-5 sm:py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="flex flex-wrap gap-3 justify-center md:justify-start">
-              <p>Developed by <a href="https://cynayd.com" target="_blank" className="text-gray-600 dark:text-gray-400 hover:text-[#ed8c61] dark:hover:text-[#ed8c61] transition-colors">CYNAYD</a></p>
+              <p>Developed by High Class Entertainment Pvt. Ltd.</p>
             </div>
             
             <div className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm text-center md:text-right">
