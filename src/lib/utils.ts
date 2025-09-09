@@ -8,6 +8,7 @@ export const formatCurrency = (amount?: number, currency: string = 'INR'): strin
     // Map currency codes to their respective locales and symbols
     const currencyConfig: Record<string, { locale: string, symbol: string }> = {
       'INR': { locale: 'en-IN', symbol: '₹' },
+      'BDT': { locale: 'bn-BD', symbol: '৳' },
       'USD': { locale: 'en-US', symbol: '$' },
       'EUR': { locale: 'de-DE', symbol: '€' },
       'GBP': { locale: 'en-GB', symbol: '£' },
@@ -39,6 +40,7 @@ export const formatCurrency = (amount?: number, currency: string = 'INR'): strin
 export const getCurrencySymbol = (currency: string = 'INR'): string => {
   const symbols: Record<string, string> = {
     'INR': '₹',
+    'BDT': '৳',
     'USD': '$',
     'EUR': '€',
     'GBP': '£',
