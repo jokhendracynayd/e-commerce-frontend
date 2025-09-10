@@ -30,7 +30,7 @@ const mapApiResponseToProductDetail = (apiData: any, fallbackData: ProductDetail
     subtitle: data.shortDescription || fallbackData.subtitle,
     brand: data.brand?.name || fallbackData.brand,
     description: data.description || fallbackData.description,
-    price: data.discountPrice ? parseFloat(data.discountPrice) : parseFloat(data.price) || fallbackData.price,
+    price: data.discountPrice ? parseFloat(data.discountPrice) : parseFloat(data.price),
     currency: data.currency || fallbackData.currency,
     originalPrice: data.discountPrice ? parseFloat(data.price) : fallbackData.originalPrice,
     discount: data.discountPrice ? 
