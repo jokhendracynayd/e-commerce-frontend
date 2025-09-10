@@ -80,7 +80,7 @@ export default function CartPage() {
     const calculatedDiscount = applyingCoupon ? Math.round(calculatedSubtotal * 0.1) : 0;
     
     // Calculate total
-    const calculatedTotal = calculatedSubtotal + calculatedShipping + calculatedTax - calculatedDiscount;
+    const calculatedTotal = calculatedSubtotal + calculatedShipping  - calculatedDiscount;
     
     // Calculate item count
     const calculatedItemCount = items.reduce((count, item) => count + item.quantity, 0);
@@ -455,12 +455,12 @@ export default function CartPage() {
                   )}
                 </span>
               </div>
-              <div className="flex justify-between">
+              {/* <div className="flex justify-between">
                 <span className="text-sm sm:text-base text-gray-600 dark:text-gray-300">Tax (5%)</span>
                 <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 font-medium">
                   {getCurrencySymbol(orderSummary.defaultCurrency)}{formatPrice(orderSummary.tax, orderSummary.defaultCurrency)}
                 </span>
-              </div>
+              </div> */}
               {applyingCoupon && (
                 <div className="flex justify-between text-[#d44506] dark:text-[#ed875a]">
                   <span className="text-sm sm:text-base">

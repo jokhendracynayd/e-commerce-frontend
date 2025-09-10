@@ -43,7 +43,7 @@ export default function CheckoutPaymentPage() {
   // Calculate shipping cost - free if total is above 500
   const shippingCost = totalPrice > 500 ? 0 : 40;
   const totalAmount = totalPrice + shippingCost;
-  const currency = 'INR';
+  const currency = 'BDT';
 
   // Generate dynamic button text based on payment method
   const getButtonText = () => {

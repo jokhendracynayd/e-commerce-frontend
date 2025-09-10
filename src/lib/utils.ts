@@ -28,7 +28,7 @@ export const formatCurrency = (amount?: number, currency: string = 'INR'): strin
     });
     
     // Return formatted number with currency symbol
-    return formattedNumber;
+    return amount.toString();
   } catch (e) {
     return amount.toFixed(2);
   }

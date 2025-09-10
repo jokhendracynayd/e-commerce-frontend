@@ -31,6 +31,7 @@ const mapApiResponseToProductDetail = (apiData: any, fallbackData: ProductDetail
     brand: data.brand?.name || fallbackData.brand,
     description: data.description || fallbackData.description,
     price: data.discountPrice ? parseFloat(data.discountPrice) : parseFloat(data.price) || fallbackData.price,
+    currency: data.currency || fallbackData.currency,
     originalPrice: data.discountPrice ? parseFloat(data.price) : fallbackData.originalPrice,
     discount: data.discountPrice ? 
       `${Math.round(((parseFloat(data.price) - parseFloat(data.discountPrice)) / parseFloat(data.price)) * 100)}% off` : 

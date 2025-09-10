@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import FilterSidebar, { FilterState } from '@/components/product/filters/FilterSidebar';
 import { ProductListingCard } from '@/components/product/ProductListingCard';
@@ -9,7 +9,6 @@ import { useCategories } from '@/context/CategoryContext';
 import { CategoryNode } from '@/types/categories';
 import { CategoryBreadcrumb } from '@/components/product/CategoryBreadcrumb';
 import { getProductsByCategorySlug } from '@/services/productService';
-import { debounce } from 'lodash';
 import Link from 'next/link';
 
 // Define API response interfaces
@@ -119,7 +118,6 @@ export default function CategoryPage() {
   const params = useParams();
   const slugArray = Array.isArray(params.slug) ? params.slug : [];
   const categorySlug = slugArray.length > 0 ? slugArray[slugArray.length - 1] : '';
-  console.log(categorySlug,"@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",slugArray)
   // Get categories from context
   const { categoryTree, flatCategories, isLoading: categoriesLoading } = useCategories();
   
@@ -259,6 +257,7 @@ export default function CategoryPage() {
               originalPrice: apiProduct.discountPrice 
                 ? parseFloat(apiProduct.price) 
                 : undefined,
+              currency: apiProduct.currency || dummyProduct.currency || 'INR',
               link: `/${apiProduct.slug}/p/${apiProduct.id}`,
               isAssured: dummyProduct.isAssured, // Keep from dummy data
               rating: apiProduct.averageRating || dummyProduct.rating,
@@ -290,7 +289,6 @@ export default function CategoryPage() {
                   }))
                 : dummyProduct.colorVariants,
               sponsoredTag: dummyProduct.sponsoredTag, // Keep from dummy data
-              currency: apiProduct.currency || dummyProduct.currency || 'INR'
             };
           });
           
@@ -799,6 +797,7 @@ export default function CategoryPage() {
                       image={product.image}
                       price={product.price}
                       discount={product.discount}
+                      currency={product.currency}
                       originalPrice={product.originalPrice}
                       link={product.link || `/product/${product.id || index}`}
                       badge={product.badge}

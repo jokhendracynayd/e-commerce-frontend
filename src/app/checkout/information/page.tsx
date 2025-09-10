@@ -97,7 +97,7 @@ export default function CheckoutInformationPage() {
   // Calculate shipping cost - free if total is above 500
   const shippingCost = totalPrice > 500 ? 0 : 40;
   const totalAmount = totalPrice + shippingCost;
-  const currency = 'INR';
+  const currency = 'BDT';
 
   if (items.length === 0) {
     return (
