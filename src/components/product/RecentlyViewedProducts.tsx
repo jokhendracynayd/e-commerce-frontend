@@ -25,6 +25,7 @@ function mapToProductCardProps(reco: Recommendation) {
     image: p.images?.[0]?.imageUrl || '/images/placeholder.svg',
     price: p.discountPrice ?? p.price,
     originalPrice: p.price,
+    currency: p.currency,
     discount: discountPercentage,
     link: `${p.slug}/p/${p.id}`,
     hasFreeDel: false,

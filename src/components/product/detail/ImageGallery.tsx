@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import Image from 'next/image';
+import { useState, useRef, useEffect } from 'react';
+import { OptimizedImage } from '@/components/ui/OptimizedImage';
 
 interface ImageGalleryProps {
   images: string[];
@@ -13,14 +13,28 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const [isDesktop, setIsDesktop] = useState(false);
   
   // Ensure we have at least one image
   const displayImages = images.length > 0 ? images : ['https://picsum.photos/id/1/800/800'];
   
+  
+  // Check if we're on desktop
+  useEffect(() => {
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    
+    checkIsDesktop();
+    window.addEventListener('resize', checkIsDesktop);
+    
+    return () => window.removeEventListener('resize', checkIsDesktop);
+  }, []);
+  
   // Handle mouse move for zoom effect - disable on mobile/touch devices
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     // Skip zoom on small screens
-    if (window.innerWidth < 768 || !imageContainerRef.current) return;
+    if (!isDesktop || !imageContainerRef.current) return;
     
     const { left, top, width, height } = imageContainerRef.current.getBoundingClientRect();
     const x = (e.clientX - left) / width;
@@ -42,12 +56,13 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
             }`}
             aria-label={`View image ${index + 1}`}
           >
-            <Image
+            <OptimizedImage
               src={image}
               alt={`${title} - Image ${index + 1}`}
               fill
               className="object-contain"
               sizes="(max-width: 768px) 60px, 80px"
+              quality={70}
             />
           </button>
         ))}
@@ -57,25 +72,26 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
       <div 
         ref={imageContainerRef}
         className="relative order-1 md:order-2 w-full h-[250px] sm:h-[350px] md:h-[450px] lg:h-[500px] rounded-lg overflow-hidden bg-white dark:bg-gray-800 cursor-zoom-in"
-        onMouseEnter={() => window.innerWidth >= 768 && setIsZoomed(true)}
+        onMouseEnter={() => isDesktop && setIsZoomed(true)}
         onMouseLeave={() => setIsZoomed(false)}
         onMouseMove={handleMouseMove}
         onTouchStart={() => setIsZoomed(false)} // Ensure zoom is disabled on touch
       >
-        {/* Regular image (visible when not zoomed) */}
-        <Image
+        {/* Regular image - always visible */}
+        <OptimizedImage
           src={displayImages[selectedImageIndex]}
           alt={`${title} - Selected Image`}
           fill
-          className={`object-contain transition-opacity duration-200 ${isZoomed ? 'opacity-0' : 'opacity-100'}`}
+          className="object-contain"
           priority
           sizes="(max-width: 640px) 100vw, (max-width: 768px) 350px, (max-width: 1024px) 450px, 500px"
+          quality={90}
         />
         
-        {/* Zoomed image (visible on hover) - only on desktop */}
-        {isZoomed && window.innerWidth >= 768 && (
+        {/* Zoomed image overlay (visible on hover) - only on desktop */}
+        {isZoomed && isDesktop && (
           <div 
-            className="absolute inset-0 overflow-hidden"
+            className="absolute inset-0 overflow-hidden z-10"
           >
             <div
               className="absolute w-[200%] h-[200%] transition-transform duration-100"

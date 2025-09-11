@@ -24,6 +24,7 @@ function mapToProductCardProps(reco: Recommendation) {
     image: p.images?.[0]?.imageUrl || '/images/placeholder.svg',
     price: p.discountPrice ?? p.price,
     originalPrice: p.price,
+    currency: p.currency,
     discount: discountPercentage,
     link: `/${p.slug}/p/${p.id}`,
     hasFreeDel: false,
@@ -47,6 +48,7 @@ const TrendingRecommendations: React.FC = () => {
           limit: 12,
           includeProduct: true,
         });
+
         setRecommendations(recos);
       } catch (err) {
         console.error('Error loading trending recommendations', err);
@@ -66,7 +68,6 @@ const TrendingRecommendations: React.FC = () => {
     .filter((p): p is NonNullable<ReturnType<typeof mapToProductCardProps>> => p !== null);
 
   if (!productCards.length) return null;
-
   return (
     <ProductCategory
       title="Trending Products"

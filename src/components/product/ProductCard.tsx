@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { ProductImage } from '@/components/ui/OptimizedImage';
 import Link from 'next/link';
 import WishlistButton from './WishlistButton';
 import ProductAvailabilityBadge from './ProductAvailabilityBadge';
@@ -68,7 +68,7 @@ export function ProductCard({
   hasFreeDel = false,
   isNew = false,
   isBestSeller = false,
-  currency = 'INR',
+  currency,
   subtitle,
   colorVariants = [],
   exchangeOffer,
@@ -81,6 +81,8 @@ export function ProductCard({
   const [currentVariantIndex, setCurrentVariantIndex] = useState(0);
   const [currentImage, setCurrentImage] = useState(image);
   const analytics = useAnalyticsContext();
+
+  // console.log('currency😁😁😁😁😁😁😁😁😁😁😁😁😁😁😁😁😁😁😁', currency);
   
   // Auto-cycle through color variant images when hovered
   useEffect(() => {
@@ -164,13 +166,10 @@ export function ProductCard({
       <div className="relative h-28 xs:h-36 sm:h-48 md:h-56 lg:h-64 w-full overflow-hidden">
         <Link href={link} onClick={handleProductClick} className="block h-full w-full">
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50/30 dark:bg-gray-700/20">
-            <Image 
+            <ProductImage 
               src={currentImage} 
               alt={title}
-              width={200}
-              height={200}
-              sizes="(max-width: 480px) 120px, (max-width: 640px) 150px, (max-width: 768px) 190px, 250px"
-              className={`object-contain max-h-full w-auto transition-transform duration-500 p-1 xs:p-2 ${isHovered ? 'scale-110' : ''}`}
+              className={`max-h-full w-auto transition-transform duration-500 p-1 xs:p-2 ${isHovered ? 'scale-110' : ''}`}
             />
           </div>
         </Link>

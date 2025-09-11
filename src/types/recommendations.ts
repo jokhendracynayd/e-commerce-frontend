@@ -6,6 +6,7 @@ export interface RecommendedProduct {
   discountPrice?: number;
   averageRating: number;
   reviewCount: number;
+  currency: string;
   images?: Array<{
     imageUrl: string;
     altText?: string;

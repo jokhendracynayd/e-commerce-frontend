@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import Image from 'next/image';
+import { HeroImage, OptimizedImage } from '@/components/ui/OptimizedImage';
 import Link from 'next/link';
 import { getHomeTopBanners } from '@/services/promoBannerService';
 import { PromoBanner } from '@/types/promoBanner';
@@ -130,12 +130,9 @@ export function Showcase() {
         <div className="w-full h-full flex flex-row relative">
           {/* Background portrait image - covers entire slide */}
           <div className="absolute inset-0 w-full h-full">
-            <Image 
+            <HeroImage 
               src={slide.productImage}
               alt={slide.title}
-              fill
-              priority
-              sizes="100vw"
               className="object-cover object-center opacity-85"
               style={{ zIndex: 1 }}
             />
@@ -149,12 +146,13 @@ export function Showcase() {
             <div className="z-10 mr-auto ml-1 xs:ml-2 sm:ml-4 md:ml-8 lg:ml-16">
               <div className="flex items-center space-x-2 mb-1 sm:mb-2 md:mb-3">
                 <div className="relative h-8 w-8 xs:h-10 xs:w-10 sm:h-12 sm:w-12">
-                  <Image 
+                  <OptimizedImage 
                     src={slide.brandLogo} 
                     alt="Brand Logo" 
                     fill
                     sizes="(max-width: 640px) 32px, (max-width: 768px) 40px, 48px"
                     className="object-cover rounded-full border-2 border-white/70"
+                    quality={70}
                   />
                 </div>
                 <span className="text-white text-xs sm:text-sm">Unique</span>

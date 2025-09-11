@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { ListingImage } from '@/components/ui/OptimizedImage';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import WishlistButton from './WishlistButton';
@@ -166,16 +166,13 @@ export function ProductListingCard({
               : 'shadow-[0_0_0_0_transparent] hover:shadow-[0_0_30px_rgba(237,135,90,0.15)] transition-shadow duration-300 h-52 md:h-56 w-full aspect-[1/1]'
           }`}>
             <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-out">
-              <Image 
+              <ListingImage 
                 src={currentImage} 
                 alt={title}
-                width={320}
-                height={320}
-                className={`object-contain w-[99%] h-[99%] transition-all duration-500 ${isHovered ? 'scale-105' : ''}`}
+                className={`w-[99%] h-[99%] transition-all duration-500 ${isHovered ? 'scale-105' : ''}`}
                 style={{ 
                   filter: isHovered ? 'brightness(1.05)' : 'brightness(1)'
                 }}
-                priority={true}
               />
             </div>
             

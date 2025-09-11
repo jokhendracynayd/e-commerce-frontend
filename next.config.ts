@@ -99,10 +99,20 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '*.imgix.net',
         pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.freepik.com',
+        pathname: '**',
       }
     ],
-    // Also allow image optimization for domains that don't support optimization
-    unoptimized: true
+    // Enable image optimization with modern formats
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   // Add URL rewrites for SEO-friendly product URLs
   async rewrites() {
