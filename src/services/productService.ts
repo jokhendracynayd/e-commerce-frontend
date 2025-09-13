@@ -150,12 +150,14 @@ export async function getDealOfTheDay(): Promise<Product | null> {
       };
     }
     console.warn('No deal of the day products returned from API, using fallback');
-    return fallbackDealOfTheDay as Product;
+    // return fallbackDealOfTheDay as Product;
+    return null;
   } catch (error) {
     console.error('Error fetching deal of the day:', error);
     // Return fallback if API call fails
     console.warn('Using fallback deal of the day');
-    return fallbackDealOfTheDay as Product;
+    // return fallbackDealOfTheDay as Product;
+    return null;
   }
 }
 

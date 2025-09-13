@@ -343,6 +343,11 @@ export function ChatWidget() {
              <div className="mt-3 text-xs text-gray-500 text-center font-medium tracking-wide">
                Press Enter to send • Shift+Enter for new line
              </div>
+             
+             {/* Powered by CYNAYD credit */}
+             <div className="mt-2 text-xs text-gray-400 text-center font-medium tracking-wide">
+               Powered by <span className="text-purple-600 font-semibold">CYNAYD</span>
+             </div>
           </div>
         </div>
       )}
