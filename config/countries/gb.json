@@ -1,0 +1,121 @@
+{
+  "code": "GB",
+  "name": "United Kingdom",
+  "currency": "GBP",
+  "phoneCode": "+44",
+  "timezone": "Europe/London",
+  "locale": "en-GB",
+  "labels": {
+    "name": {
+      "label": "Full Name",
+      "placeholder": "Enter your full name",
+      "required": true,
+      "helpText": "Enter your complete name"
+    },
+    "street": {
+      "label": "Street Address",
+      "placeholder": "123 Baker Street",
+      "required": true,
+      "helpText": "Enter your street address"
+    },
+    "city": {
+      "label": "City",
+      "placeholder": "London",
+      "required": true,
+      "helpText": "Enter your city"
+    },
+    "county": {
+      "label": "County",
+      "placeholder": "Greater London",
+      "required": false,
+      "helpText": "Enter your county"
+    },
+    "postcode": {
+      "label": "Postcode",
+      "placeholder": "NW1 6XE",
+      "required": true,
+      "helpText": "Enter your postcode"
+    },
+    "phone": {
+      "label": "Phone Number",
+      "placeholder": "02079460958",
+      "required": true,
+      "helpText": "Enter your phone number (without +44)"
+    },
+    "alternate_phone": {
+      "label": "Alternate Phone",
+      "placeholder": "02079460958",
+      "required": false,
+      "helpText": "Optional alternate phone number (without +44)"
+    },
+    "landmark": {
+      "label": "Landmark",
+      "placeholder": "Near Hyde Park",
+      "required": false,
+      "helpText": "Optional landmark for easy identification"
+    },
+    "address_type": {
+      "label": "Address Type",
+      "placeholder": "Select address type",
+      "required": true,
+      "helpText": "Select address type"
+    },
+    "set_as_default": {
+      "label": "Set as default address",
+      "placeholder": "",
+      "required": false,
+      "helpText": "Use this address as default for future orders"
+    }
+  },
+  "validation": {
+    "postcode": "^[A-Z]{1,2}[0-9]{1,2}[A-Z]? [0-9][A-Z]{2}$",
+    "phone": "^\\+44[0-9]{10}$",
+    "county": "^[A-Za-z\\s]+$"
+  },
+  "counties": [
+    {"code": "ENG", "name": "England"},
+    {"code": "SCT", "name": "Scotland"},
+    {"code": "WLS", "name": "Wales"},
+    {"code": "NIR", "name": "Northern Ireland"},
+    {"code": "BED", "name": "Bedfordshire"},
+    {"code": "BRK", "name": "Berkshire"},
+    {"code": "BUK", "name": "Buckinghamshire"},
+    {"code": "CAM", "name": "Cambridgeshire"},
+    {"code": "CHE", "name": "Cheshire"},
+    {"code": "CON", "name": "Cornwall"},
+    {"code": "CUM", "name": "Cumbria"},
+    {"code": "DER", "name": "Derbyshire"},
+    {"code": "DEV", "name": "Devon"},
+    {"code": "DOR", "name": "Dorset"},
+    {"code": "DUR", "name": "Durham"},
+    {"code": "ESS", "name": "Essex"},
+    {"code": "GLO", "name": "Gloucestershire"},
+    {"code": "HAM", "name": "Hampshire"},
+    {"code": "HER", "name": "Herefordshire"},
+    {"code": "HRT", "name": "Hertfordshire"},
+    {"code": "KEN", "name": "Kent"},
+    {"code": "LAN", "name": "Lancashire"},
+    {"code": "LEI", "name": "Leicestershire"},
+    {"code": "LIN", "name": "Lincolnshire"},
+    {"code": "NOR", "name": "Norfolk"},
+    {"code": "NTH", "name": "Northamptonshire"},
+    {"code": "NTT", "name": "Nottinghamshire"},
+    {"code": "OXF", "name": "Oxfordshire"},
+    {"code": "SOM", "name": "Somerset"},
+    {"code": "STS", "name": "Staffordshire"},
+    {"code": "SUF", "name": "Suffolk"},
+    {"code": "SUR", "name": "Surrey"},
+    {"code": "SUS", "name": "Sussex"},
+    {"code": "WAR", "name": "Warwickshire"},
+    {"code": "WIL", "name": "Wiltshire"},
+    {"code": "WOR", "name": "Worcestershire"},
+    {"code": "YOR", "name": "Yorkshire"}
+  ],
+  "fieldOrder": ["street", "city", "county", "postcode"],
+  "requiredFields": ["name", "street", "city", "postcode", "phone"],
+  "addressFormat": {
+    "fields": ["street", "city", "county", "postcode", "country"],
+    "required": ["street", "city", "postcode"],
+    "separator": ", "
+  }
+}

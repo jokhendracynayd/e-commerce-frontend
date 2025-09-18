@@ -1,0 +1,28 @@
+{
+  "base": "USD",
+  "lastUpdated": "2024-01-15T10:30:00Z",
+  "rates": {
+    "USD": 1.0,
+    "INR": 83.50,
+    "GBP": 0.79,
+    "EUR": 0.92,
+    "CAD": 1.35,
+    "AUD": 1.52,
+    "JPY": 148.25,
+    "CNY": 7.18,
+    "BRL": 4.95,
+    "BDT": 110.50
+  },
+  "supportedCurrencies": [
+    "USD",
+    "INR", 
+    "GBP",
+    "EUR",
+    "CAD",
+    "AUD",
+    "JPY",
+    "CNY",
+    "BRL",
+    "BDT"
+  ]
+}

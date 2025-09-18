@@ -1,0 +1,126 @@
+{
+  "code": "IN",
+  "name": "India",
+  "currency": "INR",
+  "phoneCode": "+91",
+  "timezone": "Asia/Kolkata",
+  "locale": "hi-IN",
+  "labels": {
+    "name": {
+      "label": "Full Name",
+      "placeholder": "Enter your full name",
+      "required": true,
+      "helpText": "Enter your complete name"
+    },
+    "street": {
+      "label": "Street Address",
+      "placeholder": "123 MG Road",
+      "required": true,
+      "helpText": "Enter your street address"
+    },
+    "area": {
+      "label": "Area/Locality",
+      "placeholder": "Bandra West",
+      "required": false,
+      "helpText": "Enter your area or locality"
+    },
+    "city": {
+      "label": "City",
+      "placeholder": "Mumbai",
+      "required": true,
+      "helpText": "Enter your city"
+    },
+    "state": {
+      "label": "State",
+      "placeholder": "Maharashtra",
+      "required": true,
+      "helpText": "Select your state"
+    },
+    "pincode": {
+      "label": "PIN Code",
+      "placeholder": "400001",
+      "required": true,
+      "helpText": "6-digit PIN code"
+    },
+    "phone": {
+      "label": "Mobile Number",
+      "placeholder": "9876543210",
+      "required": true,
+      "helpText": "Enter your 10-digit mobile number (without +91)"
+    },
+    "alternate_phone": {
+      "label": "Alternate Mobile",
+      "placeholder": "9876543210",
+      "required": false,
+      "helpText": "Optional alternate mobile number (without +91)"
+    },
+    "landmark": {
+      "label": "Landmark",
+      "placeholder": "Near Metro Station",
+      "required": false,
+      "helpText": "Optional landmark for easy identification"
+    },
+    "address_type": {
+      "label": "Address Type",
+      "placeholder": "Select address type",
+      "required": true,
+      "helpText": "Select address type"
+    },
+    "set_as_default": {
+      "label": "Set as default address",
+      "placeholder": "",
+      "required": false,
+      "helpText": "Use this address as default for future orders"
+    }
+  },
+  "validation": {
+    "pincode": "^[1-9][0-9]{5}$",
+    "phone": "^\\+91[0-9]{10}$",
+    "state": "^[A-Za-z\\s]+$"
+  },
+  "states": [
+    {"code": "AP", "name": "Andhra Pradesh"},
+    {"code": "AR", "name": "Arunachal Pradesh"},
+    {"code": "AS", "name": "Assam"},
+    {"code": "BR", "name": "Bihar"},
+    {"code": "CT", "name": "Chhattisgarh"},
+    {"code": "GA", "name": "Goa"},
+    {"code": "GJ", "name": "Gujarat"},
+    {"code": "HR", "name": "Haryana"},
+    {"code": "HP", "name": "Himachal Pradesh"},
+    {"code": "JK", "name": "Jammu and Kashmir"},
+    {"code": "JH", "name": "Jharkhand"},
+    {"code": "KA", "name": "Karnataka"},
+    {"code": "KL", "name": "Kerala"},
+    {"code": "MP", "name": "Madhya Pradesh"},
+    {"code": "MH", "name": "Maharashtra"},
+    {"code": "MN", "name": "Manipur"},
+    {"code": "ML", "name": "Meghalaya"},
+    {"code": "MZ", "name": "Mizoram"},
+    {"code": "NL", "name": "Nagaland"},
+    {"code": "OR", "name": "Odisha"},
+    {"code": "PB", "name": "Punjab"},
+    {"code": "RJ", "name": "Rajasthan"},
+    {"code": "SK", "name": "Sikkim"},
+    {"code": "TN", "name": "Tamil Nadu"},
+    {"code": "TG", "name": "Telangana"},
+    {"code": "TR", "name": "Tripura"},
+    {"code": "UP", "name": "Uttar Pradesh"},
+    {"code": "UT", "name": "Uttarakhand"},
+    {"code": "WB", "name": "West Bengal"},
+    {"code": "AN", "name": "Andaman and Nicobar Islands"},
+    {"code": "CH", "name": "Chandigarh"},
+    {"code": "DN", "name": "Dadra and Nagar Haveli"},
+    {"code": "DD", "name": "Daman and Diu"},
+    {"code": "DL", "name": "Delhi"},
+    {"code": "LD", "name": "Lakshadweep"},
+    {"code": "PY", "name": "Puducherry"}
+  ],
+  "fieldOrder": ["street", "area", "city", "state", "pincode"],
+  "requiredFields": ["name", "street", "city", "state", "pincode", "phone"],
+  "addressFormat": {
+    "fields": ["street", "area", "city", "state", "pincode", "country"],
+    "required": ["street", "city", "state", "pincode"],
+    "separator": ", "
+  }
+}

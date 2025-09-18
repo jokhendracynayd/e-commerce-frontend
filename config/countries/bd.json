@@ -1,0 +1,127 @@
+{
+  "code": "BD",
+  "name": "Bangladesh",
+  "currency": "BDT",
+  "phoneCode": "+880",
+  "timezone": "Asia/Dhaka",
+  "locale": "bn-BD",
+  "labels": {
+    "name": {
+      "label": "Full Name",
+      "placeholder": "Enter your full name",
+      "required": true,
+      "helpText": "Enter your complete name"
+    },
+    "street": {
+      "label": "Street Address",
+      "placeholder": "123 Dhanmondi Road",
+      "required": true,
+      "helpText": "Enter your street address"
+    },
+    "area": {
+      "label": "Area/Locality",
+      "placeholder": "Dhanmondi",
+      "required": false,
+      "helpText": "Enter your area or locality"
+    },
+    "city": {
+      "label": "City",
+      "placeholder": "Dhaka",
+      "required": true,
+      "helpText": "Enter your city"
+    },
+    "district": {
+      "label": "District",
+      "placeholder": "Dhaka",
+      "required": true,
+      "helpText": "Select your district"
+    },
+    "postcode": {
+      "label": "Postal Code",
+      "placeholder": "1205",
+      "required": true,
+      "helpText": "4-digit postal code"
+    },
+    "phone": {
+      "label": "Mobile Number",
+      "placeholder": "01712345678",
+      "required": true,
+      "helpText": "Enter your 8-digit mobile number (without +880)"
+    },
+    "alternate_phone": {
+      "label": "Alternate Mobile",
+      "placeholder": "01712345678",
+      "required": false,
+      "helpText": "Optional alternate mobile number (without +880)"
+    },
+    "landmark": {
+      "label": "Landmark",
+      "placeholder": "Near Dhanmondi Lake",
+      "required": false,
+      "helpText": "Optional landmark for easy identification"
+    },
+    "address_type": {
+      "label": "Address Type",
+      "placeholder": "Select address type",
+      "required": true,
+      "helpText": "Select address type"
+    },
+    "set_as_default": {
+      "label": "Set as default address",
+      "placeholder": "",
+      "required": false,
+      "helpText": "Use this address as default for future orders"
+    }
+  },
+  "validation": {
+    "postcode": "^[1-9][0-9]{3}$",
+    "phone": "^\\+880[0-9]{8}$",
+    "district": "^[A-Za-z\\s]+$"
+  },
+  "districts": [
+    {"code": "DHA", "name": "Dhaka"},
+    {"code": "CTG", "name": "Chittagong"},
+    {"code": "RAJ", "name": "Rajshahi"},
+    {"code": "KHU", "name": "Khulna"},
+    {"code": "BAR", "name": "Barisal"},
+    {"code": "SYL", "name": "Sylhet"},
+    {"code": "RAN", "name": "Rangpur"},
+    {"code": "MYM", "name": "Mymensingh"},
+    {"code": "COX", "name": "Cox's Bazar"},
+    {"code": "COMILLA", "name": "Comilla"},
+    {"code": "JESS", "name": "Jessore"},
+    {"code": "NARA", "name": "Narayanganj"},
+    {"code": "GAZI", "name": "Gazipur"},
+    {"code": "TANG", "name": "Tangail"},
+    {"code": "BOG", "name": "Bogra"},
+    {"code": "DINA", "name": "Dinajpur"},
+    {"code": "FARI", "name": "Faridpur"},
+    {"code": "JAM", "name": "Jamalpur"},
+    {"code": "KISH", "name": "Kishoreganj"},
+    {"code": "KUS", "name": "Kushtia"},
+    {"code": "MAG", "name": "Magura"},
+    {"code": "MANI", "name": "Manikganj"},
+    {"code": "MEHE", "name": "Meherpur"},
+    {"code": "MUN", "name": "Munshiganj"},
+    {"code": "NAO", "name": "Naogaon"},
+    {"code": "NATO", "name": "Natore"},
+    {"code": "NETR", "name": "Netrokona"},
+    {"code": "NOGA", "name": "Nawabganj"},
+    {"code": "PAB", "name": "Pabna"},
+    {"code": "PAN", "name": "Panchagarh"},
+    {"code": "PAT", "name": "Patuakhali"},
+    {"code": "PIR", "name": "Pirojpur"},
+    {"code": "RAJB", "name": "Rajbari"},
+    {"code": "SHER", "name": "Sherpur"},
+    {"code": "SIRA", "name": "Sirajganj"},
+    {"code": "SUNA", "name": "Sunamganj"},
+    {"code": "THAK", "name": "Thakurgaon"}
+  ],
+  "fieldOrder": ["street", "area", "city", "district", "postcode"],
+  "requiredFields": ["name", "street", "city", "district", "postcode", "phone"],
+  "addressFormat": {
+    "fields": ["street", "area", "city", "district", "postcode", "country"],
+    "required": ["street", "city", "district", "postcode"],
+    "separator": ", "
+  }
+}

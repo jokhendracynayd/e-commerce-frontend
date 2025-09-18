@@ -1,0 +1,51 @@
+{
+  "USD": {
+    "symbol": "$",
+    "position": "before",
+    "decimalPlaces": 2,
+    "thousandSeparator": ",",
+    "decimalSeparator": "."
+  },
+  "INR": {
+    "symbol": "₹",
+    "position": "before",
+    "decimalPlaces": 2,
+    "thousandSeparator": ",",
+    "decimalSeparator": "."
+  },
+  "GBP": {
+    "symbol": "£",
+    "position": "before",
+    "decimalPlaces": 2,
+    "thousandSeparator": ",",
+    "decimalSeparator": "."
+  },
+  "EUR": {
+    "symbol": "€",
+    "position": "after",
+    "decimalPlaces": 2,
+    "thousandSeparator": ".",
+    "decimalSeparator": ","
+  },
+  "CAD": {
+    "symbol": "C$",
+    "position": "before",
+    "decimalPlaces": 2,
+    "thousandSeparator": ",",
+    "decimalSeparator": "."
+  },
+  "AUD": {
+    "symbol": "A$",
+    "position": "before",
+    "decimalPlaces": 2,
+    "thousandSeparator": ",",
+    "decimalSeparator": "."
+  },
+  "BDT": {
+    "symbol": "৳",
+    "position": "before",
+    "decimalPlaces": 2,
+    "thousandSeparator": ",",
+    "decimalSeparator": "."
+  }
+}

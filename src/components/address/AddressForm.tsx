@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useCountry } from '@/hooks/useCountry';
 import { toast } from 'react-hot-toast';
 import { Address, AddressFormData } from '@/types/address';
 import { createAddress, updateAddress } from '@/services/addressService';
@@ -12,6 +13,7 @@ interface AddressFormProps {
   initialAddress?: Partial<Address>;
   buttonText?: string;
   showCancelButton?: boolean;
+  countryCode?: string; // Allow country to be passed in
 }
 
 const AddressForm = ({ 
@@ -19,60 +21,151 @@ const AddressForm = ({
   onCancel, 
   initialAddress, 
   buttonText = 'SAVE',
-  showCancelButton = true 
+  showCancelButton = true,
+  countryCode
 }: AddressFormProps) => {
-  // Form state
-  const [name, setName] = useState(initialAddress?.name || '');
-  const [mobileNumber, setMobileNumber] = useState(initialAddress?.mobileNumber || '');
-  const [pincode, setPincode] = useState(initialAddress?.zipCode || '');
-  const [locality, setLocality] = useState(initialAddress?.locality || '');
-  const [address, setAddress] = useState(initialAddress?.street || '');
-  const [city, setCity] = useState(initialAddress?.city || '');
-  const [state, setState] = useState(initialAddress?.state || '');
-  const [landmark, setLandmark] = useState(initialAddress?.landmark || '');
-  const [alternatePhone, setAlternatePhone] = useState(initialAddress?.alternatePhone || '');
-  const [addressType, setAddressType] = useState<'Home' | 'Work'>(
-    initialAddress?.addressType as ('Home' | 'Work') || 'Home'
-  );
-  const [isDefault, setIsDefault] = useState(initialAddress?.isDefault || false);
+  // Country configuration
+  const {
+    currentCountry,
+    countryConfig,
+    getFieldLabel,
+    getFieldConfig,
+    getFieldOrder,
+    getRequiredFields,
+    getStatesProvinces,
+    validateField,
+    setCountry,
+    formatAddress
+  } = useCountry(countryCode);
+
+  // Form state - dynamic based on country
+  const [formData, setFormData] = useState<Record<string, string>>({
+    name: initialAddress?.name || '',
+    phone: initialAddress?.mobileNumber || '',
+    alternate_phone: initialAddress?.alternatePhone || '',
+    street: initialAddress?.street || '',
+    city: initialAddress?.city || '',
+    landmark: initialAddress?.landmark || '',
+    address_type: initialAddress?.addressType as string || 'Home',
+    set_as_default: initialAddress?.isDefault ? 'true' : 'false'
+  });
+
+  // Country-specific fields
+  const [area, setArea] = useState(initialAddress?.locality || '');
+  const [stateProvince, setStateProvince] = useState(initialAddress?.state || '');
+  const [postalCode, setPostalCode] = useState(initialAddress?.zipCode || '');
   
-  // Loading state for geolocation and form submission
+  // Loading state
   const [isLoading, setIsLoading] = useState(false);
   
-  // Auth context to check if user is logged in
+  // Auth context
   const { isAuthenticated } = useAuth();
 
   // Validation
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Validate form fields
+  // Update form data when country changes
+  useEffect(() => {
+    if (countryCode && countryCode !== currentCountry) {
+      setCountry(countryCode);
+    }
+  }, [countryCode, currentCountry, setCountry]);
+
+  // Update form data
+  const updateFormData = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  // Validate form fields using country configuration
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+    const requiredFields = getRequiredFields();
     
-    if (!name.trim()) newErrors.name = 'Name is required';
-    if (!mobileNumber.trim()) {
-      newErrors.mobileNumber = 'Mobile number is required';
-    } else if (!/^\d{10}$/.test(mobileNumber)) {
-      newErrors.mobileNumber = 'Please enter a valid 10-digit mobile number';
+    // Validate required fields
+    requiredFields.forEach(field => {
+      let value = '';
+      
+      switch (field) {
+        case 'name':
+          value = formData.name;
+          break;
+        case 'street':
+          value = formData.street;
+          break;
+        case 'city':
+          value = formData.city;
+          break;
+        case 'phone':
+          value = formData.phone;
+          break;
+        case 'state':
+          value = stateProvince;
+          break;
+        case 'zip':
+        case 'pincode':
+        case 'postcode':
+          value = postalCode;
+          break;
+        case 'area':
+          value = area;
+          break;
+        case 'district':
+          value = stateProvince;
+          break;
+        case 'county':
+          value = stateProvince;
+          break;
+      }
+      
+      if (!value || value.trim() === '') {
+        newErrors[field] = `${getFieldLabel(field)} is required`;
+      }
+    });
+    
+    // Validate field formats using country validation rules
+    Object.keys(formData).forEach(field => {
+      if (formData[field]) {
+        let valueToValidate = formData[field];
+        
+        // For phone numbers, add country code for validation
+        if (field.includes('phone') && !valueToValidate.startsWith('+')) {
+          const countryCode = countryConfig.phoneCode || '+91';
+          valueToValidate = `${countryCode}${valueToValidate}`;
+        }
+        
+        if (!validateField(field, valueToValidate)) {
+          newErrors[field] = `Invalid ${getFieldLabel(field)} format`;
+        }
+      }
+    });
+    
+    // Validate country-specific fields
+    if (stateProvince && !validateField('state', stateProvince)) {
+      newErrors.state = `Invalid ${getFieldLabel('state')} format`;
     }
     
-    if (!pincode.trim()) {
-      newErrors.pincode = 'Pincode is required';
-    } else if (!/^\d{6}$/.test(pincode)) {
-      newErrors.pincode = 'Please enter a valid 6-digit pincode';
-    }
-    
-    if (!locality.trim()) newErrors.locality = 'Locality is required';
-    if (!address.trim()) newErrors.address = 'Address is required';
-    if (!city.trim()) newErrors.city = 'City is required';
-    if (!state || state === '--Select State--') newErrors.state = 'State is required';
-    
-    if (alternatePhone && !/^\d{10}$/.test(alternatePhone)) {
-      newErrors.alternatePhone = 'Please enter a valid 10-digit phone number';
+    if (postalCode && !validateField(getPostalCodeFieldName(), postalCode)) {
+      newErrors[getPostalCodeFieldName()] = `Invalid ${getFieldLabel(getPostalCodeFieldName())} format`;
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // Get postal code field name based on country
+  const getPostalCodeFieldName = () => {
+    switch (currentCountry) {
+      case 'US': return 'zip';
+      case 'IN': return 'pincode';
+      case 'GB':
+      case 'BD': return 'postcode';
+      default: return 'pincode';
+    }
   };
 
   // Handle current location
@@ -89,11 +182,35 @@ const AddressForm = ({
             // Simulate API call delay
             await new Promise(resolve => setTimeout(resolve, 1000));
             
-            // Fake data for demonstration
-            setPincode('400001');
-            setLocality('Marine Lines');
-            setCity('Mumbai');
-            setState('Maharashtra');
+            // Fake data for demonstration - set based on current country
+            switch (currentCountry) {
+              case 'US':
+                updateFormData('street', '123 Main St');
+                updateFormData('city', 'New York');
+                setStateProvince('NY');
+                setPostalCode('10001');
+                break;
+              case 'IN':
+                updateFormData('street', '123 MG Road');
+                setArea('Marine Lines');
+                updateFormData('city', 'Mumbai');
+                setStateProvince('MH');
+                setPostalCode('400001');
+                break;
+              case 'GB':
+                updateFormData('street', '123 Baker Street');
+                updateFormData('city', 'London');
+                setStateProvince('ENG');
+                setPostalCode('NW1 6XE');
+                break;
+              case 'BD':
+                updateFormData('street', '123 Dhanmondi Road');
+                setArea('Dhanmondi');
+                updateFormData('city', 'Dhaka');
+                setStateProvince('DHA');
+                setPostalCode('1205');
+                break;
+            }
             
             toast.success('Location detected successfully');
           } catch (error) {
@@ -133,20 +250,22 @@ const AddressForm = ({
     setIsLoading(true);
     
     try {
-      // Create address object
+      // Create address object using country-specific field mapping
       const addressData: AddressFormData = {
-        name,
-        mobileNumber,
-        street: address,
-        city,
-        state,
-        zipCode: pincode,
-        locality,
-        landmark: landmark || undefined,
-        alternatePhone: alternatePhone || undefined,
-        addressType,
-        country: 'India', // Default for now
-        isDefault
+        name: formData.name,
+        mobileNumber: formData.phone.startsWith('+') ? formData.phone : `${countryConfig.phoneCode}${formData.phone}`,
+        street: formData.street,
+        city: formData.city,
+        state: stateProvince,
+        zipCode: postalCode,
+        locality: area,
+        landmark: formData.landmark || undefined,
+        alternatePhone: formData.alternate_phone ? 
+          (formData.alternate_phone.startsWith('+') ? formData.alternate_phone : `${countryConfig.phoneCode}${formData.alternate_phone}`) 
+          : undefined,
+        addressType: formData.address_type as 'Home' | 'Work',
+        country: countryConfig.name,
+        isDefault: formData.set_as_default === 'true'
       };
       
       let result: Address | null = null;
@@ -185,25 +304,273 @@ const AddressForm = ({
     }
   };
 
-  // List of Indian states
-  const indianStates = [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 
-    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 
-    'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 
-    'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 
-    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 
-    'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
-    'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
-    'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
-  ];
+  // Render dynamic field based on country configuration
+  const renderField = (fieldName: string) => {
+    const config = getFieldConfig(fieldName);
+    if (!config) return null;
 
-  const bangladeshStates = [
-    'Dhaka', 'Chittagong', 'Rajshahi', 'Rangpur', 'Barisal','Comilla','Sylhet','khulna','Mymensingh'
-  ];
+    const fieldId = fieldName.toLowerCase().replace('_', '');
+    const hasError = errors[fieldName];
+    
+    // Get field value
+    let value = '';
+    let setValue = (val: string) => updateFormData(fieldName, val);
+    
+    switch (fieldName) {
+      case 'name':
+        value = formData.name;
+        break;
+      case 'phone':
+        value = formData.phone;
+        break;
+      case 'alternate_phone':
+        value = formData.alternate_phone;
+        break;
+      case 'street':
+        value = formData.street;
+        break;
+      case 'city':
+        value = formData.city;
+        break;
+      case 'landmark':
+        value = formData.landmark;
+        break;
+      default:
+        return null;
+    }
+
+    return (
+      <div key={fieldName} className="sm:col-span-1">
+        <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          {config.label}
+          {config.required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+        <input
+          type={fieldName.includes('phone') ? 'tel' : 'text'}
+          id={fieldId}
+          value={value}
+          onChange={(e) => {
+            if (fieldName.includes('phone')) {
+              let phoneValue = e.target.value.replace(/\D/g, '');
+              
+              // Remove country code digits if they exist
+              const countryCode = countryConfig.phoneCode || '+91';
+              const countryCodeDigits = countryCode.replace('+', '');
+              
+              // If the input starts with country code digits, remove them
+              if (phoneValue.startsWith(countryCodeDigits)) {
+                phoneValue = phoneValue.substring(countryCodeDigits.length);
+              }
+              
+              // Special handling for Bangladesh: remove leading 0 if present
+              if (currentCountry === 'BD' && phoneValue.startsWith('0')) {
+                phoneValue = phoneValue.substring(1);
+              }
+              
+              // Limit to appropriate length based on country
+              let maxLength = 10; // Default
+              if (currentCountry === 'BD') maxLength = 8; // Bangladesh: 8 digits after removing 0
+              else if (currentCountry === 'GB') maxLength = 11;
+              
+              setValue(phoneValue.slice(0, maxLength));
+            } else {
+              setValue(e.target.value);
+            }
+          }}
+          placeholder={config.placeholder}
+          required={config.required}
+          className={`w-full px-4 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
+          maxLength={fieldName.includes('phone') ? 
+            (currentCountry === 'BD' ? 8 : currentCountry === 'GB' ? 11 : 10) 
+            : undefined}
+        />
+        {config.helpText && (
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            {config.helpText}
+          </div>
+        )}
+        {hasError && <p className="mt-1 text-sm text-red-500">{hasError}</p>}
+      </div>
+    );
+  };
+
+  // Render country-specific fields
+  const renderCountrySpecificFields = () => {
+    const fieldOrder = getFieldOrder();
+    const statesProvinces = getStatesProvinces();
+    
+    return fieldOrder.map(fieldName => {
+      const config = getFieldConfig(fieldName);
+      if (!config) return null;
+
+      const fieldId = fieldName.toLowerCase();
+      const hasError = errors[fieldName];
+      
+      switch (fieldName) {
+        case 'street':
+          return (
+            <div key={fieldName} className="sm:col-span-2">
+              <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {config.label}
+                {config.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <textarea
+                id={fieldId}
+                value={formData.street}
+                onChange={(e) => updateFormData('street', e.target.value)}
+                rows={3}
+                placeholder={config.placeholder}
+                required={config.required}
+                className={`w-full px-4 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
+              />
+              {config.helpText && (
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {config.helpText}
+                </div>
+              )}
+              {hasError && <p className="mt-1 text-sm text-red-500">{hasError}</p>}
+            </div>
+          );
+          
+        case 'area':
+          return (
+            <div key={fieldName} className="sm:col-span-1">
+              <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {config.label}
+                {config.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <input
+                type="text"
+                id={fieldId}
+                value={area}
+                onChange={(e) => setArea(e.target.value)}
+                placeholder={config.placeholder}
+                required={config.required}
+                className={`w-full px-4 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
+              />
+              {config.helpText && (
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {config.helpText}
+                </div>
+              )}
+              {hasError && <p className="mt-1 text-sm text-red-500">{hasError}</p>}
+            </div>
+          );
+          
+        case 'city':
+          return (
+            <div key={fieldName} className="sm:col-span-1">
+              <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {config.label}
+                {config.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <input
+                type="text"
+                id={fieldId}
+                value={formData.city}
+                onChange={(e) => updateFormData('city', e.target.value)}
+                placeholder={config.placeholder}
+                required={config.required}
+                className={`w-full px-4 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
+              />
+              {config.helpText && (
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {config.helpText}
+                </div>
+              )}
+              {hasError && <p className="mt-1 text-sm text-red-500">{hasError}</p>}
+            </div>
+          );
+          
+        case 'state':
+        case 'district':
+        case 'county':
+          return (
+            <div key={fieldName} className="sm:col-span-1">
+              <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {config.label}
+                {config.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <select
+                id={fieldId}
+                value={stateProvince}
+                onChange={(e) => setStateProvince(e.target.value)}
+                required={config.required}
+                className={`w-full px-4 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
+              >
+                <option value="">--Select {config.label}--</option>
+                {statesProvinces.map((state) => (
+                  <option key={state.code} value={state.code}>
+                    {state.name}
+                  </option>
+                ))}
+              </select>
+              {config.helpText && (
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {config.helpText}
+                </div>
+              )}
+              {hasError && <p className="mt-1 text-sm text-red-500">{hasError}</p>}
+            </div>
+          );
+          
+        case 'zip':
+        case 'pincode':
+        case 'postcode':
+          return (
+            <div key={fieldName} className="sm:col-span-1">
+              <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {config.label}
+                {config.required && <span className="text-red-500 ml-1">*</span>}
+              </label>
+              <input
+                type="text"
+                id={fieldId}
+                value={postalCode}
+                onChange={(e) => {
+                  const maxLength = currentCountry === 'US' ? 10 : currentCountry === 'BD' ? 4 : 6;
+                  setPostalCode(e.target.value.replace(/\D/g, '').slice(0, maxLength));
+                }}
+                placeholder={config.placeholder}
+                required={config.required}
+                className={`w-full px-4 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
+                maxLength={currentCountry === 'US' ? 10 : currentCountry === 'BD' ? 4 : 6}
+              />
+              {config.helpText && (
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {config.helpText}
+                </div>
+              )}
+              {hasError && <p className="mt-1 text-sm text-red-500">{hasError}</p>}
+            </div>
+          );
+          
+        default:
+          return null;
+      }
+    });
+  };
 
   return (
     <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
       <form onSubmit={handleSubmit} className="p-5 sm:p-6">
+        {/* Country Selector */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Country
+          </label>
+          <select
+            value={currentCountry}
+            onChange={(e) => setCountry(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white"
+          >
+            <option value="US">United States</option>
+            <option value="IN">India</option>
+            <option value="GB">United Kingdom</option>
+            <option value="BD">Bangladesh</option>
+          </select>
+        </div>
+
         {/* Location Button */}
         <button 
           type="button" 
@@ -235,162 +602,22 @@ const AddressForm = ({
         </button>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          {/* Name */}
-          <div className="sm:col-span-1">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={`w-full px-4 py-2 border ${errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
-              placeholder="Full Name"
-            />
-            {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
-          </div>
-
-          {/* Mobile Number */}
-          <div className="sm:col-span-1">
-            <label htmlFor="mobileNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              10-digit mobile number
-            </label>
-            <input
-              type="tel"
-              id="mobileNumber"
-              value={mobileNumber}
-              onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
-              className={`w-full px-4 py-2 border ${errors.mobileNumber ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
-              placeholder="Mobile Number"
-              maxLength={10}
-            />
-            {errors.mobileNumber && <p className="mt-1 text-sm text-red-500">{errors.mobileNumber}</p>}
-          </div>
-
-          {/* Pincode */}
-          <div className="sm:col-span-1">
-            <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Pincode
-            </label>
-            <input
-              type="text"
-              id="pincode"
-              value={pincode}
-              onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              className={`w-full px-4 py-2 border ${errors.pincode ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
-              placeholder="6-digit pincode"
-              maxLength={6}
-            />
-            {errors.pincode && <p className="mt-1 text-sm text-red-500">{errors.pincode}</p>}
-          </div>
-
-          {/* Locality */}
-          <div className="sm:col-span-1">
-            <label htmlFor="locality" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Locality
-            </label>
-            <input
-              type="text"
-              id="locality"
-              value={locality}
-              onChange={(e) => setLocality(e.target.value)}
-              className={`w-full px-4 py-2 border ${errors.locality ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
-              placeholder="Locality"
-            />
-            {errors.locality && <p className="mt-1 text-sm text-red-500">{errors.locality}</p>}
-          </div>
-
-          {/* Address (Area and Street) */}
-          <div className="sm:col-span-2">
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Address (Area and Street)
-            </label>
-            <textarea
-              id="address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              rows={3}
-              className={`w-full px-4 py-2 border ${errors.address ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
-              placeholder="Address"
-            />
-            {errors.address && <p className="mt-1 text-sm text-red-500">{errors.address}</p>}
-          </div>
-
-          {/* City/District/Town */}
-          <div className="sm:col-span-1">
-            <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              City/District/Town
-            </label>
-            <input
-              type="text"
-              id="city"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              className={`w-full px-4 py-2 border ${errors.city ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
-              placeholder="City"
-            />
-            {errors.city && <p className="mt-1 text-sm text-red-500">{errors.city}</p>}
-          </div>
-
-          {/* State */}
-          <div className="sm:col-span-1">
-            <label htmlFor="state" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              State
-            </label>
-            <select
-              id="state"
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              className={`w-full px-4 py-2 border ${errors.state ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
-            >
-              <option value="">--Select State--</option>
-              {bangladeshStates.map((stateName) => (
-                <option key={stateName} value={stateName}>
-                  {stateName}
-                </option>
-              ))}
-            </select>
-            {errors.state && <p className="mt-1 text-sm text-red-500">{errors.state}</p>}
-          </div>
-
-          {/* Landmark (Optional) */}
-          <div className="sm:col-span-1">
-            <label htmlFor="landmark" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Landmark (Optional)
-            </label>
-            <input
-              type="text"
-              id="landmark"
-              value={landmark}
-              onChange={(e) => setLandmark(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white"
-              placeholder="Landmark"
-            />
-          </div>
-
-          {/* Alternate Phone (Optional) */}
-          <div className="sm:col-span-1">
-            <label htmlFor="alternatePhone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Alternate Phone (Optional)
-            </label>
-            <input
-              type="tel"
-              id="alternatePhone"
-              value={alternatePhone}
-              onChange={(e) => setAlternatePhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-              className={`w-full px-4 py-2 border ${errors.alternatePhone ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
-              placeholder="Alternate Phone"
-              maxLength={10}
-            />
-            {errors.alternatePhone && <p className="mt-1 text-sm text-red-500">{errors.alternatePhone}</p>}
-          </div>
+          {/* Common Fields */}
+          {renderField('name')}
+          {renderField('phone')}
+          
+          {/* Country-specific fields */}
+          {renderCountrySpecificFields()}
+          
+          {/* Optional Fields */}
+          {renderField('alternate_phone')}
+          {renderField('landmark')}
         </div>
 
         {/* Address Type */}
         <div className="mt-6">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-            Address Type
+            {getFieldLabel('address_type')}
           </label>
           <div className="flex items-center space-x-6">
             <label className="inline-flex items-center">
@@ -399,8 +626,8 @@ const AddressForm = ({
                 className="form-radio h-4 w-4 text-[#ed875a] focus:ring-[#ed875a]"
                 name="addressType"
                 value="Home"
-                checked={addressType === 'Home'}
-                onChange={() => setAddressType('Home')}
+                checked={formData.address_type === 'Home'}
+                onChange={() => updateFormData('address_type', 'Home')}
               />
               <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Home</span>
             </label>
@@ -410,8 +637,8 @@ const AddressForm = ({
                 className="form-radio h-4 w-4 text-[#ed875a] focus:ring-[#ed875a]"
                 name="addressType"
                 value="Work"
-                checked={addressType === 'Work'}
-                onChange={() => setAddressType('Work')}
+                checked={formData.address_type === 'Work'}
+                onChange={() => updateFormData('address_type', 'Work')}
               />
               <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Work</span>
             </label>
@@ -424,11 +651,11 @@ const AddressForm = ({
             <input
               type="checkbox"
               className="form-checkbox h-4 w-4 text-[#ed875a] focus:ring-[#ed875a]"
-              checked={isDefault}
-              onChange={() => setIsDefault(!isDefault)}
+              checked={formData.set_as_default === 'true'}
+              onChange={(e) => updateFormData('set_as_default', e.target.checked ? 'true' : 'false')}
             />
             <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              Make this my default address
+              {getFieldLabel('set_as_default')}
             </span>
           </label>
         </div>

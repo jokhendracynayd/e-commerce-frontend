@@ -1,0 +1,134 @@
+{
+  "code": "US",
+  "name": "United States",
+  "currency": "USD",
+  "phoneCode": "+1",
+  "timezone": "America/New_York",
+  "locale": "en-US",
+  "labels": {
+    "name": {
+      "label": "Full Name",
+      "placeholder": "Enter your full name",
+      "required": true,
+      "helpText": "Enter your complete name"
+    },
+    "street": {
+      "label": "Street Address",
+      "placeholder": "123 Main St",
+      "required": true,
+      "helpText": "Enter your street address"
+    },
+    "city": {
+      "label": "City",
+      "placeholder": "New York",
+      "required": true,
+      "helpText": "Enter your city"
+    },
+    "state": {
+      "label": "State",
+      "placeholder": "NY",
+      "required": true,
+      "helpText": "Select your state"
+    },
+    "zip": {
+      "label": "ZIP Code",
+      "placeholder": "10001",
+      "required": true,
+      "helpText": "5-digit ZIP code"
+    },
+    "phone": {
+      "label": "Phone Number",
+      "placeholder": "5551234567",
+      "required": true,
+      "helpText": "Enter your 10-digit phone number (without +1)"
+    },
+    "alternate_phone": {
+      "label": "Alternate Phone",
+      "placeholder": "5551234567",
+      "required": false,
+      "helpText": "Optional alternate phone number (without +1)"
+    },
+    "landmark": {
+      "label": "Landmark",
+      "placeholder": "Near Central Park",
+      "required": false,
+      "helpText": "Optional landmark for easy identification"
+    },
+    "address_type": {
+      "label": "Address Type",
+      "placeholder": "Select address type",
+      "required": true,
+      "helpText": "Select address type"
+    },
+    "set_as_default": {
+      "label": "Set as default address",
+      "placeholder": "",
+      "required": false,
+      "helpText": "Use this address as default for future orders"
+    }
+  },
+  "validation": {
+    "zip": "^[0-9]{5}(-[0-9]{4})?$",
+    "phone": "^\\+1[0-9]{10}$",
+    "state": "^[A-Z]{2}$"
+  },
+  "states": [
+    {"code": "AL", "name": "Alabama"},
+    {"code": "AK", "name": "Alaska"},
+    {"code": "AZ", "name": "Arizona"},
+    {"code": "AR", "name": "Arkansas"},
+    {"code": "CA", "name": "California"},
+    {"code": "CO", "name": "Colorado"},
+    {"code": "CT", "name": "Connecticut"},
+    {"code": "DE", "name": "Delaware"},
+    {"code": "FL", "name": "Florida"},
+    {"code": "GA", "name": "Georgia"},
+    {"code": "HI", "name": "Hawaii"},
+    {"code": "ID", "name": "Idaho"},
+    {"code": "IL", "name": "Illinois"},
+    {"code": "IN", "name": "Indiana"},
+    {"code": "IA", "name": "Iowa"},
+    {"code": "KS", "name": "Kansas"},
+    {"code": "KY", "name": "Kentucky"},
+    {"code": "LA", "name": "Louisiana"},
+    {"code": "ME", "name": "Maine"},
+    {"code": "MD", "name": "Maryland"},
+    {"code": "MA", "name": "Massachusetts"},
+    {"code": "MI", "name": "Michigan"},
+    {"code": "MN", "name": "Minnesota"},
+    {"code": "MS", "name": "Mississippi"},
+    {"code": "MO", "name": "Missouri"},
+    {"code": "MT", "name": "Montana"},
+    {"code": "NE", "name": "Nebraska"},
+    {"code": "NV", "name": "Nevada"},
+    {"code": "NH", "name": "New Hampshire"},
+    {"code": "NJ", "name": "New Jersey"},
+    {"code": "NM", "name": "New Mexico"},
+    {"code": "NY", "name": "New York"},
+    {"code": "NC", "name": "North Carolina"},
+    {"code": "ND", "name": "North Dakota"},
+    {"code": "OH", "name": "Ohio"},
+    {"code": "OK", "name": "Oklahoma"},
+    {"code": "OR", "name": "Oregon"},
+    {"code": "PA", "name": "Pennsylvania"},
+    {"code": "RI", "name": "Rhode Island"},
+    {"code": "SC", "name": "South Carolina"},
+    {"code": "SD", "name": "South Dakota"},
+    {"code": "TN", "name": "Tennessee"},
+    {"code": "TX", "name": "Texas"},
+    {"code": "UT", "name": "Utah"},
+    {"code": "VT", "name": "Vermont"},
+    {"code": "VA", "name": "Virginia"},
+    {"code": "WA", "name": "Washington"},
+    {"code": "WV", "name": "West Virginia"},
+    {"code": "WI", "name": "Wisconsin"},
+    {"code": "WY", "name": "Wyoming"}
+  ],
+  "fieldOrder": ["street", "city", "state", "zip"],
+  "requiredFields": ["name", "street", "city", "state", "zip", "phone"],
+  "addressFormat": {
+    "fields": ["street", "city", "state", "zip", "country"],
+    "required": ["street", "city", "state", "zip"],
+    "separator": ", "
+  }
+}
