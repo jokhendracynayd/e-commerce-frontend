@@ -343,6 +343,7 @@ export default function CheckoutInformationPage() {
                   showSelectionMode={true}
                   showAddNewButton={true}
                   autoSelectFirst={true}
+                  autoOpenAddFormWhenEmpty={true}
                   emptyStateMessage="Please add a delivery address to continue"
                   header={
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
@@ -479,6 +480,7 @@ export default function CheckoutInformationPage() {
                       showSelectionMode={true}
                       showAddNewButton={true}
                       autoSelectFirst={true}
+                      autoOpenAddFormWhenEmpty={true}
                       emptyStateMessage="Please add a billing address"
                       header={
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">

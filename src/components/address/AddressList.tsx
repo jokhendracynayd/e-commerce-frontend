@@ -16,6 +16,7 @@ interface AddressListProps {
   emptyStateMessage?: string;
   onAddressChange?: () => void; // Callback when addresses are added/edited/deleted
   autoSelectFirst?: boolean; // New prop to auto-select first/default address
+  autoOpenAddFormWhenEmpty?: boolean; // Auto-open add form when no addresses exist
 }
 
 const AddressList = ({
@@ -27,6 +28,7 @@ const AddressList = ({
   emptyStateMessage = 'You don\'t have any saved addresses yet.',
   onAddressChange,
   autoSelectFirst = false,
+  autoOpenAddFormWhenEmpty = false,
 }: AddressListProps) => {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,6 +50,12 @@ const AddressList = ({
         const defaultAddress = result.find(addr => addr.isDefault);
         const addressToSelect = defaultAddress || result[0];
         onSelectAddress(addressToSelect);
+      }
+      
+      // Auto-open add form if no addresses exist and the prop is enabled
+      if (autoOpenAddFormWhenEmpty && result.length === 0 && !showAddForm) {
+        setShowAddForm(true);
+        setEditingAddress(null);
       }
     } catch (err) {
       console.error('Error fetching addresses:', err);
@@ -76,12 +84,34 @@ const AddressList = ({
   };
 
   // Handle delete
-  const handleDelete = (addressId: string) => {
-    setAddresses(addresses.filter(addr => addr.id !== addressId));
+  const handleDelete = async (addressId: string) => {
+    try {
+      // Remove from local state immediately for better UX
+      setAddresses(addresses.filter(addr => addr.id !== addressId));
+      
+      // Notify parent component of the change
+      if (onAddressChange) {
+        onAddressChange();
+      }
+      
+      // Refresh the addresses list to ensure consistency
+      await fetchAddresses();
+    } catch (error) {
+      console.error('Error handling address deletion:', error);
+      // Revert the local state change if there was an error
+      await fetchAddresses();
+    }
+  };
+
+  // Handle address change (for set default, etc.)
+  const handleAddressChange = async () => {
     // Notify parent component of the change
     if (onAddressChange) {
       onAddressChange();
     }
+    
+    // Refresh the addresses list to ensure consistency
+    await fetchAddresses();
   };
 
   // Handle save
@@ -95,6 +125,11 @@ const AddressList = ({
     } else {
       // Add new address
       setAddresses([...addresses, address]);
+      
+      // Auto-select the newly added address if in selection mode
+      if (showSelectionMode && onSelectAddress) {
+        onSelectAddress(address);
+      }
     }
     setShowAddForm(false);
     // Notify parent component of the change
@@ -236,6 +271,7 @@ const AddressList = ({
               onEdit={handleEdit}
               onDelete={handleDelete}
               onSelect={showSelectionMode ? handleSelectAddress : undefined}
+              onAddressChange={handleAddressChange}
               isSelected={showSelectionMode && selectedAddressId === address.id}
               isDefault={address.isDefault}
               showActions={!showSelectionMode}

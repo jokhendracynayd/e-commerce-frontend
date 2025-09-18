@@ -8,8 +8,9 @@ import { toast } from 'react-hot-toast';
 interface AddressCardProps {
   address: Address;
   onEdit?: (address: Address) => void;
-  onDelete?: (addressId: string) => void;
+  onDelete?: (addressId: string) => Promise<void>;
   onSelect?: (address: Address) => void;
+  onAddressChange?: () => void; // Callback when address state changes
   isSelected?: boolean;
   isDefault?: boolean;
   showActions?: boolean;
@@ -21,6 +22,7 @@ const AddressCard = ({
   onEdit,
   onDelete,
   onSelect,
+  onAddressChange,
   isSelected = false,
   isDefault = false,
   showActions = true,
@@ -37,6 +39,11 @@ const AddressCard = ({
 
   // Handle delete
   const handleDelete = async () => {
+    if (isDefault) {
+      toast.error('Cannot delete default address. Please set another address as default first.');
+      return;
+    }
+    
     if (window.confirm('Are you sure you want to delete this address?')) {
       setIsLoading(true);
       try {
@@ -44,7 +51,7 @@ const AddressCard = ({
         if (success) {
           toast.success('Address deleted successfully');
           if (onDelete) {
-            onDelete(address.id!);
+            await onDelete(address.id!);
           }
         } else {
           toast.error('Failed to delete address');
@@ -74,6 +81,10 @@ const AddressCard = ({
       const result = await setDefaultAddress(address.id!);
       if (result) {
         toast.success('Address set as default successfully');
+        // Notify parent component to refresh the address list
+        if (onAddressChange) {
+          onAddressChange();
+        }
       } else {
         toast.error('Failed to set address as default');
       }
@@ -162,18 +173,21 @@ const AddressCard = ({
               </svg>
               Edit
             </button>
-            {!isDefault && (
-              <button 
-                onClick={handleDelete}
-                disabled={isLoading}
-                className="flex-1 flex items-center justify-center text-[#d44506] hover:text-[#c13d05] py-1.5 text-sm font-medium border-l border-gray-100 dark:border-gray-700"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Remove
-              </button>
-            )}
+            <button 
+              onClick={handleDelete}
+              disabled={isLoading || isDefault}
+              className={`flex-1 flex items-center justify-center py-1.5 text-sm font-medium border-l border-gray-100 dark:border-gray-700 ${
+                isDefault 
+                  ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed' 
+                  : 'text-[#d44506] hover:text-[#c13d05]'
+              }`}
+              title={isDefault ? 'Cannot delete default address' : 'Delete address'}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Remove
+            </button>
             {!isDefault && (
               <button 
                 onClick={handleSetDefault}

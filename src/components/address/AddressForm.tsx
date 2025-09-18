@@ -197,6 +197,10 @@ const AddressForm = ({
     'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
   ];
 
+  const bangladeshStates = [
+    'Dhaka', 'Chittagong', 'Rajshahi', 'Rangpur', 'Barisal','Comilla','Sylhet','khulna','Mymensingh'
+  ];
+
   return (
     <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
       <form onSubmit={handleSubmit} className="p-5 sm:p-6">
@@ -341,7 +345,7 @@ const AddressForm = ({
               className={`w-full px-4 py-2 border ${errors.state ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
             >
               <option value="">--Select State--</option>
-              {indianStates.map((stateName) => (
+              {bangladeshStates.map((stateName) => (
                 <option key={stateName} value={stateName}>
                   {stateName}
                 </option>
