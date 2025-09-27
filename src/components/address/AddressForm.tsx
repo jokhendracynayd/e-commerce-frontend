@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCountry } from '@/hooks/useCountry';
 import { toast } from 'react-hot-toast';
@@ -63,6 +63,16 @@ const AddressForm = ({
 
   // Validation
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Auto-focus ref for the name input field
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus on the name input when component mounts
+  useEffect(() => {
+    if (nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
+  }, []);
 
   // Update form data when country changes
   useEffect(() => {
@@ -346,6 +356,7 @@ const AddressForm = ({
           {config.required && <span className="text-red-500 ml-1">*</span>}
         </label>
         <input
+          ref={fieldName === 'name' ? nameInputRef : undefined}
           type={fieldName.includes('phone') ? 'tel' : 'text'}
           id={fieldId}
           value={value}
