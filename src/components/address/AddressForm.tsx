@@ -351,7 +351,7 @@ const AddressForm = ({
 
     return (
       <div key={fieldName} className="sm:col-span-1">
-        <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label htmlFor={fieldId} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
           {config.label}
           {config.required && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -390,17 +390,17 @@ const AddressForm = ({
           }}
           placeholder={config.placeholder}
           required={config.required}
-          className={`w-full px-4 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
+          className={`w-full px-3 py-2 text-sm border ${hasError ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : 'border-gray-200 dark:border-gray-600 focus:ring-1 focus:ring-[#ed875a]/30 focus:border-[#ed875a]'} rounded-md dark:bg-gray-700 dark:text-white transition-all duration-200`}
           maxLength={fieldName.includes('phone') ? 
             (currentCountry === 'BD' ? 8 : currentCountry === 'GB' ? 11 : 10) 
             : undefined}
         />
-        {config.helpText && (
+        {/* {config.helpText && (
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {config.helpText}
           </div>
-        )}
-        {hasError && <p className="mt-1 text-sm text-red-500">{hasError}</p>}
+        )} */}
+        {hasError && <p className="mt-1 text-xs text-red-500">{hasError}</p>}
       </div>
     );
   };
@@ -421,7 +421,7 @@ const AddressForm = ({
         case 'street':
           return (
             <div key={fieldName} className="sm:col-span-2">
-              <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor={fieldId} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                 {config.label}
                 {config.required && <span className="text-red-500 ml-1">*</span>}
               </label>
@@ -429,24 +429,24 @@ const AddressForm = ({
                 id={fieldId}
                 value={formData.street}
                 onChange={(e) => updateFormData('street', e.target.value)}
-                rows={3}
+                rows={2}
                 placeholder={config.placeholder}
                 required={config.required}
-                className={`w-full px-4 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
+                className={`w-full px-3 py-2 text-sm border ${hasError ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : 'border-gray-200 dark:border-gray-600 focus:ring-1 focus:ring-[#ed875a]/30 focus:border-[#ed875a]'} rounded-md dark:bg-gray-700 dark:text-white transition-all duration-200 resize-none`}
               />
-              {config.helpText && (
+              {/* {config.helpText && (
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {config.helpText}
                 </div>
-              )}
-              {hasError && <p className="mt-1 text-sm text-red-500">{hasError}</p>}
+              )} */}
+              {hasError && <p className="mt-1 text-xs text-red-500">{hasError}</p>}
             </div>
           );
           
         case 'area':
           return (
             <div key={fieldName} className="sm:col-span-1">
-              <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor={fieldId} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                 {config.label}
                 {config.required && <span className="text-red-500 ml-1">*</span>}
               </label>
@@ -457,21 +457,21 @@ const AddressForm = ({
                 onChange={(e) => setArea(e.target.value)}
                 placeholder={config.placeholder}
                 required={config.required}
-                className={`w-full px-4 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
+                className={`w-full px-3 py-2 text-sm border ${hasError ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : 'border-gray-200 dark:border-gray-600 focus:ring-1 focus:ring-[#ed875a]/30 focus:border-[#ed875a]'} rounded-md dark:bg-gray-700 dark:text-white transition-all duration-200`}
               />
-              {config.helpText && (
+              {/* {config.helpText && (
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {config.helpText}
                 </div>
-              )}
-              {hasError && <p className="mt-1 text-sm text-red-500">{hasError}</p>}
+              )} */}
+              {hasError && <p className="mt-1 text-xs text-red-500">{hasError}</p>}
             </div>
           );
           
         case 'city':
           return (
             <div key={fieldName} className="sm:col-span-1">
-              <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor={fieldId} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                 {config.label}
                 {config.required && <span className="text-red-500 ml-1">*</span>}
               </label>
@@ -482,14 +482,14 @@ const AddressForm = ({
                 onChange={(e) => updateFormData('city', e.target.value)}
                 placeholder={config.placeholder}
                 required={config.required}
-                className={`w-full px-4 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
+                className={`w-full px-3 py-2 text-sm border ${hasError ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : 'border-gray-200 dark:border-gray-600 focus:ring-1 focus:ring-[#ed875a]/30 focus:border-[#ed875a]'} rounded-md dark:bg-gray-700 dark:text-white transition-all duration-200`}
               />
-              {config.helpText && (
+              {/* {config.helpText && (
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {config.helpText}
                 </div>
-              )}
-              {hasError && <p className="mt-1 text-sm text-red-500">{hasError}</p>}
+              )} */}
+              {hasError && <p className="mt-1 text-xs text-red-500">{hasError}</p>}
             </div>
           );
           
@@ -498,7 +498,7 @@ const AddressForm = ({
         case 'county':
           return (
             <div key={fieldName} className="sm:col-span-1">
-              <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor={fieldId} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                 {config.label}
                 {config.required && <span className="text-red-500 ml-1">*</span>}
               </label>
@@ -507,7 +507,7 @@ const AddressForm = ({
                 value={stateProvince}
                 onChange={(e) => setStateProvince(e.target.value)}
                 required={config.required}
-                className={`w-full px-4 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
+                className={`w-full px-3 py-2 text-sm border ${hasError ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : 'border-gray-200 dark:border-gray-600 focus:ring-1 focus:ring-[#ed875a]/30 focus:border-[#ed875a]'} rounded-md dark:bg-gray-700 dark:text-white transition-all duration-200`}
               >
                 <option value="">--Select {config.label}--</option>
                 {statesProvinces.map((state) => (
@@ -516,12 +516,12 @@ const AddressForm = ({
                   </option>
                 ))}
               </select>
-              {config.helpText && (
+              {/* {config.helpText && (
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {config.helpText}
                 </div>
-              )}
-              {hasError && <p className="mt-1 text-sm text-red-500">{hasError}</p>}
+              )} */}
+              {hasError && <p className="mt-1 text-xs text-red-500">{hasError}</p>}
             </div>
           );
           
@@ -530,7 +530,7 @@ const AddressForm = ({
         case 'postcode':
           return (
             <div key={fieldName} className="sm:col-span-1">
-              <label htmlFor={fieldId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor={fieldId} className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                 {config.label}
                 {config.required && <span className="text-red-500 ml-1">*</span>}
               </label>
@@ -544,15 +544,15 @@ const AddressForm = ({
                 }}
                 placeholder={config.placeholder}
                 required={config.required}
-                className={`w-full px-4 py-2 border ${hasError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white`}
+                className={`w-full px-3 py-2 text-sm border ${hasError ? 'border-red-400 focus:ring-red-200 focus:border-red-400' : 'border-gray-200 dark:border-gray-600 focus:ring-1 focus:ring-[#ed875a]/30 focus:border-[#ed875a]'} rounded-md dark:bg-gray-700 dark:text-white transition-all duration-200`}
                 maxLength={currentCountry === 'US' ? 10 : currentCountry === 'BD' ? 4 : 6}
               />
-              {config.helpText && (
+              {/* {config.helpText && (
                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {config.helpText}
                 </div>
-              )}
-              {hasError && <p className="mt-1 text-sm text-red-500">{hasError}</p>}
+              )} */}
+              {hasError && <p className="mt-1 text-xs text-red-500">{hasError}</p>}
             </div>
           );
           
@@ -563,35 +563,18 @@ const AddressForm = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
-      <form onSubmit={handleSubmit} className="p-5 sm:p-6">
-        {/* Country Selector */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Country
-          </label>
-          <select
-            value={currentCountry}
-            onChange={(e) => setCountry(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-[#ed875a] focus:border-[#ed875a] dark:bg-gray-700 dark:text-white"
-          >
-            <option value="US">United States</option>
-            <option value="IN">India</option>
-            <option value="GB">United Kingdom</option>
-            <option value="BD">Bangladesh</option>
-          </select>
-        </div>
-
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+      <form onSubmit={handleSubmit} className="p-4 sm:p-5">
         {/* Location Button */}
         <button 
           type="button" 
           onClick={handleUseCurrentLocation}
           disabled={isLoading}
-          className="mb-6 flex items-center text-sm sm:text-base text-[#ed875a] dark:text-[#ed8c61] font-medium hover:text-[#d44506] transition-colors"
+          className="w-full mb-3 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 flex items-center justify-center"
         >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
-            className="h-5 w-5 mr-2" 
+            className="h-4 w-4 mr-2" 
             fill="none" 
             viewBox="0 0 24 24" 
             stroke="currentColor"
@@ -609,10 +592,27 @@ const AddressForm = ({
               d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" 
             />
           </svg>
-          {isLoading ? 'Detecting location...' : 'Use my current location'}
+          {isLoading ? 'Detecting...' : 'Use my current location'}
         </button>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        {/* Country Selector */}
+        <div className="mb-3">
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+            Country
+          </label>
+          <select
+            value={currentCountry}
+            onChange={(e) => setCountry(e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded-md focus:ring-1 focus:ring-[#ed875a]/30 focus:border-[#ed875a] dark:bg-gray-700 dark:text-white transition-colors duration-200"
+          >
+            <option value="US">United States</option>
+            <option value="IN">India</option>
+            <option value="GB">United Kingdom</option>
+            <option value="BD">Bangladesh</option>
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
           {/* Common Fields */}
           {renderField('name')}
           {renderField('phone')}
@@ -625,62 +625,74 @@ const AddressForm = ({
           {renderField('landmark')}
         </div>
 
-        {/* Address Type */}
-        <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-            {getFieldLabel('address_type')}
-          </label>
-          <div className="flex items-center space-x-6">
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                className="form-radio h-4 w-4 text-[#ed875a] focus:ring-[#ed875a]"
-                name="addressType"
-                value="Home"
-                checked={formData.address_type === 'Home'}
-                onChange={() => updateFormData('address_type', 'Home')}
-              />
-              <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Home</span>
+        {/* Address Type and Default */}
+        <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          {/* Address Type */}
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+              {getFieldLabel('address_type')}
             </label>
-            <label className="inline-flex items-center">
+            <div className="flex items-center space-x-3">
+              <label className="inline-flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  className="h-3.5 w-3.5 text-[#ed875a] focus:ring-1 focus:ring-[#ed875a]/30 border-gray-300 dark:border-gray-600"
+                  name="addressType"
+                  value="Home"
+                  checked={formData.address_type === 'Home'}
+                  onChange={() => updateFormData('address_type', 'Home')}
+                />
+                <span className="ml-1.5 text-xs text-gray-700 dark:text-gray-300">Home</span>
+              </label>
+              <label className="inline-flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  className="h-3.5 w-3.5 text-[#ed875a] focus:ring-1 focus:ring-[#ed875a]/30 border-gray-300 dark:border-gray-600"
+                  name="addressType"
+                  value="Work"
+                  checked={formData.address_type === 'Work'}
+                  onChange={() => updateFormData('address_type', 'Work')}
+                />
+                <span className="ml-1.5 text-xs text-gray-700 dark:text-gray-300">Work</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Default Address Checkbox */}
+          <div className="flex-shrink-0">
+            <label className="inline-flex items-center cursor-pointer">
               <input
-                type="radio"
-                className="form-radio h-4 w-4 text-[#ed875a] focus:ring-[#ed875a]"
-                name="addressType"
-                value="Work"
-                checked={formData.address_type === 'Work'}
-                onChange={() => updateFormData('address_type', 'Work')}
+                type="checkbox"
+                className="h-3.5 w-3.5 text-[#ed875a] focus:ring-1 focus:ring-[#ed875a]/30 border-gray-300 dark:border-gray-600 rounded"
+                checked={formData.set_as_default === 'true'}
+                onChange={(e) => updateFormData('set_as_default', e.target.checked ? 'true' : 'false')}
               />
-              <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Work</span>
+              <span className="ml-1.5 text-xs text-gray-700 dark:text-gray-300">
+                {getFieldLabel('set_as_default')}
+              </span>
             </label>
           </div>
         </div>
 
-        {/* Default Address Checkbox */}
-        <div className="mt-6">
-          <label className="inline-flex items-center">
-            <input
-              type="checkbox"
-              className="form-checkbox h-4 w-4 text-[#ed875a] focus:ring-[#ed875a]"
-              checked={formData.set_as_default === 'true'}
-              onChange={(e) => updateFormData('set_as_default', e.target.checked ? 'true' : 'false')}
-            />
-            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-              {getFieldLabel('set_as_default')}
-            </span>
-          </label>
-        </div>
-
         {/* Buttons */}
-        <div className="mt-8 flex flex-col sm:flex-row sm:justify-between">
+        <div className="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
+          {showCancelButton && (
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="w-full sm:w-auto px-4 py-2 text-sm border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md font-medium transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500"
+            >
+              Cancel
+            </button>
+          )}
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full sm:w-auto bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white py-2 px-6 rounded-md font-medium transition-all duration-300 hover:shadow-lg hover:shadow-[#ed875a]/20 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:shadow-none mb-4 sm:mb-0"
+            className="w-full sm:w-auto bg-gradient-to-r from-[#ed875a] to-[#ed8c61] text-white py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 hover:from-[#d44506] hover:to-[#ed875a] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
-                <svg className="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-3.5 w-3.5 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
@@ -690,16 +702,6 @@ const AddressForm = ({
               buttonText
             )}
           </button>
-          
-          {showCancelButton && (
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="w-full sm:w-auto border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2 px-6 rounded-md font-medium transition-all hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              CANCEL
-            </button>
-          )}
         </div>
       </form>
     </div>
